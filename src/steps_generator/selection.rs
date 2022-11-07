@@ -22,7 +22,7 @@ impl Selection {
 		}
 	}
 
-    pub fn from_json(json: serde_json::Value) -> Result<Self, StepError> {
+    pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
         let anchor = json.get("anchor")
             .ok_or(StepError("Selection json should contain 'anchor' field".to_string()))?;
         let anchor = SubSelection::from_json(anchor)?;

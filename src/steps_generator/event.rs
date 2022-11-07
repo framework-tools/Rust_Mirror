@@ -8,7 +8,7 @@ pub enum Event {
 }
 
 impl Event {
-    pub fn from_json(json: serde_json::Value) -> Result<Self, StepError> {
+    pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
         let event = json.get("event")
             .ok_or(StepError("Expected 'event' field".to_string()))?
             .as_array();
