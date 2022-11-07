@@ -1,7 +1,11 @@
 [package]
-name = "content_editor_backend"
+name = "rust_mirror"
 version = "0.1.0"
 edition = "2021"
+
+[lib]
+name = "rust_mirror"
+path = "src/lib.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
