@@ -1,14 +1,15 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{str::FromStr};
 
 use mongodb::bson::oid::ObjectId;
 
 use crate::blocks::{Block, BlockMap};
 
 use super::StepError;
+use serde::{Deserialize, Serialize};
 
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Selection {
 	pub anchor: SubSelection,
 	pub head: SubSelection
@@ -21,19 +22,6 @@ impl Selection {
 			head
 		}
 	}
-
-    pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
-        let anchor = json.get("anchor")
-            .ok_or(StepError("Selection json should contain 'anchor' field".to_string()))?;
-        let anchor = SubSelection::from_json(anchor)?;
-        let head = json.get("head")
-            .ok_or(StepError("Selection json should contain 'head' field".to_string()))?;
-        let head = SubSelection::from_json(head)?;
-        return Ok(Self {
-            anchor,
-            head,
-        })
-    }
 
 	pub fn get_from_to(self, block_map: &BlockMap) -> Result<(SubSelection, SubSelection), StepError> {
 		match self.anchor.block_id == self.head.block_id {
@@ -102,7 +90,7 @@ impl Selection {
 	}
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct SubSelection {
 	pub block_id: ObjectId,
 	pub offset: usize,
@@ -117,34 +105,5 @@ impl SubSelection {
 			subselection
 		}
 	}
-
-    pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
-        let block_id = json.get("block_id")
-            .ok_or(StepError("Subselection json should contain 'block id' field".to_string()))?
-            .as_str().ok_or(StepError("Block id value should be able to be passed as str".to_string()))?;
-        let block_id = ObjectId::from_str(block_id);
-        let block_id = match block_id {
-            Ok(block_id) => block_id,
-            Err(_) => return Err(StepError("Block id should be an object id".to_string()))
-        };
-        let offset = json.get("offset")
-            .ok_or(StepError("Subselection json should contain 'offset' field".to_string()))?
-            .as_u64().ok_or(StepError("Offset value should be able to be passed as u64".to_string()))? as usize;
-
-        let subselection = json.get("subselection")
-            .ok_or(StepError("Subselection json should contain 'subselection' field".to_string()))?;
-        match subselection.as_null() {
-            Some(_) => return Ok(Self {
-                block_id,
-                offset,
-                subselection: None,
-            }),
-            None => return Ok(Self {
-                block_id,
-                offset,
-                subselection: Some(Box::new(Self::from_json(subselection)?)),
-            })
-        }
-    }
 }
 

@@ -25,7 +25,10 @@ pub fn execute_event(json: String) -> Result<String, StepError> {
     };
 
     let event = Event::from_json(event_json)?;
-    let selection = Selection::from_json(selection_json)?;
+    let selection: Selection = match serde_json::from_str(&selection_json.to_string()) {
+        Ok(selection) => selection,
+        Err(_) => return Err(StepError("Selection json could not be parsed".to_string()))
+    };
 
     return Ok("it worked".to_string())
 }
