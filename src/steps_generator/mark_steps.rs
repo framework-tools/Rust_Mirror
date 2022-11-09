@@ -10,18 +10,18 @@ pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, blo
         if from_block.is_ok() {
             let from_block = from_block.unwrap();
             let parent_block = block_map.get_standard_block(&from_block.parent)?;
-            let from_block_index = parent_block.index_of(from.block_id)?;
-            let to_block_index = parent_block.index_of(to.block_id)?;
+            let from_block_index = parent_block.index_of(&from.block_id)?;
+            let to_block_index = parent_block.index_of(&to.block_id)?;
             if parent_block.all_blocks_have_identical_mark(&mark, from_block_index, to_block_index, block_map)? {
                 return Ok(vec![Step::RemoveMarkStep(MarkStep {
-                    block_id: parent_block._id,
+                    block_id: parent_block.id(),
                     from,
                     to,
                     mark
                 })])
             } else {
                 return Ok(vec![Step::AddMarkStep(MarkStep {
-                    block_id: parent_block._id,
+                    block_id: parent_block.id(),
                     from,
                     to,
                     mark
@@ -31,14 +31,14 @@ pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, blo
             let parent_block = block_map.get_block(&from.block_id)?;
             if all_standard_blocks_have_identical_mark(&parent_block, &mark, block_map, from.offset, to.offset)? {
                 return Ok(vec![Step::RemoveMarkStep(MarkStep {
-                    block_id: from.block_id,
+                    block_id: from.block_id(),
                     from,
                     to,
                     mark
                 })])
             } else {
                 return Ok(vec![Step::AddMarkStep(MarkStep {
-                    block_id: from.block_id,
+                    block_id: from.block_id(),
                     from,
                     to,
                     mark
@@ -105,8 +105,8 @@ fn all_standard_blocks_have_identical_mark(parent: &Block, mark: &Mark, block_ma
 //         return Ok(false)
 //     }
 //     let parent_block = block_map.get_block(&from_block.parent)?;
-//     let mut i = parent_block.index_of_child(from_block._id)?;
-//     while i < parent_block.index_of_child(to_block._id)? {
+//     let mut i = parent_block.index_of_child(from_block.id())?;
+//     while i < parent_block.index_of_child(to_block.id())? {
 //         let block = block_map.get_standard_block(&parent_block.get_child_from_index(i)?)?;
 //         if !block.all_blocks_have_identical_mark(&mark, 0, block.inline_blocks_length()? - 1, block_map)? {
 //             return Ok(false)

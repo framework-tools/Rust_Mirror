@@ -1,31 +1,33 @@
 #[cfg(test)]
 mod tests {
     use rust_mirror::{blocks::{BlockMap, RootBlock}, steps_generator::{event::{Event, FormatBarEvent},
-    selection::{SubSelection, Selection}, generate_steps, StepError}, step::Step, mark::{Mark, Color}};
-    use mongodb::bson::oid::ObjectId;
+    selection::{SubSelection, Selection}, generate_steps, StepError}, step::Step, mark::{Mark, Color}, new_ids::NewIds};
+
     use serde_json::json;
 
     #[test]
     fn can_apply_mark_simple_selection_within_one_inline() -> Result<(), StepError> {
-        let root_block_id = ObjectId::new();
-        let paragraph_block_id = ObjectId::new();
-        let inline_block_id = ObjectId::new();
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id()?;
+        let paragraph_block_id = new_ids.get_id()?;
+        let inline_block_id = new_ids.get_id()?;
         let inline_block = json!({
-            "_id": inline_block_id.to_string(),
+            "_id": inline_block_id.clone(),
             "kind": "inline",
             "_type": "text",
             "content": {
                 "text": "Hello World"
             },
             "marks": [],
-            "parent": paragraph_block_id.to_string()
+            "parent": paragraph_block_id.clone()
         });
         let block = json!({
-            "_id": paragraph_block_id.to_string(),
+            "_id": paragraph_block_id.clone(),
             "kind": "standard",
             "_type": "paragraph",
             "content": {
-                "inline_blocks": [inline_block_id.to_string()]
+                "inline_blocks": [inline_block_id.clone()]
             },
             "children": [],
             "marks": [],
@@ -35,11 +37,11 @@ mod tests {
 
         let block_map = BlockMap::from(vec![inline_block, block, root_block]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::Bold);
-        let sub_selection_anchor = SubSelection::from(inline_block_id, 6, None);
-        let sub_selection_head = SubSelection::from(inline_block_id, 11, None);
+        let sub_selection_anchor = SubSelection::from(inline_block_id.clone(), 6, None);
+        let sub_selection_head = SubSelection::from(inline_block_id.clone(), 11, None);
         let selection = Selection::from(sub_selection_anchor.clone(), sub_selection_head.clone());
 
-        let steps = generate_steps(&event, &block_map, selection).unwrap();
+        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
 
         assert_eq!(steps.len(), 1);
         match &steps[0] {
@@ -56,42 +58,44 @@ mod tests {
 
     #[test]
     fn can_remove_mark_selection_across_multiple_inline_blocks() -> Result<(), StepError> {
-        let root_block_id = ObjectId::new();
-        let paragraph_block_id = ObjectId::new();
-        let inline_block_id1 = ObjectId::new();
-        let inline_block_id2 = ObjectId::new();
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id()?;
+        let paragraph_block_id = new_ids.get_id()?;
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block_id2 = new_ids.get_id()?;
         let inline_block1 = json!({
-            "_id": inline_block_id1.to_string(),
+            "_id": inline_block_id1.clone(),
             "kind": "inline",
             "_type": "text",
             "content": {
                 "text": "Hello "
             },
             "marks": ["italic"],
-            "parent": paragraph_block_id.to_string()
+            "parent": paragraph_block_id.clone()
         });
         let inline_block2 = json!({
-            "_id": inline_block_id2.to_string(),
+            "_id": inline_block_id2.clone(),
             "kind": "inline",
             "_type": "text",
             "content": {
                 "text": "World"
             },
             "marks": ["bold", "italic"],
-            "parent": paragraph_block_id.to_string()
+            "parent": paragraph_block_id.clone()
         });
         let block = json!({
-            "_id": paragraph_block_id.to_string(),
+            "_id": paragraph_block_id.clone(),
             "kind": "standard",
             "_type": "paragraph",
             "content": {
-                "inline_blocks": [inline_block_id1.to_string(), inline_block_id2.to_string()]
+                "inline_blocks": [inline_block_id1.clone(), inline_block_id2.clone()]
             },
             "children": [],
             "marks": [],
             "parent": root_block_id.to_string()
         });
-        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id]);
+        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id.clone()]);
 
         let block_map = BlockMap::from(vec![inline_block1, inline_block2, block, root_block]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::Italic);
@@ -99,7 +103,7 @@ mod tests {
         let sub_selection_head = SubSelection::from(inline_block_id2, 3, None);
         let selection = Selection::from(sub_selection_anchor.clone(), sub_selection_head.clone());
 
-        let steps = generate_steps(&event, &block_map, selection).unwrap();
+        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
         assert_eq!(steps.len(), 1);
         match &steps[0] {
             Step::RemoveMarkStep(remove_mark_step) => {
@@ -121,42 +125,44 @@ mod tests {
 
     #[test]
     fn can_apply_color_mark_selection_across_multiple_inline_blocks_with_different_color_already_present() -> Result<(), StepError> {
-        let root_block_id = ObjectId::new();
-        let paragraph_block_id = ObjectId::new();
-        let inline_block_id1 = ObjectId::new();
-        let inline_block_id2 = ObjectId::new();
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id()?;
+        let paragraph_block_id = new_ids.get_id()?;
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block_id2 = new_ids.get_id()?;
         let inline_block1 = json!({
-            "_id": inline_block_id1.to_string(),
+            "_id": inline_block_id1.clone(),
             "kind": "inline",
             "_type": "text",
             "content": {
                 "text": "Hello "
             },
             "marks": ["fore_color(255, 255, 255, 1)"],
-            "parent": paragraph_block_id.to_string()
+            "parent": paragraph_block_id.clone()
         });
         let inline_block2 = json!({
-            "_id": inline_block_id2.to_string(),
+            "_id": inline_block_id2.clone(),
             "kind": "inline",
             "_type": "text",
             "content": {
                 "text": "World"
             },
             "marks": ["bold", "fore_color(255, 255, 0, 1)"],
-            "parent": paragraph_block_id.to_string()
+            "parent": paragraph_block_id.clone()
         });
         let block = json!({
-            "_id": paragraph_block_id.to_string(),
+            "_id": paragraph_block_id.clone(),
             "kind": "standard",
             "_type": "paragraph",
             "content": {
-                "inline_blocks": [inline_block_id1.to_string(), inline_block_id2.to_string()]
+                "inline_blocks": [inline_block_id1.clone(), inline_block_id2.clone()]
             },
             "children": [],
             "marks": [],
             "parent": root_block_id.to_string()
         });
-        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id]);
+        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id.clone()]);
 
         let block_map = BlockMap::from(vec![inline_block1, inline_block2, block, root_block]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::ForeColor(Color(255, 255, 0, 1)));
@@ -164,7 +170,7 @@ mod tests {
         let sub_selection_head = SubSelection::from(inline_block_id2, 3, None);
         let selection = Selection::from(sub_selection_anchor.clone(), sub_selection_head.clone());
 
-        let steps = generate_steps(&event, &block_map, selection).unwrap();
+        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
         assert_eq!(steps.len(), 1);
         match &steps[0] {
             Step::AddMarkStep(add_mark_step) => {
@@ -180,34 +186,36 @@ mod tests {
 
     #[test]
     fn can_apply_mark_with_selection_across_inline_blocks_in_different_standard_blocks() -> Result<(), StepError> {
-        let inline_block_id1 = ObjectId::new();
-        let inline_block_id2 = ObjectId::new();
-        let inline_block_id3 = ObjectId::new();
-        let inline_block_id4 = ObjectId::new();
-        let paragraph_block_id1 = ObjectId::new();
-        let paragraph_block_id2 = ObjectId::new();
-        let paragraph_block_id3 = ObjectId::new();
-        let root_block_id = ObjectId::new();
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block_id2 = new_ids.get_id()?;
+        let inline_block_id3 = new_ids.get_id()?;
+        let inline_block_id4 = new_ids.get_id()?;
+        let paragraph_block_id1 = new_ids.get_id()?;
+        let paragraph_block_id2 = new_ids.get_id()?;
+        let paragraph_block_id3 = new_ids.get_id()?;
+        let root_block_id = new_ids.get_id()?;
 
         let inline_block1 = json!({
-            "_id": inline_block_id1.to_string(),
+            "_id": inline_block_id1.clone(),
             "kind": "inline",
             "_type": "text",
             "content": {
                 "text": "Hello "
             },
             "marks": [],
-            "parent": paragraph_block_id1.to_string()
+            "parent": paragraph_block_id1.clone()
         });
         let inline_block2 = json!({
-            "_id": inline_block_id2.to_string(),
+            "_id": inline_block_id2.clone(),
             "kind": "inline",
             "_type": "text",
             "content": {
                 "text": "World"
             },
             "marks": ["underline"],
-            "parent": paragraph_block_id2.to_string()
+            "parent": paragraph_block_id2.clone()
         });
         let inline_block3 = json!({
             "_id": inline_block_id3.to_string(),
@@ -217,7 +225,7 @@ mod tests {
                 "text": "Goodbye World"
             },
             "marks": [],
-            "parent": paragraph_block_id2.to_string()
+            "parent": paragraph_block_id2.clone()
         });
         let inline_block4 = json!({
             "_id": inline_block_id3.to_string(),
@@ -227,21 +235,21 @@ mod tests {
                 "text": "Goodbye World"
             },
             "marks": [],
-            "parent": paragraph_block_id2.to_string()
+            "parent": paragraph_block_id2.clone()
         });
         let paragraph_block1 = json!({
-            "_id": paragraph_block_id1.to_string(),
+            "_id": paragraph_block_id1.clone(),
             "kind": "standard",
             "_type": "paragraph",
             "content": {
-                "inline_blocks": [inline_block_id1.to_string(), inline_block_id2.to_string()]
+                "inline_blocks": [inline_block_id1.clone(), inline_block_id2.clone()]
             },
             "children": [],
             "marks": [],
             "parent": root_block_id.to_string()
         });
         let paragraph_block2 = json!({
-            "_id": paragraph_block_id2.to_string(),
+            "_id": paragraph_block_id2.clone(),
             "kind": "standard",
             "_type": "paragraph",
             "content": {
@@ -262,7 +270,8 @@ mod tests {
             "marks": [],
             "parent": root_block_id.to_string()
         });
-        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id1, paragraph_block_id2, paragraph_block_id3]);
+        let root_block = RootBlock::json_from(root_block_id.clone(),
+        vec![paragraph_block_id1.clone(), paragraph_block_id2.clone(), paragraph_block_id3.clone()]);
 
         let block_map = BlockMap::from(vec![
             inline_block1, inline_block2, inline_block3, inline_block4,
@@ -284,7 +293,7 @@ mod tests {
         ))));
         let selection = Selection::from(sub_selection_anchor.clone(), sub_selection_head.clone());
 
-        let steps = generate_steps(&event, &block_map, selection)?;
+        let steps = generate_steps(&event, &block_map, selection, &mut new_ids)?;
 
         assert_eq!(steps.len(), 1);
         match &steps[0] {

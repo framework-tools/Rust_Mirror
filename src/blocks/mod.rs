@@ -1,8 +1,6 @@
 
 
 use std::{collections::HashMap, str::FromStr};
-
-use mongodb::bson::oid::ObjectId;
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 
@@ -99,7 +97,7 @@ impl Block {
                 let _type = inline_block_type_json.get("_type").ok_or(StepError("Inline block type does not have _type field".to_string()))?.as_str().ok_or(StepError("Inline block type _type field is not a string".to_string()))?;
                 let block_content = inline_block_type_json.get("content").ok_or(StepError("Inline block type does not have block field".to_string()))?.clone();
                 return Ok(json!({
-                    "_id": block._id.to_string(),
+                    "_id": block.id(),
                     "kind": "inline",
                     "_type": _type,
                     "content": block_content,
@@ -109,7 +107,7 @@ impl Block {
             },
             Block::Root(block) => {
                 return Ok(json!({
-                    "_id": block._id.to_string(),
+                    "_id": block.id(),
                     "kind": "root",
                     "children": block.children.into_iter().map(|children| children.to_string()).collect::<Vec<String>>(),
                 }))
@@ -117,11 +115,11 @@ impl Block {
         }
     }
 
-    pub fn id(&self) -> ObjectId {
+    pub fn id(&self) -> String {
         match self {
-            Block::StandardBlock(block) => block._id,
-            Block::InlineBlock(block) => block._id,
-            Block::Root(block) => block._id
+            Block::StandardBlock(block) => block._id.clone(),
+            Block::InlineBlock(block) => block._id.clone(),
+            Block::Root(block) => block._id.clone()
         }
     }
 
@@ -133,7 +131,7 @@ impl Block {
         }
     }
 
-    pub fn children(&self) -> Result<&Vec<ObjectId>, StepError> {
+    pub fn children(&self) -> Result<&Vec<String>, StepError> {
         match self {
             Block::StandardBlock(block) => Ok(&block.children),
             Block::InlineBlock(_) => Err(StepError("InlineBlock does not have children".to_string())),
@@ -141,7 +139,7 @@ impl Block {
         }
     }
 
-    pub fn update_children(&mut self, children: Vec<ObjectId>) -> Result<(), StepError> {
+    pub fn update_children(&mut self, children: Vec<String>) -> Result<(), StepError> {
         match self {
             Block::StandardBlock(block) => {
                 block.children = children;
@@ -155,15 +153,15 @@ impl Block {
         }
     }
 
-    pub fn index_of_child(&self, id: ObjectId) -> Result<usize, StepError> {
+    pub fn index_of_child(&self, id: &str) -> Result<usize, StepError> {
         match self {
             Block::StandardBlock(block) => block.index_of_child(id),
-            Block::Root(block) => block.index_of_child(&id),
+            Block::Root(block) => block.index_of_child(id),
             Block::InlineBlock(_) => Err(StepError("InlineBlock does not have children".to_string()))
         }
     }
 
-    pub fn get_child_from_index(&self, index: usize) -> Result<ObjectId, StepError> {
+    pub fn get_child_from_index(&self, index: usize) -> Result<String, StepError> {
         match self {
             Block::StandardBlock(block) => block.get_child_from_index(index),
             Block::Root(block) => block.get_child_from_index(index),
@@ -171,7 +169,7 @@ impl Block {
         }
     }
 
-    pub fn new_std_block_json(id: ObjectId, parent_id: ObjectId) -> Value {
+    pub fn new_std_block_json(id: String, parent_id: String) -> Value {
         json!({
             "_id": id.to_string(),
             "kind": "standard",
@@ -185,7 +183,7 @@ impl Block {
         })
     }
 
-    pub fn splice_children(&mut self, from: usize, to: usize, insert: Vec<ObjectId>) -> Result<(), StepError> {
+    pub fn splice_children(&mut self, from: usize, to: usize, insert: Vec<String>) -> Result<(), StepError> {
         match self {
             Block::StandardBlock(block) => block.children.splice(
                 from..to,
@@ -198,22 +196,22 @@ impl Block {
     }
 }
 
-pub fn id_from_json_block(json: &Value) -> Result<ObjectId, StepError> {
+pub fn id_from_json_block(json: &Value) -> Result<String, StepError> {
     let _id = json.get("_id").ok_or(StepError("Block does not have _id field".to_string()))?.as_str().ok_or(StepError("Block _id field is not a string".to_string()))?;
-    ObjectId::from_str(_id).map_err(|_| StepError("Block _id field is not a valid ObjectId".to_string()))
+    String::from_str(_id).map_err(|_| StepError("Block _id field is not a valid String".to_string()))
 }
 
-pub fn children_from_json_block(json: &Value) -> Result<Vec<ObjectId>, StepError> {
+pub fn children_from_json_block(json: &Value) -> Result<Vec<String>, StepError> {
     let children = json.get("children").ok_or(StepError("Block does not have children field".to_string()))?.as_array().ok_or(StepError("Block children field is not an array".to_string()))?;
     children.iter().map(|child| {
         let child_id = child.as_str().ok_or(StepError("Block children field is not an array of strings".to_string()))?;
-        ObjectId::from_str(child_id).map_err(|_| StepError("Block children field is not an array of valid ObjectIds".to_string()))
+        String::from_str(child_id).map_err(|_| StepError("Block children field is not an array of valid Strings".to_string()))
     }).collect()
 }
 
-pub fn parent_from_json_block(json: &Value) -> Result<ObjectId, StepError> {
+pub fn parent_from_json_block(json: &Value) -> Result<String, StepError> {
     let parent = json.get("parent").ok_or(StepError("Block does not have parent field".to_string()))?.as_str().ok_or(StepError("Block parent field is not a string".to_string()))?;
-    ObjectId::from_str(parent).map_err(|_| StepError("Block parent field is not a valid ObjectId".to_string()))
+    String::from_str(parent).map_err(|_| StepError("Block parent field is not a valid String".to_string()))
 }
 
 pub fn marks_from_json_block(json: &Value) -> Result<Vec<Mark>, StepError> {
@@ -226,33 +224,37 @@ pub fn marks_from_json_block(json: &Value) -> Result<Vec<Mark>, StepError> {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct RootBlock {
-    pub _id: ObjectId,
-    pub children: Vec<ObjectId>,
+    pub _id: String,
+    pub children: Vec<String>,
 }
 
 impl RootBlock {
-    pub fn from(_id: ObjectId, children: Vec<ObjectId>) -> Self {
+    pub fn from(_id: String, children: Vec<String>) -> Self {
         Self {
             _id,
             children
         }
     }
 
-    pub fn index_of_child(&self, child_id: &ObjectId) -> Result<usize, StepError> {
+    pub fn id(&self) -> String {
+        return self._id.clone()
+    }
+
+    pub fn index_of_child(&self, child_id: &str) -> Result<usize, StepError> {
         match self.children.iter().position(|id| *id == *child_id) {
             Some(index) => Ok(index),
             None => Err(StepError("Child not found".to_string()))
         }
     }
 
-    pub fn get_child_from_index(&self, index: usize) -> Result<ObjectId, StepError> {
+    pub fn get_child_from_index(&self, index: usize) -> Result<String, StepError> {
         match self.children.get(index) {
-            Some(block_id) => Ok(*block_id),
+            Some(block_id) => Ok(block_id.clone()),
             None => Err(StepError("Block not found".to_string()))
         }
     }
 
-    pub fn json_from(_id: ObjectId, children: Vec<ObjectId>) -> Value {
+    pub fn json_from(_id: String, children: Vec<String>) -> Value {
         json!({
             "_id": _id.to_string(),
             "kind": "root",
@@ -262,8 +264,8 @@ impl RootBlock {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct BlockMap(HashMap<ObjectId, serde_json::Value>);
+//#[derive(Serialize, Deserialize)]
+pub struct BlockMap(HashMap<String, serde_json::Value>);
 
 impl BlockMap {
     pub fn from(blocks: Vec<serde_json::Value>) -> Result<Self, StepError> {
@@ -273,19 +275,19 @@ impl BlockMap {
                 Some(id) => id.as_str().ok_or(StepError("Block _id field is not a string".to_string())),
                 None => Err(StepError("Block does not have _id field".to_string()))
             }?;
-            map.insert(ObjectId::from_str(id).unwrap(), block);
+            map.insert(String::from_str(id).unwrap(), block);
         }
         Ok(Self(map))
     }
 
-    pub fn get_block(&self, id: &ObjectId) -> Result<Block, StepError> {
+    pub fn get_block(&self, id: &String) -> Result<Block, StepError> {
         match self.0.get(id) {
             Some(block) => Block::from_json(block),
             None => Err(StepError(format!("Block with id {} does not exist", id)))
         }
     }
 
-    pub fn get_standard_block(&self, id: &ObjectId) -> Result<StandardBlock, StepError> {
+    pub fn get_standard_block(&self, id: &String) -> Result<StandardBlock, StepError> {
         let block = self.get_block(id)?;
         match block {
             Block::StandardBlock(block) => Ok(block),
@@ -294,7 +296,7 @@ impl BlockMap {
         }
     }
 
-    pub fn get_inline_block(&self, id: &ObjectId) -> Result<InlineBlock, StepError> {
+    pub fn get_inline_block(&self, id: &String) -> Result<InlineBlock, StepError> {
         let block = self.get_block(id)?;
         match block {
             Block::StandardBlock(_) => Err(StepError(format!("Block with id {} is a standard block, not an inline block", id))),
@@ -303,7 +305,7 @@ impl BlockMap {
         }
     }
 
-    pub fn get_root_block(&self, id: &ObjectId) -> Result<RootBlock, StepError> {
+    pub fn get_root_block(&self, id: &String) -> Result<RootBlock, StepError> {
         let block = self.get_block(id)?;
         match block {
             Block::StandardBlock(_) => Err(StepError(format!("Block with id {} is a standard block, not a root block", id))),
@@ -312,11 +314,11 @@ impl BlockMap {
         }
     }
 
-    pub fn ids_to_blocks(&self, ids: &Vec<ObjectId>) -> Result<Vec<Block>, StepError> {
+    pub fn ids_to_blocks(&self, ids: &Vec<String>) -> Result<Vec<Block>, StepError> {
         ids.iter().map(|id| self.get_block(id)).collect()
     }
 
-    pub fn get_nearest_ancestor_standard_block_incl_self(&self, id: &ObjectId) -> Result<StandardBlock, StepError> {
+    pub fn get_nearest_ancestor_standard_block_incl_self(&self, id: &String) -> Result<StandardBlock, StepError> {
         let from_block = self.get_block(id)?;
         return match from_block {
             Block::StandardBlock(block) => Ok(block),
@@ -331,20 +333,20 @@ impl BlockMap {
         }
     }
 
-    pub fn update_block(&mut self, block: Block) -> Result<Option<ObjectId>, StepError> {
+    pub fn update_block(&mut self, block: Block) -> Result<Option<String>, StepError> {
         let id = block.id();
         let json = block.to_json()?;
         let returned_id_as_json = self.0.insert(id, json);
         match returned_id_as_json {
             Some(id_as_json) => {
                 let id_as_string = id_as_json.get("_id").ok_or(StepError("Block does not have _id field".to_string()))?.as_str().ok_or(StepError("Block _id field is not a string".to_string()))?;
-                Ok(Some(ObjectId::from_str(id_as_string).unwrap()))
+                Ok(Some(String::from_str(id_as_string).unwrap()))
             },
             None => Ok(None)
         }
     }
 
-    pub fn remove_block(&mut self, id: &ObjectId) -> Result<Option<Block>, StepError> {
+    pub fn remove_block(&mut self, id: &String) -> Result<Option<Block>, StepError> {
         let returned_block_as_json = self.0.remove(id);
         match returned_block_as_json {
             Some(block_as_json) => {

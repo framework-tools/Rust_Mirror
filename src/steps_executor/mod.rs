@@ -2,6 +2,7 @@ use crate::blocks::Block;
 use crate::blocks::inline_blocks::InlineBlockType;
 use crate::blocks::standard_blocks::StandardBlock;
 use crate::mark::Mark;
+use crate::new_ids::NewIds;
 use crate::steps_generator::selection::{SubSelection};
 use crate::{step::Step, blocks::BlockMap, steps_generator::StepError};
 
@@ -11,12 +12,12 @@ pub mod execute_mark_step;
 use crate::steps_executor::execute_replace_step::execute_replace_step;
 use crate::steps_executor::execute_mark_step::execute_mark_step;
 
-pub fn execute_steps(steps: Vec<Step>, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
+pub fn execute_steps(steps: Vec<Step>, mut block_map: BlockMap, new_ids: &mut NewIds) -> Result<BlockMap, StepError> {
     for step in steps {
         block_map = match step {
             Step::ReplaceStep(replace_step) => execute_replace_step(replace_step, block_map)?,
-            Step::AddMarkStep(mark_step) => execute_mark_step(mark_step, block_map, true)?,
-            Step::RemoveMarkStep(mark_step) => execute_mark_step(mark_step, block_map, false)?
+            Step::AddMarkStep(mark_step) => execute_mark_step(mark_step, block_map, true, new_ids)?,
+            Step::RemoveMarkStep(mark_step) => execute_mark_step(mark_step, block_map, false, new_ids)?
         };
     }
     return Ok(block_map)
@@ -24,7 +25,7 @@ pub fn execute_steps(steps: Vec<Step>, mut block_map: BlockMap) -> Result<BlockM
 
 pub fn clean_block_after_transform(block: &StandardBlock, block_map: BlockMap) -> Result<BlockMap, StepError> {
     let block_map = merge_inline_blocks_with_identical_marks(block, block_map)?;
-    let block = block_map.get_standard_block(&block._id)?; // need to get newly updated block
+    let block = block_map.get_standard_block(&block.id())?; // need to get newly updated block
     let block_map = remove_empty_inline_blocks(&block, block_map)?;
     return Ok(block_map)
 }

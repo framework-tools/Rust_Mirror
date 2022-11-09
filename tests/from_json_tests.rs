@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
-    use mongodb::bson::oid::ObjectId;
+
     use rust_mirror::steps_generator::selection::{Selection, SubSelection};
     use serde_json::json;
 
@@ -26,7 +26,7 @@ mod tests {
 
         let selection: Selection = serde_json::from_str(json).unwrap();
         let id_as_str = "6367242bd94bdaae59511ccd";
-        let id: ObjectId = ObjectId::from_str(id_as_str).unwrap();
+        let id: String = String::from_str(id_as_str).unwrap();
         assert_eq!(
             selection,
             Selection {

@@ -1,5 +1,5 @@
 
-use crate::{blocks::{BlockMap}, step::Step, mark::Mark};
+use crate::{blocks::{BlockMap}, step::Step, mark::Mark, new_ids::NewIds};
 
 use self::{standard_key::generate_step_for_standard_key, backspace::generate_steps_for_backspace, enter::generate_steps_for_enter, };
 
@@ -9,7 +9,13 @@ pub mod standard_key;
 pub mod backspace;
 pub mod enter;
 
-pub fn generate_keyboard_event_steps(key_press: &KeyPress, block_map: &BlockMap, from: SubSelection, to: SubSelection) -> Result<Vec<Step>, StepError> {
+pub fn generate_keyboard_event_steps(
+    key_press: &KeyPress,
+    block_map: &BlockMap,
+    from: SubSelection,
+    to: SubSelection,
+    new_ids: &mut NewIds
+) -> Result<Vec<Step>, StepError> {
     return match key_press.key {
         //Shortcuts
         Key::Standard('b') | Key::Standard('B') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
@@ -21,7 +27,7 @@ pub fn generate_keyboard_event_steps(key_press: &KeyPress, block_map: &BlockMap,
         //standard press
         Key::Standard(key) => generate_step_for_standard_key(key, block_map, from, to),
         Key::Backspace => generate_steps_for_backspace(block_map, from, to),
-        Key::Enter => generate_steps_for_enter(block_map, from, to),
+        Key::Enter => generate_steps_for_enter(block_map, from, to, new_ids),
         _ => unimplemented!(),
     }
 }

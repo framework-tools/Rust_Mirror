@@ -15,14 +15,14 @@ pub fn execute_event(json: String, selection_json: String, block_map_json: Strin
     };
 
     let event = Event::from_json(event_json)?;
-    let selection: Selection = match serde_json::from_str(&selection_json) {
-        Ok(selection) => selection,
-        Err(_) => return Err(StepError("Selection json could not be parsed".to_string()))
-    };
-    let block_map: BlockMap = match serde_json::from_str(&block_map_json) {
-        Ok(block_map) => block_map,
-        Err(_) => return Err(StepError("Block Map json could not be parsed".to_string()))
-    };
+    // let selection: Selection = match serde_json::from_str(&selection_json) {
+    //     Ok(selection) => selection,
+    //     Err(_) => return Err(StepError("Selection json could not be parsed".to_string()))
+    // };
+    // let block_map: BlockMap = match serde_json::from_str(&block_map_json) {
+    //     Ok(block_map) => block_map,
+    //     Err(_) => return Err(StepError("Block Map json could not be parsed".to_string()))
+    // };
 
     return Ok("it worked".to_string())
 }

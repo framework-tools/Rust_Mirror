@@ -1,6 +1,6 @@
 use std::{str::FromStr};
 
-use mongodb::bson::oid::ObjectId;
+
 
 use crate::blocks::{Block, BlockMap};
 
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq)]
 pub struct Selection {
 	pub anchor: SubSelection,
 	pub head: SubSelection
@@ -44,8 +44,8 @@ impl Selection {
 										match parent {
 											Block::StandardBlock(parent) => {
 												let content_block = parent.content_block()?;
-												let anchor_index = content_block.index_of(self.anchor.block_id)?;
-												let head_index = content_block.index_of(self.head.block_id)?;
+												let anchor_index = content_block.index_of(&self.anchor.block_id)?;
+												let head_index = content_block.index_of(&self.head.block_id)?;
 												match anchor_index < head_index {
 													true => Ok((self.anchor, self.head)),
 													false => Ok((self.head, self.anchor))
@@ -65,8 +65,8 @@ impl Selection {
                         let parent = block_map.get_block(&std_block.parent)?;
                         match &parent {
                             Block::StandardBlock(parent) => {
-                                let anchor_index = parent.index_of_child(self.anchor.block_id)?;
-                                let head_index = parent.index_of_child(self.head.block_id)?;
+                                let anchor_index = parent.index_of_child(&self.anchor.block_id)?;
+                                let head_index = parent.index_of_child(&self.head.block_id)?;
                                 match anchor_index < head_index {
                                     true => Ok((self.anchor, self.head)),
                                     false => Ok((self.head, self.anchor))
@@ -90,20 +90,24 @@ impl Selection {
 	}
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct SubSelection {
-	pub block_id: ObjectId,
+	pub block_id: String,
 	pub offset: usize,
 	pub subselection: Option<Box<SubSelection>>
 }
 
 impl SubSelection {
-	pub fn from(block_id: ObjectId, offset: usize, subselection: Option<Box<SubSelection>>) -> Self {
+	pub fn from(block_id: String, offset: usize, subselection: Option<Box<SubSelection>>) -> Self {
 		Self {
 			block_id,
 			offset,
 			subselection
 		}
 	}
+
+    pub fn block_id(&self) -> String {
+        return self.block_id.clone()
+    }
 }
 

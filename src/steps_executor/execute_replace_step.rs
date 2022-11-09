@@ -1,4 +1,4 @@
-use mongodb::bson::oid::ObjectId;
+
 
 use crate::{step::ReplaceStep, blocks::{BlockMap, Block}, steps_generator::StepError};
 
@@ -62,7 +62,7 @@ pub fn execute_replace_step(replace_step: ReplaceStep, mut block_map: BlockMap) 
     return Ok(block_map)
 }
 
-// fn execute_replace_on_blocks_children(mut block: Block, from_index: usize, to_index: usize, slice: Vec<ObjectId>) -> Result<Block, StepError> {
+// fn execute_replace_on_blocks_children(mut block: Block, from_index: usize, to_index: usize, slice: Vec<String>) -> Result<Block, StepError> {
 //     block.splice_children(from_index, to_index, slice)?;
 //     return Ok(block)
 // }

@@ -1,8 +1,8 @@
 
-use mongodb::bson::oid::ObjectId;
+
 use serde_json::json;
 
-use crate::{mark::Mark, steps_generator::StepError};
+use crate::{mark::Mark, steps_generator::StepError, new_ids::{self, NewIds}};
 
 use self::text_block::TextBlock;
 
@@ -10,24 +10,24 @@ pub mod text_block;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct InlineBlock {
-    pub _id: ObjectId,
+    pub _id: String,
     pub content: InlineBlockType,
     pub marks: Vec<Mark>,
-    pub parent: ObjectId, //StandardBlock
+    pub parent: String, //StandardBlock
 }
 
 impl InlineBlock {
-    pub fn new_text_block(text: String, marks: Vec<Mark>, parent: ObjectId) -> Self {
-        InlineBlock {
-            _id: ObjectId::new(),
+    pub fn new_text_block(text: String, marks: Vec<Mark>, parent: String, new_ids: &mut NewIds) -> Result<Self, StepError> {
+        Ok(InlineBlock {
+            _id: new_ids.get_id()?,
             content: InlineBlockType::TextBlock(TextBlock { text }),
             marks,
             parent
-        }
+        })
     }
 
-    pub fn id(&self) -> ObjectId {
-        self._id
+    pub fn id(&self) -> String {
+        self.id()
     }
 
     pub fn text(&self) -> Result<&String, StepError> {
@@ -39,7 +39,7 @@ impl InlineBlock {
 
     pub fn update_text(self, text: String) -> Result<Self, StepError> {
         Ok(InlineBlock {
-            _id: self._id,
+            _id: self.id(),
             content: self.content.update_block(text),
             marks: self.marks,
             parent: self.parent
@@ -58,20 +58,20 @@ impl InlineBlock {
     pub fn merge(self, merge_with: Self) -> Result<Self, StepError> {
         let text = self.text()?.to_string() + merge_with.text()?.as_str();
         Ok(InlineBlock {
-            _id: self._id,
+            _id: self.id(),
             content: self.content.update_block(text),
             marks: self.marks,
             parent: self.parent
         })
     }
 
-    pub fn to_new_block(self) -> Self {
-        InlineBlock {
-            _id: ObjectId::new(),
+    pub fn to_new_block(self, new_ids: &mut NewIds) -> Result<Self, StepError> {
+        Ok(InlineBlock {
+            _id: new_ids.get_id()?,
             content: self.content,
             marks: self.marks,
             parent: self.parent
-        }
+        })
     }
 
     /// -> Remove any marks of the same type that exist

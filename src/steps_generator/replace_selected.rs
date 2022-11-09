@@ -56,9 +56,9 @@ pub fn replace_selected_across_inline_blocks(
         let parent_content_block = parent_block.content_block()?;
         return Ok(vec![
             Step::ReplaceStep(ReplaceStep {
-                block_id: parent_block._id,
-                from: SubSelection { block_id: parent_block._id, offset: parent_content_block.index_of(updated_block.id())?, subselection: None },
-                to: SubSelection { block_id: parent_block._id, offset: parent_content_block.index_of(updated_block.id())? + 1, subselection: None },
+                block_id: parent_block.id(),
+                from: SubSelection { block_id: parent_block.id(), offset: parent_content_block.index_of(&updated_block._id)?, subselection: None },
+                to: SubSelection { block_id: parent_block.id(), offset: parent_content_block.index_of(&updated_block._id)? + 1, subselection: None },
                 slice: vec![updated_block.id()],
                 blocks_to_update: vec![Block::InlineBlock(updated_block)]
             })
@@ -69,9 +69,9 @@ pub fn replace_selected_across_inline_blocks(
         let second_block_updated_text = to_block.text()?.clone()[to.offset..].to_string();
         let block2 = to_block.update_text(second_block_updated_text)?;
         return Ok(vec![Step::ReplaceStep(ReplaceStep {
-            block_id: parent_block._id,
-            from: SubSelection { block_id: parent_block._id, offset: content_block.index_of(from.block_id)?, subselection: None },
-            to: SubSelection { block_id: parent_block._id, offset: content_block.index_of(to.block_id)? + 1, subselection: None },
+            block_id: parent_block.id(),
+            from: SubSelection { block_id: parent_block.id(), offset: content_block.index_of(&from.block_id)?, subselection: None },
+            to: SubSelection { block_id: parent_block.id(), offset: content_block.index_of(&to.block_id)? + 1, subselection: None },
             slice: vec![block1.id(), block2.id()],
             blocks_to_update: vec![Block::InlineBlock(block1), Block::InlineBlock(block2)]
         })])
@@ -121,23 +121,23 @@ fn replace_selected_across_standard_blocks(
             let to_subselection_updated_text = to_subselection_block.text()?.clone()[to_subselection.offset..].to_string();
             let from_subselection_updated_block = from_subselection_block.update_text(from_subselection_updated_text)?;
             let mut to_subselection_updated_block = to_subselection_block.update_text(to_subselection_updated_text)?;
-            to_subselection_updated_block.parent = from_block._id;
-
+            to_subselection_updated_block.parent = from_block.id();
+            let from_block_parent_id = from_block.parent();
             let parent_block = BlockMap::get_block(block_map, &from_block.parent)?;
             return Ok(vec![
                 Step::ReplaceStep(ReplaceStep {
-                    block_id: from_block.parent,
+                    block_id: from_block_parent_id.clone(),
                     from: SubSelection {
-                        block_id: from_block.parent,
-                        offset: parent_block.index_of_child(from_block._id)?,
+                        block_id: from_block_parent_id.clone(),
+                        offset: parent_block.index_of_child(&from_block._id)?,
                         subselection: None
                     },
                     to: SubSelection {
-                        block_id: from_block.parent,
-                        offset: parent_block.index_of_child(to_block._id)? + 1,
+                        block_id: from_block_parent_id.clone(),
+                        offset: parent_block.index_of_child(&to_block._id)? + 1,
                         subselection: None
                     },
-                    slice: vec![from_block._id],
+                    slice: vec![from_block.id()],
                     blocks_to_update: vec![
                         Block::StandardBlock(from_block),
                         Block::InlineBlock(from_subselection_updated_block),

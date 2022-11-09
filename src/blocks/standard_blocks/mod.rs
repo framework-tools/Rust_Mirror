@@ -1,4 +1,4 @@
-use mongodb::bson::oid::ObjectId;
+
 use serde_json::json;
 
 use crate::{mark::Mark, steps_generator::StepError};
@@ -11,15 +11,22 @@ pub mod content_block;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct StandardBlock {
-    pub _id: ObjectId,
+    pub _id: String,
     pub content: StandardBlockType,
-    pub children: Vec<ObjectId>, //Vec<StandardBlock>
-    pub parent: ObjectId, //StandardBlock
+    pub children: Vec<String>, //Vec<StandardBlock>
+    pub parent: String, //StandardBlock
     pub marks: Vec<Mark>,
 }
 
 impl StandardBlock {
-    pub fn new_paragraph_block(_id: ObjectId, inline_blocks: Vec<ObjectId>, marks: Vec<Mark>, children: Vec<ObjectId>, parent: ObjectId) -> Self {
+    pub fn id(&self) -> String {
+        return self._id.clone()
+    }
+    pub fn parent(&self) -> String {
+        return self.parent.clone()
+    }
+
+    pub fn new_paragraph_block(_id: String, inline_blocks: Vec<String>, marks: Vec<Mark>, children: Vec<String>, parent: String) -> Self {
         StandardBlock {
             _id,
             content: StandardBlockType::Paragraph(ContentBlock::new(inline_blocks)),
@@ -44,20 +51,20 @@ impl StandardBlock {
         Ok(content_block.inline_blocks.len())
     }
 
-    pub fn index_of(&self, id: ObjectId) -> Result<usize, StepError> {
+    pub fn index_of(&self, id: &str) -> Result<usize, StepError> {
         let content_block = self.content_block()?;
         content_block.index_of(id)
     }
-    pub fn index_of_child(&self, id: ObjectId) -> Result<usize, StepError> {
+    pub fn index_of_child(&self, id: &str) -> Result<usize, StepError> {
         match self.children.iter().position(|block_id| *block_id == id) {
             Some(index) => Ok(index),
             None => Err(StepError("Block not found".to_string()))
         }
     }
 
-    pub fn get_child_from_index(&self, index: usize) -> Result<ObjectId, StepError> {
+    pub fn get_child_from_index(&self, index: usize) -> Result<String, StepError> {
         match self.children.get(index) {
-            Some(block_id) => Ok(*block_id),
+            Some(block_id) => Ok(block_id.clone()),
             None => Err(StepError("Block not found".to_string()))
         }
     }

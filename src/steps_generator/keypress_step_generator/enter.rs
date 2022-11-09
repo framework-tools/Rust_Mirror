@@ -1,8 +1,8 @@
 
 
-use mongodb::bson::oid::ObjectId;
 
-use crate::{step::{Step, ReplaceStep}, blocks::{BlockMap, standard_blocks::{StandardBlock, StandardBlockType, content_block::ContentBlock}, Block}, steps_generator::{selection::SubSelection, StepError, replace_selected::replace_selected}};
+
+use crate::{step::{Step, ReplaceStep}, blocks::{BlockMap, standard_blocks::{StandardBlock, StandardBlockType, content_block::ContentBlock}, Block}, steps_generator::{selection::SubSelection, StepError, replace_selected::replace_selected}, new_ids::NewIds};
 
 /// If current standard block is Paragraph, H1, H2, or H3 -> new block should be a paragraph
 /// If current standard block is some type of List block -> new block should be same type of list block
@@ -12,15 +12,15 @@ use crate::{step::{Step, ReplaceStep}, blocks::{BlockMap, standard_blocks::{Stan
 /// -> use this removed text to create a new inline block
 /// -> create a new standard block with this new inline block & all removed inline blocks from previous block
 /// -> move children from "from" block to new block
-pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: SubSelection) -> Result<Vec<Step>, StepError> {
+pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: SubSelection, new_ids: &mut NewIds) -> Result<Vec<Step>, StepError> {
     let mut from_standard_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
     let to_standard_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
     let mut from_inline_block = block_map.get_inline_block(&from.block_id)?;
 
-    if from_standard_block._id == to_standard_block._id {
+    if from_standard_block.id() == to_standard_block.id() {
         if from.block_id != to.block_id {
-            let from_index = from_standard_block.index_of_child(from.block_id)?;
-            let to_index = from_standard_block.index_of_child(to.block_id)?;
+            let from_index = from_standard_block.index_of_child(&from.block_id())?;
+            let to_index = from_standard_block.index_of_child(&to.block_id)?;
             from_standard_block = from_standard_block.remove_blocks_between_offsets(from_index, to_index)?;
         } else if from.offset != to.offset {
             let from_text = from_inline_block.text()?;
@@ -28,34 +28,35 @@ pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: Su
             from_inline_block = from_inline_block.update_text(updated_text)?;
         }
         let content_block = from_standard_block.content_block()?;
-        let index_of_selection = content_block.index_of(from.block_id)?;
+        let index_of_selection = content_block.index_of(&from.block_id)?;
         let blocks_up_to_including_selection = content_block.inline_blocks[0..index_of_selection + 1].to_vec();
         let mut blocks_after_selection = content_block.inline_blocks[index_of_selection + 1..].to_vec();
         let updated_from_block_content_block = ContentBlock {
             inline_blocks: blocks_up_to_including_selection
         };
         let new_block_type = get_new_enter_block_type(&from_standard_block.content)?;
-        let new_inline_block_id = ObjectId::new();
-        blocks_after_selection.insert(0, new_inline_block_id);
+        let new_inline_block_id = new_ids.get_id()?;
+        blocks_after_selection.insert(0, new_inline_block_id.clone());
         let new_block_type = new_block_type.update_block_content(ContentBlock {
             inline_blocks: blocks_after_selection
         })?;
         let updated_from_block = Block::StandardBlock(StandardBlock {
-            _id: from_standard_block._id,
+            _id: from_standard_block.id(),
             content: from_standard_block.content.update_block_content(updated_from_block_content_block)?,
             children: vec![],
             parent: from_standard_block.parent.clone(),
             marks: from_standard_block.marks.clone()
         });
+        let from_standard_block_parent = from_standard_block.parent();
         let new_block = Block::StandardBlock(StandardBlock {
-            _id: ObjectId::new(),
+            _id: new_ids.get_id()?,
             content: new_block_type,
             children: from_standard_block.children,
-            parent: from_standard_block.parent,
+            parent: from_standard_block_parent.clone(),
             marks: vec![],
         });
         let parent_block = block_map.get_block(&from_standard_block.parent)?;
-        let index_of_std_block = parent_block.index_of_child(from_standard_block._id)?;
+        let index_of_std_block = parent_block.index_of_child(&from_standard_block._id)?;
         let from_inline_block_clone = from_inline_block.clone();
         let from_inline_block_text = from_inline_block.text()?.clone();
         let from_inline_block_text_before_offset = from_inline_block_text[0..from.offset].to_string();
@@ -65,14 +66,14 @@ pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: Su
         new_inline_block._id = new_inline_block_id;
         new_inline_block.parent = new_block.id();
         return Ok(vec![Step::ReplaceStep(ReplaceStep {
-            block_id: from_standard_block.parent,
+            block_id: from_standard_block_parent.clone(),
             from: SubSelection {
-                block_id: from_standard_block.parent,
+                block_id: from_standard_block_parent.clone(),
                 offset: index_of_std_block.clone(),
                 subselection: None
             },
             to: SubSelection {
-                block_id: from_standard_block.parent,
+                block_id: from_standard_block_parent.clone(),
                 offset: index_of_std_block + 1,
                 subselection: None
             },
@@ -144,20 +145,20 @@ fn enter_across_standard_blocks(
 
             let parent_block = block_map.get_block(&updated_from_block.parent)?;
             return Ok(vec![Step::ReplaceStep(ReplaceStep {
-                block_id: updated_from_block.parent,
+                block_id: updated_from_block.parent(),
                 from: SubSelection {
-                    block_id: updated_from_block.parent,
-                    offset: parent_block.index_of_child(from.block_id)?,
+                    block_id: updated_from_block.parent(),
+                    offset: parent_block.index_of_child(&from.block_id)?,
                     subselection: None
                 },
                 to: SubSelection {
-                    block_id: updated_from_block.parent,
-                    offset: parent_block.index_of_child(to.block_id)? + 1,
+                    block_id: updated_from_block.parent(),
+                    offset: parent_block.index_of_child(&to.block_id)? + 1,
                     subselection: None
                 },
                 slice: vec![
-                    updated_from_block._id,
-                    updated_to_block._id
+                    updated_from_block.id(),
+                    updated_to_block.id()
                 ],
                 blocks_to_update: vec![
                     Block::StandardBlock(updated_from_block),

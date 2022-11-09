@@ -1,16 +1,16 @@
 use std::str::FromStr;
-use mongodb::bson::oid::ObjectId;
+
 
 use crate::{steps_generator::StepError};
 
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ContentBlock {
-    pub inline_blocks: Vec<ObjectId>, //Vec<InlineBlock>
+    pub inline_blocks: Vec<String>, //Vec<InlineBlock>
 }
 
 impl ContentBlock {
-    pub fn new(inline_blocks: Vec<ObjectId>) -> Self {
+    pub fn new(inline_blocks: Vec<String>) -> Self {
         Self {
             inline_blocks
         }
@@ -22,12 +22,12 @@ impl ContentBlock {
             .ok_or(StepError("Block does not have inline_blocks field".to_string()))?
             .as_array().ok_or(StepError("Block inline_blocks field is not an array".to_string()))?
             .iter().map(|id| {
-                ObjectId::from_str(id.as_str().ok_or(StepError("Block inline_blocks field is not an array of strings".to_string()))?).map_err(|e| StepError(e.to_string()))
-            }).collect::<Result<Vec<ObjectId>, StepError>>()?;
+                String::from_str(id.as_str().ok_or(StepError("Block inline_blocks field is not an array of strings".to_string()))?).map_err(|e| StepError(e.to_string()))
+            }).collect::<Result<Vec<String>, StepError>>()?;
         return Ok(Self::new(inline_blocks))
     }
 
-    pub fn index_of(&self, id: ObjectId) -> Result<usize, StepError> {
+    pub fn index_of(&self, id: &str) -> Result<usize, StepError> {
         match self.inline_blocks.iter().position(|block_id| *block_id == id) {
             Some(index) => Ok(index),
             None => Err(StepError("Block not found".to_string()))
