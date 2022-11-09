@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Selection {
 	pub anchor: SubSelection,
 	pub head: SubSelection
@@ -90,7 +90,7 @@ impl Selection {
 	}
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct SubSelection {
 	pub block_id: String,
 	pub offset: usize,

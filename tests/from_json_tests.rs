@@ -25,16 +25,15 @@ mod tests {
         }"#;
 
         let selection: Selection = serde_json::from_str(json).unwrap();
-        let id_as_str = "6367242bd94bdaae59511ccd";
-        let id: String = String::from_str(id_as_str).unwrap();
+        let id = "6367242bd94bdaae59511ccd".to_string();
         assert_eq!(
             selection,
             Selection {
                 anchor: SubSelection {
-                    block_id: id,
+                    block_id: id.clone(),
                     offset: 0,
                     subselection: Some(Box::new(SubSelection {
-                        block_id: id,
+                        block_id: id.clone(),
                         offset: 0,
                         subselection: None
                     }))

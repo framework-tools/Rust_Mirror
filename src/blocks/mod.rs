@@ -264,7 +264,7 @@ impl RootBlock {
     }
 }
 
-//#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct BlockMap(HashMap<String, serde_json::Value>);
 
 impl BlockMap {
