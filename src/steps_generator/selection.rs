@@ -5,11 +5,11 @@ use std::{str::FromStr};
 use crate::blocks::{Block, BlockMap};
 
 use super::StepError;
-//use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 
 
-#[derive(Debug, PartialEq)] //Serialize, Deserialize
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Selection {
 	pub anchor: SubSelection,
 	pub head: SubSelection
@@ -90,7 +90,7 @@ impl Selection {
 	}
 }
 
-#[derive(Debug, PartialEq, Clone)] // Serialize, Deserialize
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct SubSelection {
 	pub block_id: String,
 	pub offset: usize,

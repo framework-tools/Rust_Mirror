@@ -1,9 +1,9 @@
 
 use crate::{blocks::{BlockMap}, step::Step, mark::Mark, new_ids::NewIds};
 
-use self::{standard_key::generate_step_for_standard_key, backspace::generate_steps_for_backspace, enter::generate_steps_for_enter, };
+use self::{backspace::generate_steps_for_backspace, enter::generate_steps_for_enter, };
 
-use super::{event::{KeyPress, Key}, selection::{SubSelection}, StepError, mark_steps::generate_mark_steps};
+use super::{event::{KeyPress, Key}, selection::{SubSelection}, StepError, mark_steps::generate_mark_steps, replace_selected::replace_selected};
 
 pub mod standard_key;
 pub mod backspace;
@@ -25,7 +25,7 @@ pub fn generate_keyboard_event_steps(
         Key::Standard('u') | Key::Standard('U') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
             generate_mark_steps(Mark::Underline, from, to, block_map),
         //standard press
-        Key::Standard(key) => generate_step_for_standard_key(key, block_map, from, to),
+        Key::Standard(key) => replace_selected(block_map, from, to, key.to_string()),
         Key::Backspace => generate_steps_for_backspace(block_map, from, to),
         Key::Enter => generate_steps_for_enter(block_map, from, to, new_ids),
         _ => unimplemented!(),

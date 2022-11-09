@@ -1,8 +1,5 @@
 #[cfg(test)]
 mod tests {
-
-    use std::thread;
-
     use rust_mirror::{steps_generator::{event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps},
         blocks::{Block, standard_blocks::{StandardBlockType, content_block::ContentBlock}, inline_blocks::{text_block::TextBlock, InlineBlockType}, RootBlock,
         BlockMap
@@ -45,10 +42,7 @@ mod tests {
         let sub_selection = SubSelection::from(inline_block_id, 0, None);
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
-        // let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
-        let steps = thread::Builder::new().stack_size(128 * 1024 * 1024).spawn(move || {
-            return generate_steps(&event, &block_map, selection, &mut new_ids).unwrap()
-        }).unwrap().join().unwrap();
+        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
 
         assert_eq!(steps.len(), 1);
         match &steps[0] {

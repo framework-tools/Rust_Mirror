@@ -27,7 +27,7 @@ impl InlineBlock {
     }
 
     pub fn id(&self) -> String {
-        self.id()
+        return self._id.clone()
     }
 
     pub fn text(&self) -> Result<&String, StepError> {
@@ -39,7 +39,7 @@ impl InlineBlock {
 
     pub fn update_text(self, text: String) -> Result<Self, StepError> {
         Ok(InlineBlock {
-            _id: self.id(),
+            _id: self._id,
             content: self.content.update_block(text),
             marks: self.marks,
             parent: self.parent
@@ -123,7 +123,7 @@ impl InlineBlockType {
 
     pub fn update_block(self, text: String) -> Self {
         match self {
-            InlineBlockType::TextBlock(block) => InlineBlockType::TextBlock(TextBlock { text })
+            InlineBlockType::TextBlock(_) => InlineBlockType::TextBlock(TextBlock { text })
         }
     }
 
