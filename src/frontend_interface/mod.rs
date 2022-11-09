@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use crate::{steps_generator::{StepError, event::Event, selection::Selection}, blocks::BlockMap};
 
-pub fn execute_event(json: String, selection_json: String, block_map_json: String) -> Result<String, StepError> {
+pub fn execute_event() -> String { //json: String, selection_json: String, block_map_json: String
     // let rust_json = serde_json::Value::from_str(&json);
     // let rust_json = match rust_json {
     //     Ok(rust_json) => rust_json,
@@ -26,5 +26,5 @@ pub fn execute_event(json: String, selection_json: String, block_map_json: Strin
 
     let object_id = bson::oid::ObjectId::new();
 
-    return Ok(object_id.to_string())
+    return object_id.to_string()
 }
