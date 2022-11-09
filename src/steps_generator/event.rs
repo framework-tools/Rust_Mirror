@@ -9,19 +9,14 @@ pub enum Event {
 
 impl Event {
     pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
-        let event = json.get("event")
-            .ok_or(StepError("Expected 'event' field".to_string()))?
-            .as_array();
-        return match event {
-            Some(event) => {
-                match event[0].as_str() {
-                    Some("keypress") => Ok(Event::KeyPress(KeyPress::from_json_array(event)?)),
-                    Some("formatbar") => Ok(Event::FormatBar(FormatBarEvent::from_json_array(event)?)),
-                    Some(_) => Err(StepError("Expected event[0] to be either 'keypress' or 'formatbar'".to_string())),
-                    None => Err(StepError("Expected event[0] to be a str".to_string()))
-                }
-            }
-            None => Err(StepError("Expected event json field to contain an array".to_ascii_lowercase()))
+        let _type = json.get("_type")
+            .ok_or(StepError("Event json should contain '_type' field".to_string()))?
+            .as_str();
+        return match _type {
+            Some("keypress") => Ok(Event::KeyPress(KeyPress::from_json(json)?)),
+            Some("formatbar") => Ok(Event::FormatBar(FormatBarEvent::from_json(json)?)),
+            Some(_) => Err(StepError("Expected event[0] to be either 'keypress' or 'formatbar'".to_string())),
+            None => Err(StepError("Expected event[0] to be a str".to_string()))
         }
     }
 }
@@ -50,14 +45,18 @@ impl KeyPress {
         }
     }
 
-    pub fn from_json_array(json_arr: &Vec<serde_json::Value>) -> Result<Self, StepError> {
-        let key = json_arr[1].as_str();
+    pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
+        let key = json.get("value")
+            .ok_or(StepError("Event json should contain 'value' field".to_string()))?
+            .as_str();
         let key = match key {
             Some(key) => Key::from_json_str(key)?,
-            None => return Err(StepError("Expected json_arr[1] (key) to be a string".to_string()))
+            None => return Err(StepError("Expected json 'value' (key pressed) to be a string".to_string()))
         };
 
-        let metadata = KeyPressMetadata::from_json(&json_arr[2])?;
+        let metadata_json = json.get("metadata")
+            .ok_or(StepError("Event json should contain 'metadata' field".to_string()))?;
+        let metadata = KeyPressMetadata::from_json(metadata_json)?;
         return Ok(KeyPress {
             key,
             metadata
@@ -150,8 +149,11 @@ pub enum FormatBarEvent {
 }
 
 impl FormatBarEvent {
-    pub fn from_json_array(json_arr: &Vec<serde_json::Value>) -> Result<Self, StepError> {
-        return match json_arr[1].as_str() {
+    pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
+        let value = json.get("value").
+            ok_or(StepError("FormatBarEvent json should contain 'value' field".to_string()))?
+            .as_str();
+        return match value {
             Some("bold") => Ok(FormatBarEvent::Bold),
             Some("italic") => Ok(FormatBarEvent::Italic),
             Some("underline") => Ok(FormatBarEvent::Underline),
