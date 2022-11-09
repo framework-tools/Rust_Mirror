@@ -24,7 +24,7 @@ pub fn execute_event() -> String { //json: String, selection_json: String, block
     //     Err(_) => return Err(StepError("Block Map json could not be parsed".to_string()))
     // };
 
-    let object_id = bson::oid::ObjectId::new();
+    //let object_id = bson::oid::ObjectId::new();
 
-    return object_id.to_string()
+    return "object_id".to_string()
 }
