@@ -1,16 +1,15 @@
-use std::str::FromStr;
+use std::{str::FromStr, collections::HashMap};
 
 use serde_json::json;
 
 use crate::{steps_generator::{StepError, event::Event, selection::Selection}, blocks::BlockMap};
 
-pub fn execute_event(selection_json: String, new_ids_json: String) -> String { //json: String, , block_map_json: String
-    // let rust_json = serde_json::Value::from_str(&json);
-    // let rust_json = match rust_json {
-    //     Ok(rust_json) => rust_json,
-    //     Err(_) => return javascript_return_json("", Some("json argument should be valid json"))
-    // };
-    // let event_json = rust_json.get("event");
+pub fn execute_event(
+    selection_json: String,
+    new_ids_json: String,
+    block_map_json: String,
+    //event_json: String,
+) -> String {
     // let event_json = match event_json {
     //     Some(event_json) => event_json,
     //     None => return Err(StepError("json should contain 'event' field".to_string()))
@@ -25,10 +24,10 @@ pub fn execute_event(selection_json: String, new_ids_json: String) -> String { /
         Ok(new_ids) => new_ids,
         Err(_) => return javascript_return_json("", Some("new_ids json could not be parsed"))
     };
-    // let block_map: BlockMap = match serde_json::from_str(&block_map_json) {
-    //     Ok(block_map) => block_map,
-    //     Err(_) => return Err(StepError("Block Map json could not be parsed".to_string()))
-    // };
+    let block_map: HashMap<String, serde_json::Value> = match serde_json::from_str(&block_map_json) {
+        Ok(block_map) => block_map,
+        Err(_) => return javascript_return_json("", Some("Block Map json could not be parsed"))
+    };
     return selection.anchor.block_id
 }
 
