@@ -25,8 +25,7 @@ pub fn execute_event(selection_json: String) -> String { //json: String, , block
     //     Ok(block_map) => block_map,
     //     Err(_) => return Err(StepError("Block Map json could not be parsed".to_string()))
     // };
-
-    return "object_id".to_string()
+    return selection.anchor.block_id
 }
 
 pub fn javascript_return_json(data: &str, err: Option<&str>) -> String {
