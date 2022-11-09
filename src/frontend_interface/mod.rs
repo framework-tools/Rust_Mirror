@@ -14,10 +14,12 @@ pub fn execute_event(
         Ok(value) => value,
         Err(err) => return javascript_return_json("", Some(&err))
     };
-    return match serde_json::to_string(&block_map) {
-        Ok(updated_block_map_json) => javascript_return_json(&updated_block_map_json, None),
-        Err(_) => javascript_return_json("", Some("Failed to convert blockmap to json"))
-    };
+    return match block_map {
+        BlockMap(block_map) => match serde_json::to_string(&block_map) {
+            Ok(updated_block_map_json) => javascript_return_json(&updated_block_map_json, None),
+            Err(_) => javascript_return_json("", Some("Failed to convert blockmap to json"))
+        }
+    }
 
     // let steps = match generate_steps(&event, &block_map, selection, &mut new_ids) {
     //     Ok(steps) => steps,
