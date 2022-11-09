@@ -1,7 +1,7 @@
 use crate::steps_generator::StepError;
 
 
-pub struct NewIds(Vec<String>);
+pub struct NewIds(pub Vec<String>);
 
 impl NewIds {
     pub fn get_id(&mut self) -> Result<String, StepError> {

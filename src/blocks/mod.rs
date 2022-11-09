@@ -265,7 +265,7 @@ impl RootBlock {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct BlockMap(HashMap<String, serde_json::Value>);
+pub struct BlockMap(pub HashMap<String, serde_json::Value>);
 
 impl BlockMap {
     pub fn from(blocks: Vec<serde_json::Value>) -> Result<Self, StepError> {
@@ -356,4 +356,6 @@ impl BlockMap {
             None => Ok(None)
         }
     }
+
+
 }
