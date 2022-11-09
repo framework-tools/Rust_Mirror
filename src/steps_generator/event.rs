@@ -1,3 +1,5 @@
+use serde::{Serialize, Deserialize};
+
 use crate::mark::{Color, Mark};
 
 use super::StepError;
@@ -56,7 +58,11 @@ impl KeyPress {
 
         let metadata_json = json.get("metadata")
             .ok_or(StepError("Event json should contain 'metadata' field".to_string()))?;
-        let metadata = KeyPressMetadata::from_json(metadata_json)?;
+        let metadata: KeyPressMetadata = match serde_json::from_str(&metadata_json.to_string()) {
+            Ok(metadata)  => metadata,
+            Err(_) => return Err(StepError("Keypress metadata could not be parsed from json".to_string()))
+        };
+
         return Ok(KeyPress {
             key,
             metadata
@@ -64,50 +70,12 @@ impl KeyPress {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct KeyPressMetadata {
     pub shift_down: bool,
     pub meta_down: bool,
     pub ctrl_down: bool,
     pub alt_down: bool,
-}
-
-impl KeyPressMetadata {
-    pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
-        let shift_down = json.get("shift_down")
-            .ok_or(StepError("Expected 'shift_down' field".to_string()))?
-            .as_bool();
-        let shift_down = match shift_down {
-            Some(shift_down) => shift_down,
-            None => return Err(StepError("Expected shift_down to be a bool".to_string()))
-        };
-        let meta_down = json.get("meta_down")
-            .ok_or(StepError("Expected 'meta_down' field".to_string()))?
-            .as_bool();
-        let meta_down = match meta_down {
-            Some(meta_down) => meta_down,
-            None => return Err(StepError("Expected meta_down to be a bool".to_string()))
-        };
-        let ctrl_down = json.get("ctrl_down")
-            .ok_or(StepError("Expected 'ctrl_down' field".to_string()))?
-            .as_bool();
-        let ctrl_down = match ctrl_down {
-            Some(ctrl_down) => ctrl_down,
-            None => return Err(StepError("Expected ctrl_down to be a bool".to_string()))
-        };
-        let alt_down = json.get("alt_down")
-            .ok_or(StepError("Expected 'alt_down' field".to_string()))?
-            .as_bool();
-        let alt_down = match alt_down {
-            Some(alt_down) => alt_down,
-            None => return Err(StepError("Expected alt_down to be a bool".to_string()))
-        };
-        return Ok(Self {
-            shift_down,
-            meta_down,
-            ctrl_down,
-            alt_down,
-        })
-    }
 }
 
 pub enum Key {

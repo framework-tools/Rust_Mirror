@@ -2,7 +2,7 @@ use std::{str::FromStr, collections::HashMap};
 
 use serde_json::json;
 
-use crate::{steps_generator::{StepError, event::Event, selection::Selection}, blocks::BlockMap};
+use crate::{steps_generator::{event::Event, selection::Selection}};
 
 pub fn execute_event(
     selection_json: String,
