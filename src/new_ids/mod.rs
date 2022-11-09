@@ -19,12 +19,13 @@ impl NewIds {
     pub fn hardcoded_new_ids_for_tests() -> Self  {
         let hardcoded_ids = vec![
             "636b20fc2c8fcc320d5efb8c".to_string(), "636b20fc2c8fcc320d5efb8d".to_string(), "636b20fc2c8fcc320d5efb8e".to_string(), "636b20fc2c8fcc320d5efb8f".to_string(),
+            "636b20fc2c8fcc320d5efb90".to_string(), "636b20fc2c8fcc320d5efb91".to_string(), "636b20fc2c8fcc320d5efb92".to_string(), "636b20fc2c8fcc320d5efb93".to_string(),
         ];
         return Self(hardcoded_ids.to_vec().into_iter().map(|id| id.to_string()).collect())
     }
 }
 
-// "636b20fc2c8fcc320d5efb90", "636b20fc2c8fcc320d5efb91", "636b20fc2c8fcc320d5efb92", "636b20fc2c8fcc320d5efb93",
+
 // "636b20fc2c8fcc320d5efb94", "636b20fc2c8fcc320d5efb95", "636b20fc2c8fcc320d5efb96", "636b20fc2c8fcc320d5efb97",
 // "636b20fc2c8fcc320d5efb98", "636b20fc2c8fcc320d5efb99", "636b20fc2c8fcc320d5efb9a", "636b20fc2c8fcc320d5efb9b",
 // "636b20fc2c8fcc320d5efb9c", "636b20fc2c8fcc320d5efb9d", "636b20fc2c8fcc320d5efb9e", "636b20fc2c8fcc320d5efb9f",

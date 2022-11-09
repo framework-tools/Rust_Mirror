@@ -1,7 +1,7 @@
 
 
 use std::{collections::HashMap, str::FromStr};
-use serde::{Serialize, Deserialize};
+//use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 
 use crate::{mark::Mark, steps_generator::StepError};
@@ -282,7 +282,7 @@ impl RootBlock {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+//#[derive(Serialize, Deserialize)]
 pub struct BlockMap(pub HashMap<String, serde_json::Value>);
 
 impl BlockMap {

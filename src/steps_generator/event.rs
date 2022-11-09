@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+//use serde::{Serialize, Deserialize};
 
 use crate::mark::{Color, Mark};
 
@@ -58,19 +58,19 @@ impl KeyPress {
 
         let metadata_json = json.get("metadata")
             .ok_or(StepError("Event json should contain 'metadata' field".to_string()))?;
-        let metadata: KeyPressMetadata = match serde_json::from_str(&metadata_json.to_string()) {
-            Ok(metadata)  => metadata,
-            Err(_) => return Err(StepError("Keypress metadata could not be parsed from json".to_string()))
-        };
-
-        return Ok(KeyPress {
-            key,
-            metadata
-        })
+        // let metadata: KeyPressMetadata = match serde_json::from_str(&metadata_json.to_string()) {
+        //     Ok(metadata)  => metadata,
+        //     Err(_) => return Err(StepError("Keypress metadata could not be parsed from json".to_string()))
+        // };
+        unimplemented!()
+        // return Ok(KeyPress {
+        //     key,
+        //     metadata
+        // })
     }
 }
 
-#[derive(Serialize, Deserialize)]
+//#[derive(Serialize, Deserialize)]
 pub struct KeyPressMetadata {
     pub shift_down: bool,
     pub meta_down: bool,

@@ -52,15 +52,13 @@ pub fn replace_selected_across_inline_blocks(
         let text = from_block.text()?.clone();
         // create new block with text from replace_with inserted
         let updated_text = format!("{}{}{}", &text[0..from.offset], replace_with, &text[to.offset..]);
-        println!("got here 1");
         let updated_block = from_block.update_text(updated_text)?;
-        println!("got here 2");
-        let parent_content_block = parent_block.content_block()?;
+        println!("got here");
         return Ok(vec![
             Step::ReplaceStep(ReplaceStep {
                 block_id: parent_block.id(),
-                from: SubSelection { block_id: parent_block.id(), offset: parent_content_block.index_of(&updated_block._id)?, subselection: None },
-                to: SubSelection { block_id: parent_block.id(), offset: parent_content_block.index_of(&updated_block._id)? + 1, subselection: None },
+                from: SubSelection { block_id: parent_block.id(), offset: content_block.index_of(&updated_block._id)?, subselection: None },
+                to: SubSelection { block_id: parent_block.id(), offset: content_block.index_of(&updated_block._id)? + 1, subselection: None },
                 slice: vec![updated_block.id()],
                 blocks_to_update: vec![Block::InlineBlock(updated_block)]
             })
