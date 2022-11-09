@@ -14,19 +14,23 @@ pub fn execute_event(
         Ok(value) => value,
         Err(err) => return javascript_return_json("", Some(&err))
     };
-
-    let steps = match generate_steps(&event, &block_map, selection, &mut new_ids) {
-        Ok(steps) => steps,
-        Err(StepError(err)) => return javascript_return_json("", Some(&err))
+    return match serde_json::to_string(&block_map) {
+        Ok(updated_block_map_json) => javascript_return_json(&updated_block_map_json, None),
+        Err(_) => javascript_return_json("", Some("Failed to convert blockmap to json"))
     };
 
-    return match execute_steps(steps, block_map, &mut new_ids) {
-        Ok(BlockMap(updated_block_map)) => match serde_json::to_string(&updated_block_map) {
-            Ok(updated_block_map_json) => javascript_return_json(&updated_block_map_json, None),
-            Err(_) => javascript_return_json("", Some("Failed to convert blockmap to json"))
-        },
-        Err(StepError(err)) => javascript_return_json("", Some(&err))
-    }
+    // let steps = match generate_steps(&event, &block_map, selection, &mut new_ids) {
+    //     Ok(steps) => steps,
+    //     Err(StepError(err)) => return javascript_return_json("", Some(&err))
+    // };
+
+    // return match execute_steps(steps, block_map, &mut new_ids) {
+    //     Ok(BlockMap(updated_block_map)) => match serde_json::to_string(&updated_block_map) {
+    //         Ok(updated_block_map_json) => javascript_return_json(&updated_block_map_json, None),
+    //         Err(_) => javascript_return_json("", Some("Failed to convert blockmap to json"))
+    //     },
+    //     Err(StepError(err)) => javascript_return_json("", Some(&err))
+    // }
 }
 
 fn javascript_return_json(data: &str, err: Option<&str>) -> String {

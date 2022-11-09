@@ -1,5 +1,5 @@
 
-use crate::{step::{Step, ReplaceStep}, blocks::{Block, BlockMap, inline_blocks::{InlineBlock},
+use crate::{step::{Step, ReplaceStep}, blocks::{Block, BlockMap, inline_blocks::{InlineBlock, text_block::TextBlock, InlineBlockType},
 standard_blocks::{StandardBlock, content_block::ContentBlock}}};
 
 use super::{selection::SubSelection, StepError};
@@ -52,7 +52,9 @@ pub fn replace_selected_across_inline_blocks(
         let text = from_block.text()?.clone();
         // create new block with text from replace_with inserted
         let updated_text = format!("{}{}{}", &text[0..from.offset], replace_with, &text[to.offset..]);
+        println!("got here 1");
         let updated_block = from_block.update_text(updated_text)?;
+        println!("got here 2");
         let parent_content_block = parent_block.content_block()?;
         return Ok(vec![
             Step::ReplaceStep(ReplaceStep {
