@@ -4,7 +4,7 @@ use serde_json::json;
 
 use crate::{steps_generator::{StepError, event::Event, selection::Selection}, blocks::BlockMap};
 
-pub fn execute_event(selection_json: String, new_ids: Vec<String>) -> String { //json: String, , block_map_json: String
+pub fn execute_event(selection_json: String, new_ids_json: String) -> String { //json: String, , block_map_json: String
     // let rust_json = serde_json::Value::from_str(&json);
     // let rust_json = match rust_json {
     //     Ok(rust_json) => rust_json,
@@ -20,6 +20,10 @@ pub fn execute_event(selection_json: String, new_ids: Vec<String>) -> String { /
     let selection: Selection = match serde_json::from_str(&selection_json) {
         Ok(selection) => selection,
         Err(_) => return javascript_return_json("", Some("Selection json could not be parsed"))
+    };
+    let new_ids: Vec<String> = match serde_json::from_str(&new_ids_json) {
+        Ok(new_ids) => new_ids,
+        Err(_) => return javascript_return_json("", Some("new_ids json could not be parsed"))
     };
     // let block_map: BlockMap = match serde_json::from_str(&block_map_json) {
     //     Ok(block_map) => block_map,
