@@ -3,6 +3,7 @@
 use std::{collections::HashMap, str::FromStr};
 
 use mongodb::bson::oid::ObjectId;
+use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 
 use crate::{mark::Mark, steps_generator::StepError};
@@ -261,6 +262,7 @@ impl RootBlock {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct BlockMap(HashMap<ObjectId, serde_json::Value>);
 
 impl BlockMap {
