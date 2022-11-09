@@ -215,7 +215,8 @@ impl Block {
 }
 
 pub fn id_from_json_block(json: &Value) -> Result<String, StepError> {
-    let _id = json.get("_id").ok_or(StepError("Block does not have _id field".to_string()))?.as_str().ok_or(StepError("Block _id field is not a string".to_string()))?;
+    let _id = json.get("_id").ok_or(StepError(format!("Block json does not have _id field: {}", json)))?
+        .as_str().ok_or(StepError("Block _id field is not a string".to_string()))?;
     String::from_str(_id).map_err(|_| StepError("Block _id field is not a valid String".to_string()))
 }
 
