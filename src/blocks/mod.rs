@@ -21,6 +21,23 @@ pub enum Block {
 
 impl Block {
     pub fn from_json(json: &Value) -> Result<Self, StepError> {
+        let mut json = json;
+        // json may be a string "value" instead of an obj so this creates a parsed object version if that is the case
+        let json_from_str = match json.as_str() {
+            Some(json_str) => {
+                match serde_json::Value::from_str(json_str) {
+                    Ok(json) => Some(json),
+                    Err(_) => return Err(StepError(format!("Failed to parse json block string: {}", json_str)))
+                }
+            },
+            None => None
+        };
+        let json_from_str_unwrapped;
+        if json_from_str.is_some() {
+            json_from_str_unwrapped = json_from_str.unwrap();
+            json = &json_from_str_unwrapped;
+        }
+
         let kind = json.get("kind").ok_or(StepError(format!("Block does not have kind field: {}", json)))?
             .as_str().ok_or(StepError("Block kind field is not a string".to_string()))?;
         return match kind {
@@ -357,6 +374,39 @@ impl BlockMap {
             None => Ok(None)
         }
     }
+}
 
+#[test]
+fn prototyping() -> Result<(), StepError> {
+    let json = &json!({
+        "v": r#"{
+            "kind": "5"
+        }"#
+    });
 
+    let mut json = json.get("v").unwrap();
+
+        // json may be a string "value" instead of an obj so this creates a parsed object version if that is the case
+        // let json_from_str = match json.as_str() {
+        //     Some(json_str) => {
+        //         //let mut chars: Vec<char> = json_str.chars().collect();
+        //         //chars.pop();
+        //         //chars.remove(0);
+        //         //let json_str: String = chars.into_iter().collect();
+        //         match serde_json::Value::from_str(&json_str) {
+        //             Ok(json) => Some(json),
+        //             Err(_) => return Err(StepError(format!("Failed to parse json block string: {}", json_str)))
+        //         }
+        //     },
+        //     None => None
+        // };
+        // let json_from_str_unwrapped;
+        // if json_from_str.is_some() {
+        //     json_from_str_unwrapped = json_from_str.unwrap();
+        //     json = &json_from_str_unwrapped;
+        // }
+        let kind = json.get("kind").ok_or(StepError(format!("Block does not have kind field: {}", json)))?
+            .as_str().ok_or(StepError("Block kind field is not a string".to_string()))?;
+
+            return Ok(())
 }
