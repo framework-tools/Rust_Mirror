@@ -21,7 +21,8 @@ pub enum Block {
 
 impl Block {
     pub fn from_json(json: &Value) -> Result<Self, StepError> {
-        let kind = json.get("kind").ok_or(StepError("Block does not have kind field".to_string()))?.as_str().ok_or(StepError("Block kind field is not a string".to_string()))?;
+        let kind = json.get("kind").ok_or(StepError(format!("Block does not have kind field: {}", json)))?
+            .as_str().ok_or(StepError("Block kind field is not a string".to_string()))?;
         return match kind {
             "standard" => {
                 Ok(Block::StandardBlock(StandardBlock {
