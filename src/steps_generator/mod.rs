@@ -15,6 +15,8 @@ pub struct StepError (pub String);
 pub fn generate_steps(event: &Event, block_map: &BlockMap, selection: Selection, new_ids: &mut NewIds) -> Result<Vec<Step>, StepError> {
     let (from, to) = selection.get_from_to(block_map)?;
 
+    let object_id = bson::oid::ObjectId::new();
+
     return match event {
         Event::KeyPress(key_press) => generate_keyboard_event_steps(key_press, block_map, from, to, new_ids),
         Event::FormatBar(event) => match event {
