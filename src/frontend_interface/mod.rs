@@ -30,7 +30,8 @@ pub fn execute_event(
                 Ok(updated_selection_json) => updated_selection_json,
                 Err(_) => return ReturnJson::Err("Updated Selection could not be converted to JSON".to_string()).create_response()
             };
-            ReturnJson::Data{ updated_block_map_json, updated_selection_json }.create_response()
+            return json!({ "data": updated_block_map_json, "err": "" }).to_string()
+            //ReturnJson::Data{ updated_block_map_json, updated_selection_json }.create_response()
         },
         Err(StepError(err)) => ReturnJson::Err(err).create_response()
     }
