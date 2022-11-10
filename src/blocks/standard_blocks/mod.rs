@@ -62,6 +62,11 @@ impl StandardBlock {
         }
     }
 
+    pub fn get_inline_block_from_index(&self, index: usize) -> Result<String, StepError> {
+        return Ok(self.content_block()?.inline_blocks[index].clone())
+
+    }
+
     pub fn get_child_from_index(&self, index: usize) -> Result<String, StepError> {
         match self.children.get(index) {
             Some(block_id) => Ok(block_id.clone()),
