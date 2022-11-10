@@ -48,13 +48,13 @@ enum ReturnJson {
 impl ReturnJson {
     fn create_response(self) -> String {
         return match self {
-            Self::Data { updated_block_map_json, updated_selection_json } => json!({
-                "data": {
-                    "block_map": updated_block_map_json,
-                    "selection": updated_selection_json
-                },
+            Self::Data { updated_block_map_json, updated_selection_json } => format!(r#"
+                "data": {{
+                    "block_map": {:?},
+                    "selection": {:?}
+                }},
                 "error": ""
-            }).to_string(),
+            "#, updated_block_map_json, updated_selection_json),
             Self::Err(err_msg) => json!({ "data": {}, "error": err_msg }).to_string()
         }
     }
