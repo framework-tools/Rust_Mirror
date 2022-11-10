@@ -50,7 +50,7 @@ fn parse_json_from_interface(
         Ok(new_ids) => new_ids,
         Err(_) => return Err("new_ids json could not be parsed".to_string())
     };
-    let block_map: HashMap<String, serde_json::Value> = match serde_json::from_str(&block_map_json) {
+    let block_map: HashMap<String, String> = match serde_json::from_str(&block_map_json) {
         Ok(block_map) => block_map,
         Err(_) => return Err("Block Map json could not be parsed".to_string())
     };

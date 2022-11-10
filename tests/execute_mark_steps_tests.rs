@@ -34,7 +34,7 @@ mod tests {
         });
         let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id.clone()]);
 
-        let block_map = BlockMap::from(vec![inline_block, block, root_block]).unwrap();
+        let block_map = BlockMap::from(vec![inline_block.to_string(), block.to_string(), root_block.to_string()]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::Bold);
         let sub_selection_anchor = SubSelection::from(inline_block_id.clone(), 1, None);
         let sub_selection_head = SubSelection::from(inline_block_id.clone(), 5, None);
@@ -103,7 +103,9 @@ mod tests {
         });
         let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id.clone()]);
 
-        let block_map = BlockMap::from(vec![inline_block1, inline_block2, block, root_block]).unwrap();
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), block.to_string(), root_block.to_string()
+        ]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::Italic);
         let sub_selection_anchor = SubSelection::from(inline_block_id1.clone(), 2, None);
         let sub_selection_head = SubSelection::from(inline_block_id2.clone(), 3, None);
@@ -198,7 +200,9 @@ mod tests {
         let sub_selection_head = SubSelection::from(inline_block_id3.clone(), 3, None);
         let selection = Selection::from(sub_selection_anchor.clone(), sub_selection_head.clone());
 
-        let block_map = BlockMap::from(vec![inline_block1, inline_block2, inline_block3, block, root_block]).unwrap();
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), block.to_string(), root_block.to_string()
+        ]).unwrap();
 
         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
         let updated_block_map = execute_steps(steps, block_map, &mut new_ids).unwrap();

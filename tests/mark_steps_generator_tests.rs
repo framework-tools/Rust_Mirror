@@ -35,7 +35,7 @@ mod tests {
         });
         let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id]);
 
-        let block_map = BlockMap::from(vec![inline_block, block, root_block]).unwrap();
+        let block_map = BlockMap::from(vec![inline_block.to_string(), block.to_string(), root_block.to_string()]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::Bold);
         let sub_selection_anchor = SubSelection::from(inline_block_id.clone(), 6, None);
         let sub_selection_head = SubSelection::from(inline_block_id.clone(), 11, None);
@@ -97,7 +97,9 @@ mod tests {
         });
         let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id.clone()]);
 
-        let block_map = BlockMap::from(vec![inline_block1, inline_block2, block, root_block]).unwrap();
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), block.to_string(), root_block.to_string()
+        ]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::Italic);
         let sub_selection_anchor = SubSelection::from(inline_block_id1, 2, None);
         let sub_selection_head = SubSelection::from(inline_block_id2, 3, None);
@@ -164,7 +166,9 @@ mod tests {
         });
         let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id.clone()]);
 
-        let block_map = BlockMap::from(vec![inline_block1, inline_block2, block, root_block]).unwrap();
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), block.to_string(), root_block.to_string()
+        ]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::ForeColor(Color(255, 255, 0, 1)));
         let sub_selection_anchor = SubSelection::from(inline_block_id1, 2, None);
         let sub_selection_head = SubSelection::from(inline_block_id2, 3, None);
@@ -274,8 +278,8 @@ mod tests {
         vec![paragraph_block_id1.clone(), paragraph_block_id2.clone(), paragraph_block_id3.clone()]);
 
         let block_map = BlockMap::from(vec![
-            inline_block1, inline_block2, inline_block3, inline_block4,
-            paragraph_block1, paragraph_block2, paragraph_block3, root_block
+            inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), inline_block4.to_string(),
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), root_block.to_string()
         ]).unwrap();
 
         let event = Event::FormatBar(FormatBarEvent::Underline);

@@ -36,7 +36,7 @@ mod tests {
         });
         let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]);
 
-        let block_map = BlockMap::from(vec![inline_block, block, root_block]).unwrap();
+        let block_map = BlockMap::from(vec![inline_block.to_string(), block.to_string(), root_block.to_string()]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Standard('a'), None));
         let sub_selection = SubSelection::from(inline_block_id.clone(), 0, None);
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
@@ -82,7 +82,7 @@ mod tests {
         let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id]);
 
         let block_map = BlockMap::from(vec![
-            inline_block, block, root_block
+            inline_block.to_string(), block.to_string(), root_block.to_string()
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Standard('k'), None));
@@ -174,7 +174,8 @@ mod tests {
             ]);
 
         let block_map = BlockMap::from(vec![
-            inline_block1, inline_block2, std_block1, std_block2, root_block, std_block3, std_block_4
+            inline_block1.to_string(), inline_block2.to_string(), std_block1.to_string(), std_block2.to_string(),
+            root_block.to_string(), std_block3.to_string(), std_block_4.to_string()
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Standard('a'), None));
@@ -263,7 +264,7 @@ mod tests {
         let root_block = RootBlock::json_from(root_block_id, vec![std_block_id1.clone()]);
 
         let block_map = BlockMap::from(vec![
-            inline_block1, inline_block2, std_block1, root_block
+            inline_block1.to_string(), inline_block2.to_string(), std_block1.to_string(), root_block.to_string()
         ]).unwrap();
 
         let steps = vec![

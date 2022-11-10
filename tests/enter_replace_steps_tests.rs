@@ -24,7 +24,7 @@ mod tests {
             },
             "marks": [],
             "parent": paragraph_block_id.clone()
-        });
+        }).to_string();
         let block = json!({
             "_id": paragraph_block_id,
             "kind": "standard",
@@ -35,8 +35,8 @@ mod tests {
             "children": [],
             "marks": [],
             "parent": root_block_id.clone().to_string()
-        });
-        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]);
+        }).to_string();
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]).to_string();
 
         let block_map = BlockMap::from(vec![inline_block, block, root_block]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
@@ -130,7 +130,7 @@ mod tests {
             },
             "marks": ["bold"],
             "parent": paragraph_block_id.clone()
-        });
+        }).to_string();
         let inline_block2 = json!({
             "_id": inline_block_id2.clone(),
             "kind": "inline",
@@ -140,7 +140,7 @@ mod tests {
             },
             "marks": [],
             "parent": paragraph_block_id.clone()
-        });
+        }).to_string();
         let block = json!({
             "_id": paragraph_block_id.clone(),
             "kind": "standard",
@@ -151,8 +151,8 @@ mod tests {
             "children": [],
             "marks": [],
             "parent": root_block_id.clone().to_string()
-        });
-        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]);
+        }).to_string();
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]).to_string();
 
         let block_map = BlockMap::from(vec![inline_block1, inline_block2, block, root_block]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
@@ -248,7 +248,7 @@ mod tests {
             },
             "marks": ["bold"],
             "parent": paragraph_block_id.clone()
-        });
+        }).to_string();
         let inline_block2 = json!({
             "_id": inline_block_id2.clone(),
             "kind": "inline",
@@ -258,7 +258,7 @@ mod tests {
             },
             "marks": [],
             "parent": paragraph_block_id.clone()
-        });
+        }).to_string();
         let block = json!({
             "_id": paragraph_block_id.clone(),
             "kind": "standard",
@@ -269,8 +269,8 @@ mod tests {
             "children": [],
             "marks": [],
             "parent": root_block_id.clone().to_string()
-        });
-        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]);
+        }).to_string();
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]).to_string();
 
         let block_map = BlockMap::from(vec![inline_block1, inline_block2, block, root_block]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
@@ -368,7 +368,7 @@ mod tests {
             },
             "marks": ["italic"],
             "parent": paragraph_block_id.clone()
-        });
+        }).to_string();
         let inline_block2 = json!({
             "_id": inline_block_id2.clone(),
             "kind": "inline",
@@ -378,7 +378,7 @@ mod tests {
             },
             "marks": [],
             "parent": paragraph_block_id.clone()
-        });
+        }).to_string();
         let inline_block3 = json!({
             "_id": inline_block_id3.clone(),
             "kind": "inline",
@@ -388,7 +388,7 @@ mod tests {
             },
             "marks": [],
             "parent": paragraph_block_id.clone()
-        });
+        }).to_string();
         let block = json!({
             "_id": paragraph_block_id.clone(),
             "kind": "standard",
@@ -401,8 +401,8 @@ mod tests {
             "children": [],
             "marks": [],
             "parent": root_block_id.clone()
-        });
-        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]);
+        }).to_string();
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]).to_string();
 
         let block_map = BlockMap::from(vec![inline_block1, inline_block2, inline_block3, block, root_block]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
@@ -562,8 +562,8 @@ mod tests {
         ]);
 
         let block_map = BlockMap::from(vec![
-            inline_block1, inline_block2, inline_block3,
-            paragraph_block1, paragraph_block2, paragraph_block3, root_block
+            inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(),
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), root_block.to_string()
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Enter, None));

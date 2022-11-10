@@ -20,24 +20,11 @@ pub enum Block {
 }
 
 impl Block {
-    pub fn from_json(json: &Value) -> Result<Self, StepError> {
-        let mut json = json;
-        // json may be a string "value" instead of an obj so this creates a parsed object version if that is the case
-        let json_from_str = match json.as_str() {
-            Some(json_str) => {
-                match serde_json::Value::from_str(json_str) {
-                    Ok(json) => Some(json),
-                    Err(_) => return Err(StepError(format!("Failed to parse json block string: {}", json_str)))
-                }
-            },
-            None => None
+    pub fn from_json(json_str: &str) -> Result<Self, StepError> {
+        let json = match serde_json::Value::from_str(json_str) {
+            Ok(json) => json,
+            Err(_) => return Err(StepError(format!("Could not parse json block from str: {}", json_str)))
         };
-        let json_from_str_unwrapped;
-        if json_from_str.is_some() {
-            json_from_str_unwrapped = json_from_str.unwrap();
-            json = &json_from_str_unwrapped;
-        }
-
 
         let kind = json.get("kind").ok_or(StepError(format!("Block does not have kind field: {}", json)))?
             .as_str().ok_or(StepError("Block kind field is not a string".to_string()))?;
@@ -284,18 +271,23 @@ impl RootBlock {
     }
 }
 
+/// HashMap<Id, JSON (as str)>
 #[derive(Serialize, Deserialize)]
-pub struct BlockMap(pub HashMap<String, serde_json::Value>);
+pub struct BlockMap(pub HashMap<String, String>);
 
 impl BlockMap {
-    pub fn from(blocks: Vec<serde_json::Value>) -> Result<Self, StepError> {
+    pub fn from(blocks: Vec<String>) -> Result<Self, StepError> {
         let mut map = HashMap::new();
-        for block in blocks {
+        for block_json_str in blocks {
+            let block = match serde_json::Value::from_str(&block_json_str) {
+                Ok(block) => block,
+                Err(_) => return Err(StepError(format!("Failed to parse json from str for block: {}", block_json_str)))
+            };
             let id = match block.get("_id") {
                 Some(id) => id.as_str().ok_or(StepError("Block _id field is not a string".to_string())),
                 None => Err(StepError("Block does not have _id field".to_string()))
             }?;
-            map.insert(String::from_str(id).unwrap(), block);
+            map.insert(String::from_str(id).unwrap(), block_json_str);
         }
         Ok(Self(map))
     }
@@ -353,9 +345,9 @@ impl BlockMap {
         }
     }
 
-    pub fn update_block(&mut self, block: Block) -> Result<Option<serde_json::Value>, StepError> {
+    pub fn update_block(&mut self, block: Block) -> Result<Option<String>, StepError> {
         let id = block.id();
-        let json = block.to_json()?;
+        let json = block.to_json()?.to_string();
         return Ok(self.0.insert(id, json))
     }
 
