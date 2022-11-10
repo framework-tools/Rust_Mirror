@@ -36,7 +36,9 @@ impl Block {
         if json_from_str.is_some() {
             json_from_str_unwrapped = json_from_str.unwrap();
             json = &json_from_str_unwrapped;
+            return Err(StepError(format!("{:?}", json)))
         }
+
 
         let kind = json.get("kind").ok_or(StepError(format!("Block does not have kind field: {}", json)))?
             .as_str().ok_or(StepError("Block kind field is not a string".to_string()))?;
