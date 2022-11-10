@@ -6,7 +6,7 @@ use self::{event::{Event, FormatBarEvent}, keypress_step_generator::{generate_ke
 pub mod keypress_step_generator;
 pub mod selection;
 pub mod event;
-pub mod replace_selected;
+pub mod generate_replace_selected_steps;
 pub mod mark_steps;
 
 #[derive(Debug, PartialEq)]

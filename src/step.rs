@@ -15,8 +15,13 @@ pub struct ReplaceStep {
     pub block_id: String,
     pub from: SubSelection,
     pub to: SubSelection,
-    pub slice: Vec<String>,
-    pub blocks_to_update: Vec<Block>,
+    pub slice: ReplaceSlice
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ReplaceSlice {
+    Blocks(Vec<String>), // Vec<Id>
+    String(String)
 }
 
 #[derive(Debug, PartialEq)]

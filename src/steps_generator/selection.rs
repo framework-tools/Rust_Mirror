@@ -2,7 +2,7 @@ use std::{str::FromStr};
 
 
 
-use crate::blocks::{Block, BlockMap};
+use crate::{blocks::{Block, BlockMap}, step::{ReplaceStep, ReplaceSlice}};
 
 use super::StepError;
 use serde::{Deserialize, Serialize};
@@ -88,6 +88,20 @@ impl Selection {
 			}
 		}
 	}
+
+    pub fn update_selection_from(replace_step: ReplaceStep) -> Self {
+        match replace_step.slice {
+            ReplaceSlice::String(replace_slice) => {
+                let subselection = SubSelection {
+                    block_id: replace_step.from.block_id,
+                    offset: replace_step.from.offset + replace_slice.len(),
+                    subselection: None
+                };
+                return Selection { anchor: subselection.clone(), head: subselection }
+            },
+            ReplaceSlice::Blocks(blocks) => unimplemented!()
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

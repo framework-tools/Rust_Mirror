@@ -2,7 +2,7 @@ use std::{str::FromStr, collections::HashMap};
 
 use serde_json::json;
 
-use crate::{steps_generator::{event::Event, selection::Selection, generate_steps, StepError}, new_ids::NewIds, blocks::BlockMap, steps_executor::execute_steps};
+use crate::{steps_generator::{event::Event, selection::Selection, generate_steps, StepError}, new_ids::NewIds, blocks::BlockMap, steps_executor::{execute_steps, UpdatedState}};
 
 pub fn execute_event(
     selection_json: String,
@@ -12,29 +12,53 @@ pub fn execute_event(
 ) -> String {
     let (selection, mut new_ids, block_map, event) = match parse_json_from_interface(selection_json, new_ids_json, block_map_json, event_json) {
         Ok(value) => value,
-        Err(err) => return javascript_return_json("", Some(&err))
+        Err(err) => return ReturnJson::Err(err).create_response()
     };
 
     let steps = match generate_steps(&event, &block_map, selection, &mut new_ids) {
         Ok(steps) => steps,
-        Err(StepError(err)) => return javascript_return_json("", Some(&err))
+        Err(StepError(err)) => return ReturnJson::Err(err).create_response()
     };
 
     return match execute_steps(steps, block_map, &mut new_ids) {
-        Ok(BlockMap(updated_block_map)) => match serde_json::to_string(&updated_block_map) {
-            Ok(updated_block_map_json) => javascript_return_json(&updated_block_map_json, None),
-            Err(_) => javascript_return_json("", Some("Failed to convert blockmap to json"))
+        Ok(UpdatedState { block_map: BlockMap(updated_block_map), selection }) => {
+            let updated_block_map_json = match serde_json::to_string(&updated_block_map) {
+                Ok(updated_block_map_json) => updated_block_map_json,
+                Err(_) => return ReturnJson::Err("Updated blockmap could not be converted to JSON".to_string()).create_response()
+            };
+            let updated_selection_json = match serde_json::to_string(&selection) {
+                Ok(updated_selection_json) => updated_selection_json,
+                Err(_) => return ReturnJson::Err("Updated Selection could not be converted to JSON".to_string()).create_response()
+            };
+            ReturnJson::Data{ updated_block_map_json, updated_selection_json }.create_response()
         },
-        Err(StepError(err)) => javascript_return_json("", Some(&err))
+        Err(StepError(err)) => ReturnJson::Err(err).create_response()
     }
 }
 
-fn javascript_return_json(data: &str, err: Option<&str>) -> String {
-    return match err {
-        Some(err) => json!({ "data": "", "error": err }).to_string(),
-        None => json!({ "data": data, "error": "" }).to_string()
+enum ReturnJson {
+    Data {
+        updated_block_map_json: String,
+        updated_selection_json: String
+    },
+    Err(String)
+}
+
+impl ReturnJson {
+    fn create_response(self) -> String {
+        return match self {
+            Self::Data { updated_block_map_json, updated_selection_json } => json!({
+                "data": {
+                    "block_map": updated_block_map_json,
+                    "selection": updated_selection_json
+                },
+                "error": ""
+            }).to_string(),
+            Self::Err(err_msg) => json!({ "data": {}, "error": err_msg }).to_string()
+        }
     }
 }
+
 
 fn parse_json_from_interface(
     selection_json: String,
