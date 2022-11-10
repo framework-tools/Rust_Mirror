@@ -353,17 +353,10 @@ impl BlockMap {
         }
     }
 
-    pub fn update_block(&mut self, block: Block) -> Result<Option<String>, StepError> {
+    pub fn update_block(&mut self, block: Block) -> Result<Option<serde_json::Value>, StepError> {
         let id = block.id();
         let json = block.to_json()?;
-        let returned_id_as_json = self.0.insert(id, json);
-        match returned_id_as_json {
-            Some(id_as_json) => {
-                let id_as_string = id_as_json.get("_id").ok_or(StepError("Block does not have _id field".to_string()))?.as_str().ok_or(StepError("Block _id field is not a string".to_string()))?;
-                Ok(Some(String::from_str(id_as_string).unwrap()))
-            },
-            None => Ok(None)
-        }
+        return Ok(self.0.insert(id, json))
     }
 
     pub fn remove_block(&mut self, id: &String) -> Result<Option<Block>, StepError> {
