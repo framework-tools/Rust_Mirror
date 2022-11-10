@@ -22,15 +22,6 @@ pub fn execute_event(
 
     return match execute_steps(steps, block_map, &mut new_ids) {
         Ok(UpdatedState { block_map: BlockMap(updated_block_map), selection }) => {
-            // let updated_block_map_json = match serde_json::to_string(&updated_block_map) {
-            //     Ok(updated_block_map_json) => updated_block_map_json,
-            //     Err(_) => return ReturnJson::Err("Updated blockmap could not be converted to JSON".to_string()).create_response()
-            // };
-            // let updated_selection_json = match serde_json::to_string(&selection) {
-            //     Ok(updated_selection_json) => updated_selection_json,
-            //     Err(_) => return ReturnJson::Err("Updated Selection could not be converted to JSON".to_string()).create_response()
-            // };
-            // return json!({ "data": updated_block_map_json, "err": "" })
             ReturnJson::Data{ updated_block_map, updated_selection: selection }.create_response()
         },
         Err(StepError(err)) => ReturnJson::Err(err).create_response()
