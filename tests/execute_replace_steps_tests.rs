@@ -11,7 +11,6 @@ mod tests {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id()?;
-        println!("{}", root_block_id);
         let paragraph_block_id = new_ids.get_id()?;
         let inline_block_id = new_ids.get_id()?;
         let inline_block = json!({
@@ -35,7 +34,7 @@ mod tests {
             "marks": [],
             "parent": root_block_id.clone()
         });
-        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id]);
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]);
 
         let block_map = BlockMap::from(vec![inline_block, block, root_block]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Standard('a'), None));

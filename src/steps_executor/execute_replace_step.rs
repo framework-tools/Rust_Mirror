@@ -16,7 +16,8 @@ pub fn execute_replace_step(replace_step: ReplaceStep, mut block_map: BlockMap) 
             return Err(StepError("Cannot execute replace step on inline block".to_string()))
         },
         Block::StandardBlock(standard_block) => {
-            if from_and_to_are_inline_blocks(&replace_step, &block_map) {
+            // if Replacing only inline blocks within a single standard block
+            if replace_step.from.subselection.is_none() && replace_step.to.subselection.is_none() {
                 let mut content = standard_block.content_block()?.clone();
                 // replace content's inline blocks from "from" offset to "to" offset with slice
                 content.inline_blocks.splice(replace_step.from.offset..replace_step.to.offset, replace_step.slice);
@@ -70,6 +71,7 @@ pub fn execute_replace_step(replace_step: ReplaceStep, mut block_map: BlockMap) 
 fn from_and_to_are_inline_blocks(replace_step: &ReplaceStep, block_map: &BlockMap) -> bool {
     let from_block = block_map.get_inline_block(&replace_step.from.block_id);
     let to_block = block_map.get_inline_block(&replace_step.to.block_id);
+    println!("from inline: {}, to inline: {}", from_block.is_ok(), to_block.is_ok());
     return from_block.is_ok() && to_block.is_ok()
 }
 
