@@ -1,16 +1,17 @@
 
 
-use crate::{step::ReplaceStep, blocks::{BlockMap, Block}, steps_generator::StepError};
+use crate::{step::ReplaceStep, blocks::{BlockMap, Block}, steps_generator::{StepError, selection::Selection}};
 
-use super::clean_block_after_transform;
+use super::{clean_block_after_transform, UpdatedState};
 
 /// Apply replace step & update to block map
 /// Update each block in "update block map"
 /// For each "update" we need to:
 /// -> merge adjacent inline blocks with same marks (unimplemented)
 /// -> delete any text blocks with no text (unimplemented)
-pub fn execute_replace_step(replace_step: ReplaceStep, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
+pub fn execute_replace_step(replace_step: ReplaceStep, mut block_map: BlockMap) -> Result<UpdatedState, StepError> {
     let block = block_map.get_block(&replace_step.block_id)?;
+    let updated_selection: Selection;
     match block {
         Block::InlineBlock(_) => {
             return Err(StepError("Cannot execute replace step on inline block".to_string()))
@@ -26,8 +27,13 @@ pub fn execute_replace_step(replace_step: ReplaceStep, mut block_map: BlockMap) 
                 block_map.update_block(updated_block)?;
                 let standard_block = block_map.get_standard_block(&replace_step.block_id)?;
                 block_map = clean_block_after_transform(&standard_block, block_map)?;
+                let updated_subselection = replace_step.
+                // updated_selection = Selection {
+                //     anchor:
+                // }
+
             } else {
-                return execute_replace_on_standard_blocks_fully_selected(replace_step, block_map)
+       //         return execute_replace_on_standard_blocks_fully_selected(replace_step, block_map)
                 // let standard_block = execute_replace_on_blocks_children(
                 //     Block::StandardBlock(standard_block),
                 //     replace_step.from.offset,
@@ -40,7 +46,7 @@ pub fn execute_replace_step(replace_step: ReplaceStep, mut block_map: BlockMap) 
             }
         },
         Block::Root(root_block) => {
-            return execute_replace_on_standard_blocks_fully_selected(replace_step, block_map)
+            //return execute_replace_on_standard_blocks_fully_selected(replace_step, block_map)
             // let root_block = execute_replace_on_blocks_children(
             //     Block::Root(root_block),
             //     replace_step.from.offset,
@@ -60,7 +66,10 @@ pub fn execute_replace_step(replace_step: ReplaceStep, mut block_map: BlockMap) 
         };
         block_map.update_block(block)?;
     }
-    return Ok(block_map)
+    return Ok(UpdatedState {
+        block_map,
+        selection: ()
+    })
 }
 
 // fn execute_replace_on_blocks_children(mut block: Block, from_index: usize, to_index: usize, slice: Vec<String>) -> Result<Block, StepError> {
