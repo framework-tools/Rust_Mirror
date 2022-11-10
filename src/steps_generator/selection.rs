@@ -123,37 +123,5 @@ impl SubSelection {
     pub fn block_id(&self) -> String {
         return self.block_id.clone()
     }
-
-    /// If selection is inline block & offset is 0, & is not the first inline block in parent block
-    /// -> change selection to the previous inline block, & set the offset is at the end of its text
-    pub fn conform_illegal_start_offset_selection(self, block_map: &BlockMap) -> Result<Self, StepError> {
-        match self.subselection {
-            Some(subselection) => subselection.conform_illegal_start_offset_selection(block_map),
-            None => {
-                match block_map.get_inline_block(&self.block_id) {
-                    Ok(inline_block) => {
-                        if self.offset == 0 {
-                            let parent_block = block_map.get_standard_block(&inline_block.parent)?;
-                            let block_index = parent_block.index_of(&inline_block._id)?;
-                            if block_index != 0 {
-                                let previous_block_id = parent_block.get_inline_block_from_index(block_index - 1)?;
-                                let previous_block = block_map.get_inline_block(&previous_block_id)?;
-                                return Ok(Self {
-                                    block_id: previous_block.id(),
-                                    offset: previous_block.text()?.len(),
-                                    subselection: None,
-                                })
-                            } else {
-                                return Ok(self)
-                            }
-                        } else {
-                            return Ok(self)
-                        }
-                    },
-                    Err(_) => return Ok(self)
-                }
-            }
-        }
-    }
 }
 

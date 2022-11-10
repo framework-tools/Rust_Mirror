@@ -48,7 +48,7 @@ pub fn merge_inline_blocks_with_identical_marks(standard_block: &StandardBlock, 
                 let previous_inline_block = block_map.get_inline_block(&content_block.inline_blocks[i - 1])?;
                 let new_inline_block = previous_inline_block.merge(inline_block)?;
                 block_map.update_block(Block::InlineBlock(new_inline_block))?;
-                block_map.remove_block(&id)?;
+                //block_map.remove_block(&id)?;
 
                 let mut content_block = content_block.clone();
                 content_block.inline_blocks.remove(i);
