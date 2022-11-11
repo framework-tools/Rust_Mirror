@@ -26,17 +26,7 @@ pub fn generate_steps_for_backspace(
             }
             return generate_replace_selected_steps(block_map, from, to, "".to_string())
         },
-        Block::StandardBlock(_) => {
-            unimplemented!()
-            // let from_standard_block = from_standard_block.unwrap();
-            // return Ok(vec![Step::ReplaceStep(ReplaceStep {
-            //     block_id: from_standard_block.parent,
-            //     from,
-            //     to,
-            //     slice: vec![],
-            //     blocks_to_update: vec![]
-            // })])
-        },
+        Block::StandardBlock(_) => return generate_replace_selected_steps(block_map, from, to, "".to_string()),
         Block::Root(_) => return Err(StepError("Cannot perform a backspace operation on a root block".to_string()))
     }
 }
