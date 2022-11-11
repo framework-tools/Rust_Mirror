@@ -6,6 +6,8 @@ use crate::{mark::Mark, steps_generator::StepError, new_ids::{self, NewIds}};
 
 use self::text_block::TextBlock;
 
+use super::{BlockMap, standard_blocks::StandardBlock};
+
 pub mod text_block;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -93,6 +95,16 @@ impl InlineBlock {
         } else {
             return  self.remove_mark(mark);
         }
+    }
+
+    pub fn get_parent(&self, block_map: &BlockMap) -> Result<StandardBlock, StepError> {
+        return block_map.get_standard_block(&self.parent)
+    }
+
+    pub fn previous_block(&self, block_map: &BlockMap) -> Result<InlineBlock, StepError> {
+        let parent_block = self.get_parent(block_map)?;
+        let previous_block_id = parent_block.content_block()?.inline_blocks[parent_block.index_of(&self._id)? - 1].clone();
+        return block_map.get_inline_block(&previous_block_id)
     }
 }
 

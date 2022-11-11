@@ -4,7 +4,57 @@ mod tests {
     use serde_json::json;
 
     #[test]
-    pub fn backspace_with_caret_selection_in_middle_of_two_inline_blocks() {
+    pub fn backspace_with_caret_selection_inside_inline_block() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id().unwrap();
+        let paragraph_block_id = new_ids.get_id().unwrap();
+        let inline_block_id = new_ids.get_id().unwrap();
+        let inline_block = json!({
+            "_id": inline_block_id.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello"
+            },
+            "marks": [],
+            "parent": paragraph_block_id.clone()
+        });
+        let block = json!({
+            "_id": paragraph_block_id.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id.clone()]);
+        let block_map = BlockMap::from(vec![
+            inline_block.to_string(), block.to_string(), root_block.to_string()
+        ]).unwrap();
+        let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
+        let sub_selection = SubSelection::from(inline_block_id.clone(), 2, None);
+        let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
+
+        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+
+        assert_eq!(steps.len(), 1);
+        match &steps[0] {
+            Step::ReplaceStep(replace_step) => {
+                assert_eq!(replace_step.block_id, paragraph_block_id);
+                assert_eq!(replace_step.from, SubSelection::from(inline_block_id.clone(), 1, None));
+                assert_eq!(replace_step.to, SubSelection::from(inline_block_id.clone(), 2, None));
+                assert_eq!(replace_step.slice, ReplaceSlice::String("".to_string()));
+            },
+            _ => panic!("Expected ReplaceStep")
+        }
+    }
+
+    #[test]
+    pub fn backspace_with_caret_at_start_of_second_inline_block() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();

@@ -88,7 +88,7 @@ fn remove_inline_blocks_between_from_and_to(
     from_block: &InlineBlock,
     to_block_id: &str,
 ) -> Result<StandardBlock, StepError> {
-    let parent_block = block_map.get_standard_block(&from_block.parent)?;
+    let parent_block = from_block.get_parent(block_map)?;
     let from_index = parent_block.index_of(&from_block._id)?;
     let to_index = parent_block.index_of(to_block_id)?;
     let mut content_block = parent_block.content_block()?.clone();
