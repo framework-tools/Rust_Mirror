@@ -346,6 +346,13 @@ mod tests {
         let updated_inline_block1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
         assert_eq!(updated_inline_block1.text().unwrap(), "H dbye world!");
 
+
+        let expected_subselection = SubSelection {
+            block_id: inline_block_id1,
+            offset: 2,
+            subselection: None,
+        };
+        assert_eq!(updated_state.selection, Selection { from: expected_subselection.clone(), to: expected_subselection })
     }
 
 //     #[test]

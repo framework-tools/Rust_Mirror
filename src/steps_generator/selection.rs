@@ -28,9 +28,10 @@ impl Selection {
     pub fn update_selection_from(replace_step: ReplaceStep) -> Self {
         match replace_step.slice {
             ReplaceSlice::String(replace_slice) => {
+                let deepest_from_subselection = replace_step.from.get_deepest_subselection();
                 let subselection = SubSelection {
-                    block_id: replace_step.from.block_id,
-                    offset: replace_step.from.offset + replace_slice.len(),
+                    block_id: deepest_from_subselection.block_id,
+                    offset: deepest_from_subselection.offset + replace_slice.len(),
                     subselection: None
                 };
                 return Selection { from: subselection.clone(), to: subselection }
@@ -59,5 +60,11 @@ impl SubSelection {
     pub fn block_id(&self) -> String {
         return self.block_id.clone()
     }
-}
 
+    pub fn get_deepest_subselection(self) -> Self {
+        match self.subselection {
+            Some(subselection) => subselection.get_deepest_subselection(),
+            None => self,
+        }
+    }
+}
