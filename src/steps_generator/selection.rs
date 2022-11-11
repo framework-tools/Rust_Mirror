@@ -61,6 +61,13 @@ impl SubSelection {
         return self.block_id.clone()
     }
 
+    pub fn get_child_subselection(&self) -> Result<&SubSelection, StepError> {
+        return match &self.subselection {
+            Some(inner_subselection) => Ok(&*inner_subselection),
+            None => return Err(StepError("Expected subselection to be Some".to_string()))
+        }
+    }
+
     pub fn get_deepest_subselection(self) -> Self {
         match self.subselection {
             Some(subselection) => subselection.get_deepest_subselection(),

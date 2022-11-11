@@ -41,7 +41,6 @@ pub fn execute_replace_step(replace_step: ReplaceStep, block_map: BlockMap) -> R
 fn from_and_to_are_inline_blocks(replace_step: &ReplaceStep, block_map: &BlockMap) -> bool {
     let from_block = block_map.get_inline_block(&replace_step.from.block_id);
     let to_block = block_map.get_inline_block(&replace_step.to.block_id);
-    println!("from inline: {}, to inline: {}", from_block.is_ok(), to_block.is_ok());
     return from_block.is_ok() && to_block.is_ok()
 }
 

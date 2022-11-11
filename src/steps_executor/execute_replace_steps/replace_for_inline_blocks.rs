@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use crate::{blocks::{inline_blocks::InlineBlock, BlockMap, Block, standard_blocks::{content_block::ContentBlock, StandardBlock}}, step::{ReplaceStep, ReplaceSlice}, steps_generator::{StepError, selection::Selection}, steps_executor::{UpdatedState, clean_block_after_transform}};
+use crate::{blocks::{inline_blocks::InlineBlock, BlockMap, Block, standard_blocks::{content_block::ContentBlock, StandardBlock}},
+step::{ReplaceStep, ReplaceSlice}, steps_generator::{StepError, selection::Selection},
+steps_executor::{UpdatedState, clean_block_after_transform}};
 
 
 /// replace "from" index of from block to index of "to" block on their parent
@@ -76,7 +78,7 @@ fn replace_across_multiple_inline_blocks(
     )?;
     let block_map = update_from_inline_block_text(from_block, block_map, replace_step.from.offset, replace_with)?;
     let block_map = update_to_inline_block_text(to_block, block_map, replace_step.to.offset)?;
-    let block_map = clean_block_after_transform(&updated_parent_block, block_map)?;
+    let block_map = clean_block_after_transform(updated_parent_block, block_map)?;
     return Ok(UpdatedState {
         block_map,
         selection: Selection::update_selection_from(replace_step)

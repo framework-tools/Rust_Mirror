@@ -249,6 +249,7 @@ mod tests {
         let inline_block_id1 = new_ids.get_id().unwrap();
         let std_block_id2 = new_ids.get_id().unwrap();
         let inline_block_id2 = new_ids.get_id().unwrap();
+        let inline_block_id3 = new_ids.get_id().unwrap();
         let std_block_id3 = new_ids.get_id().unwrap();
         let std_block_id4 = new_ids.get_id().unwrap();
 
@@ -281,9 +282,20 @@ mod tests {
             "kind": "inline",
             "_type": "text",
             "content": {
-                "text": "Goodbye world!"
+                "text": "Goodbye "
             },
             "marks": [],
+            "parent": std_block_id3.clone()
+        });
+
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "world!"
+            },
+            "marks": ["bold"],
             "parent": std_block_id3.clone()
         });
 
@@ -293,7 +305,7 @@ mod tests {
             "kind": "standard",
             "_type": "paragraph",
             "content": {
-                "inline_blocks": [inline_block_id2.clone()]
+                "inline_blocks": [inline_block_id2.clone(), inline_block_id3.clone()]
             },
             "children": [std_block_id2.to_string()],
             "marks": [],
@@ -306,7 +318,7 @@ mod tests {
 
         let block_map = BlockMap::from(vec![
             inline_block1.to_string(), inline_block2.to_string(), std_block1.to_string(), std_block2.to_string(),
-            root_block.to_string(), std_block3.to_string(), std_block_4.to_string()
+            root_block.to_string(), std_block3.to_string(), std_block_4.to_string(), inline_block3.to_string()
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Standard(' '), None));
@@ -325,7 +337,7 @@ mod tests {
                 block_id: std_block_id3.clone(),
                 offset: 0,
                 subselection: Some(Box::new(SubSelection {
-                    block_id: inline_block_id2.clone(),
+                    block_id: inline_block_id3.clone(),
                     offset: 3,
                     subselection: None,
                 }))
@@ -340,11 +352,13 @@ mod tests {
         assert_eq!(updated_std_block1.children, vec![std_block_id2]);
         assert_eq!(
             updated_std_block1.content_block().unwrap().inline_blocks,
-            vec![inline_block_id1.clone()]
+            vec![inline_block_id1.clone(), inline_block_id3.clone()]
         );
 
         let updated_inline_block1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
-        assert_eq!(updated_inline_block1.text().unwrap(), "H dbye world!");
+        assert_eq!(updated_inline_block1.text().unwrap(), "H ");
+        let updated_inline_block3 = updated_state.block_map.get_inline_block(&inline_block_id3).unwrap();
+        assert_eq!(updated_inline_block3.text().unwrap(), "ld!");
 
 
         let expected_subselection = SubSelection {

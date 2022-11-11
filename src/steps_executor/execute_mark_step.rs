@@ -51,10 +51,7 @@ fn execute_mark_step_on_inline_block(
         block_map.update_block(Block::InlineBlock(before_block))?;
         block_map.update_block(Block::InlineBlock(middle_block))?;
         block_map.update_block(Block::InlineBlock(after_block))?;
-        block_map = clean_block_after_transform(
-            &updated_parent_block,
-            block_map,
-        )?;
+        block_map = clean_block_after_transform(updated_parent_block, block_map)?;
     } else {
         //split from block
         //split to block
@@ -104,10 +101,7 @@ fn execute_mark_step_on_inline_block(
         );
         let updated_parent_block = from_parent_block.update_block_content(content_block)?;
         block_map.update_block(Block::StandardBlock(updated_parent_block.clone()))?;
-        block_map = clean_block_after_transform(
-            &updated_parent_block,
-            block_map,
-        )?;
+        block_map = clean_block_after_transform(updated_parent_block, block_map)?;
     }
     return Ok(block_map)
 }

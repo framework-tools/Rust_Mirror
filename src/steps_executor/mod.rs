@@ -26,9 +26,10 @@ pub fn execute_steps(mut steps: Vec<Step>, block_map: BlockMap, new_ids: &mut Ne
     }
 }
 
-pub fn clean_block_after_transform(block: &StandardBlock, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
+pub fn clean_block_after_transform(block: StandardBlock, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
+    block_map.update_block(Block::StandardBlock(block.clone()))?;
     if block.content_block()?.inline_blocks.len() > 1 {
-        block_map = merge_inline_blocks_with_identical_marks(block, block_map)?;
+        block_map = merge_inline_blocks_with_identical_marks(&block, block_map)?;
         let block = block_map.get_standard_block(&block.id())?; // need to get newly updated block
         block_map = remove_empty_inline_blocks(&block, block_map)?;
     }
