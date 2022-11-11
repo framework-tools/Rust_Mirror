@@ -8,7 +8,7 @@ mod tests {
     #[test]
     fn can_parse_selection_from_json() {
         let json = r#"{
-            "anchor": {
+            "from": {
                 "block_id": "6367242bd94bdaae59511ccd",
                 "offset": 0,
                 "subselection": {
@@ -17,7 +17,7 @@ mod tests {
                     "subselection": null
                 }
             },
-            "head": {
+            "to": {
                 "block_id": "6367242bd94bdaae59511ccd",
                 "offset": 0,
                 "subselection": null
@@ -29,7 +29,7 @@ mod tests {
         assert_eq!(
             selection,
             Selection {
-                anchor: SubSelection {
+                from: SubSelection {
                     block_id: id.clone(),
                     offset: 0,
                     subselection: Some(Box::new(SubSelection {
@@ -38,7 +38,7 @@ mod tests {
                         subselection: None
                     }))
                 },
-                head: SubSelection {
+                to: SubSelection {
                     block_id: id,
                     offset: 0,
                     subselection: None

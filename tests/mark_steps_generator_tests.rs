@@ -37,9 +37,9 @@ mod tests {
 
         let block_map = BlockMap::from(vec![inline_block.to_string(), block.to_string(), root_block.to_string()]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::Bold);
-        let sub_selection_anchor = SubSelection::from(inline_block_id.clone(), 6, None);
-        let sub_selection_head = SubSelection::from(inline_block_id.clone(), 11, None);
-        let selection = Selection::from(sub_selection_anchor.clone(), sub_selection_head.clone());
+        let sub_selection_from = SubSelection::from(inline_block_id.clone(), 6, None);
+        let sub_selection_to = SubSelection::from(inline_block_id.clone(), 11, None);
+        let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
 
@@ -47,8 +47,8 @@ mod tests {
         match &steps[0] {
             Step::AddMarkStep(add_mark_step) => {
                 assert_eq!(add_mark_step.block_id, inline_block_id);
-                assert_eq!(add_mark_step.from, sub_selection_anchor);
-                assert_eq!(add_mark_step.to, sub_selection_head);
+                assert_eq!(add_mark_step.from, sub_selection_from);
+                assert_eq!(add_mark_step.to, sub_selection_to);
                 assert_eq!(add_mark_step.mark, Mark::Bold);
             },
             step => return Err(StepError(format!("Expected AddMarkStep. Got: {:?}", step)))
@@ -101,17 +101,17 @@ mod tests {
             inline_block1.to_string(), inline_block2.to_string(), block.to_string(), root_block.to_string()
         ]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::Italic);
-        let sub_selection_anchor = SubSelection::from(inline_block_id1, 2, None);
-        let sub_selection_head = SubSelection::from(inline_block_id2, 3, None);
-        let selection = Selection::from(sub_selection_anchor.clone(), sub_selection_head.clone());
+        let sub_selection_from = SubSelection::from(inline_block_id1, 2, None);
+        let sub_selection_to = SubSelection::from(inline_block_id2, 3, None);
+        let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
         assert_eq!(steps.len(), 1);
         match &steps[0] {
             Step::RemoveMarkStep(remove_mark_step) => {
                 assert_eq!(remove_mark_step.block_id, paragraph_block_id);
-                assert_eq!(remove_mark_step.from, sub_selection_anchor);
-                assert_eq!(remove_mark_step.to, sub_selection_head);
+                assert_eq!(remove_mark_step.from, sub_selection_from);
+                assert_eq!(remove_mark_step.to, sub_selection_to);
                 assert_eq!(remove_mark_step.mark, Mark::Italic);
             },
             step => return Err(StepError(format!("Expected RemoveMarkStep. Got: {:?}", step)))
@@ -170,17 +170,17 @@ mod tests {
             inline_block1.to_string(), inline_block2.to_string(), block.to_string(), root_block.to_string()
         ]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::ForeColor(Color(255, 255, 0, 1)));
-        let sub_selection_anchor = SubSelection::from(inline_block_id1, 2, None);
-        let sub_selection_head = SubSelection::from(inline_block_id2, 3, None);
-        let selection = Selection::from(sub_selection_anchor.clone(), sub_selection_head.clone());
+        let sub_selection_from = SubSelection::from(inline_block_id1, 2, None);
+        let sub_selection_to = SubSelection::from(inline_block_id2, 3, None);
+        let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
         assert_eq!(steps.len(), 1);
         match &steps[0] {
             Step::AddMarkStep(add_mark_step) => {
                 assert_eq!(add_mark_step.block_id, paragraph_block_id);
-                assert_eq!(add_mark_step.from, sub_selection_anchor);
-                assert_eq!(add_mark_step.to, sub_selection_head);
+                assert_eq!(add_mark_step.from, sub_selection_from);
+                assert_eq!(add_mark_step.to, sub_selection_to);
                 assert_eq!(add_mark_step.mark, Mark::ForeColor(Color(255, 255, 0, 1)));
             },
             step => return Err(StepError(format!("Expected RemoveMarkStep. Got: {:?}", step)))
@@ -283,19 +283,19 @@ mod tests {
         ]).unwrap();
 
         let event = Event::FormatBar(FormatBarEvent::Underline);
-        let sub_selection_anchor = SubSelection::from(paragraph_block_id1, 0, Some(Box::new(
+        let sub_selection_from = SubSelection::from(paragraph_block_id1, 0, Some(Box::new(
             SubSelection::from(
             inline_block_id1,
             2,
             None
         ))));
-        let sub_selection_head = SubSelection::from(paragraph_block_id3, 0, Some(Box::new(
+        let sub_selection_to = SubSelection::from(paragraph_block_id3, 0, Some(Box::new(
             SubSelection::from(
             inline_block_id4,
             1,
             None
         ))));
-        let selection = Selection::from(sub_selection_anchor.clone(), sub_selection_head.clone());
+        let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection, &mut new_ids)?;
 
@@ -303,8 +303,8 @@ mod tests {
         match &steps[0] {
             Step::AddMarkStep(add_mark_step) => {
                 assert_eq!(add_mark_step.block_id, root_block_id);
-                assert_eq!(add_mark_step.from, sub_selection_anchor);
-                assert_eq!(add_mark_step.to, sub_selection_head);
+                assert_eq!(add_mark_step.from, sub_selection_from);
+                assert_eq!(add_mark_step.to, sub_selection_to);
                 assert_eq!(add_mark_step.mark, Mark::Underline);
             },
             step => return Err(StepError(format!("Expected RemoveMarkStep. Got: {:?}", step)))

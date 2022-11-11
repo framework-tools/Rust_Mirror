@@ -45,7 +45,7 @@ mod tests {
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id)?;
         assert_eq!(updated_inline_block.text()?, "a");
         let expected_subselection = SubSelection { block_id: inline_block_id, offset: 1, subselection: None };
-        assert_eq!(updated_state.selection, Selection { anchor: expected_subselection.clone(), head: expected_subselection });
+        assert_eq!(updated_state.selection, Selection { from: expected_subselection.clone(), to: expected_subselection });
         Ok(())
     }
 
@@ -102,7 +102,7 @@ mod tests {
     //     let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id)?;
     //     assert_eq!(updated_inline_block.text()?, "a");
     //     let expected_subselection = SubSelection { block_id: inline_block_id, offset: 1, subselection: None };
-    //     assert_eq!(updated_state.selection, Selection { anchor: expected_subselection.clone(), head: expected_subselection });
+    //     assert_eq!(updated_state.selection, Selection { from: expected_subselection.clone(), to: expected_subselection });
     //     Ok(())
     // }
 
@@ -143,9 +143,9 @@ mod tests {
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Standard('k'), None));
-        let anchor_sub_selection = SubSelection::from(inline_block_id.clone(), 2, None);
-        let head_sub_selection = SubSelection::from(inline_block_id.clone(), 4, None);
-        let selection = Selection::from(anchor_sub_selection.clone(), head_sub_selection.clone());
+        let from_sub_selection = SubSelection::from(inline_block_id.clone(), 2, None);
+        let to_sub_selection = SubSelection::from(inline_block_id.clone(), 4, None);
+        let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
@@ -154,6 +154,7 @@ mod tests {
         assert_eq!(updated_inline_block.text().unwrap(), "sok text");
         assert_eq!(updated_inline_block.marks, vec![Mark::Bold]);
     }
+
     #[test]
     fn can_execute_for_selection_across_multiple_inline_blocks() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
@@ -213,9 +214,9 @@ mod tests {
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Standard(' '), None));
-        let anchor_sub_selection = SubSelection::from(inline_block_id1.clone(), 2, None);
-        let head_sub_selection = SubSelection::from(inline_block_id3.clone(), 2, None);
-        let selection = Selection::from(anchor_sub_selection.clone(), head_sub_selection.clone());
+        let from_sub_selection = SubSelection::from(inline_block_id1.clone(), 2, None);
+        let to_sub_selection = SubSelection::from(inline_block_id3.clone(), 2, None);
+        let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
@@ -311,7 +312,7 @@ mod tests {
 //         let event = Event::KeyPress(KeyPress::new(Key::Standard('a'), None));
 
 //         let selection = Selection {
-//             anchor: SubSelection {
+//             from: SubSelection {
 //                 block_id: std_block_id1.clone(),
 //                 offset: 0,
 //                 subselection: Some(Box::new(SubSelection {
@@ -320,7 +321,7 @@ mod tests {
 //                     subselection: None,
 //                 }))
 //             },
-//             head: SubSelection {
+//             to: SubSelection {
 //                 block_id: std_block_id3.clone(),
 //                 offset: 0,
 //                 subselection: Some(Box::new(SubSelection {

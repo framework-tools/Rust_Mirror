@@ -148,9 +148,9 @@ mod tests {
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Standard('k'), None));
-        let anchor_sub_selection = SubSelection::from(inline_block_id.clone(), 2, None);
-        let head_sub_selection = SubSelection::from(inline_block_id.clone(), 4, None);
-        let selection = Selection::from(anchor_sub_selection.clone(), head_sub_selection.clone());
+        let from_sub_selection = SubSelection::from(inline_block_id.clone(), 2, None);
+        let to_sub_selection = SubSelection::from(inline_block_id.clone(), 4, None);
+        let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
 
@@ -214,9 +214,9 @@ mod tests {
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Standard('a'), None));
-        let anchor = SubSelection::from(inline_block_id_1.clone(), 2, None);
-        let head = SubSelection::from(inline_block_id_2.clone(), 2, None);
-        let selection = Selection::from(anchor, head);
+        let from = SubSelection::from(inline_block_id_1.clone(), 2, None);
+        let to = SubSelection::from(inline_block_id_2.clone(), 2, None);
+        let selection = Selection::from(from, to);
 
         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
 
@@ -290,12 +290,12 @@ mod tests {
 
     //     let event = Event::KeyPress(KeyPress::new(Key::Standard(' '), None));
     //     let selection = Selection {
-    //         anchor: SubSelection {
+    //         from: SubSelection {
     //             block_id: inline_block_id_1.clone(),
     //             offset: 4,
     //             subselection: None,
     //         },
-    //         head: SubSelection {
+    //         to: SubSelection {
     //             block_id: inline_block_id_3.clone(),
     //             offset: 2,
     //             subselection: None,
@@ -420,7 +420,7 @@ mod tests {
     //     let event = Event::KeyPress(KeyPress::new(Key::Standard('a'), None));
 
     //     let selection = Selection {
-    //         anchor: SubSelection {
+    //         from: SubSelection {
     //             block_id: std_block_id1.clone(),
     //             offset: 0,
     //             subselection: Some(Box::new(SubSelection {
@@ -429,7 +429,7 @@ mod tests {
     //                 subselection: None,
     //             }))
     //         },
-    //         head: SubSelection {
+    //         to: SubSelection {
     //             block_id: std_block_id3,
     //             offset: 0,
     //             subselection: Some(Box::new(SubSelection {

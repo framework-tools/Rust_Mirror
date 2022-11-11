@@ -406,9 +406,9 @@
 
 //         let block_map = BlockMap::from(vec![inline_block1, inline_block2, inline_block3, block, root_block]).unwrap();
 //         let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
-//         let anchor_sub_selection = SubSelection::from(inline_block_id1.clone(), 4, None);
-//         let head_sub_selection = SubSelection::from(inline_block_id3.clone(), 1, None);
-//         let selection = Selection::from(anchor_sub_selection, head_sub_selection);
+//         let from_sub_selection = SubSelection::from(inline_block_id1.clone(), 4, None);
+//         let to_sub_selection = SubSelection::from(inline_block_id3.clone(), 1, None);
+//         let selection = Selection::from(from_sub_selection, to_sub_selection);
 
 //         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
 
@@ -567,13 +567,13 @@
 //         ]).unwrap();
 
 //         let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
-//         let anchor_sub_selection = SubSelection::from(paragraph_block_id1.clone(), 0, Some(Box::new(
+//         let from_sub_selection = SubSelection::from(paragraph_block_id1.clone(), 0, Some(Box::new(
 //             SubSelection::from(inline_block_id1.clone(), 1, None)
 //         )));
-//         let head_sub_selection = SubSelection::from(paragraph_block_id3.clone(), 1, Some(Box::new(
+//         let to_sub_selection = SubSelection::from(paragraph_block_id3.clone(), 1, Some(Box::new(
 //             SubSelection::from(inline_block_id3.clone(), 3, None)
 //         )));
-//         let selection = Selection::from(anchor_sub_selection, head_sub_selection);
+//         let selection = Selection::from(from_sub_selection, to_sub_selection);
 
 //         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
 
