@@ -292,14 +292,14 @@ impl BlockMap {
         Ok(Self(map))
     }
 
-    pub fn get_block(&self, id: &String) -> Result<Block, StepError> {
+    pub fn get_block(&self, id: &str) -> Result<Block, StepError> {
         match self.0.get(id) {
             Some(block) => Block::from_json(block),
             None => Err(StepError(format!("Block with id {} does not exist", id)))
         }
     }
 
-    pub fn get_standard_block(&self, id: &String) -> Result<StandardBlock, StepError> {
+    pub fn get_standard_block(&self, id: &str) -> Result<StandardBlock, StepError> {
         let block = self.get_block(id)?;
         match block {
             Block::StandardBlock(block) => Ok(block),

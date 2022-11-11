@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{blocks::{inline_blocks::InlineBlock, BlockMap, Block, standard_blocks::content_block::ContentBlock}, step::{ReplaceStep, ReplaceSlice}, steps_generator::{StepError, selection::Selection}, steps_executor::{UpdatedState, clean_block_after_transform}};
+use crate::{blocks::{inline_blocks::InlineBlock, BlockMap, Block, standard_blocks::{content_block::ContentBlock, StandardBlock}}, step::{ReplaceStep, ReplaceSlice}, steps_generator::{StepError, selection::Selection}, steps_executor::{UpdatedState, clean_block_after_transform}};
 
 
 /// replace "from" index of from block to index of "to" block on their parent
@@ -64,26 +64,59 @@ fn replace_across_single_inline_block(
 /// -> Remove "to" block text from start to offset
 fn replace_across_multiple_inline_blocks(
     from_block: InlineBlock,
-    mut block_map: BlockMap,
+    block_map: BlockMap,
     replace_step: ReplaceStep,
     replace_with: String
 ) -> Result<UpdatedState, StepError> {
     let to_block = block_map.get_inline_block(&replace_step.to.block_id)?;
-    let parent_block = block_map.get_standard_block(&from_block.parent)?;
-    let from_index = parent_block.index_of(&from_block.id())?;
-    let to_index = parent_block.index_of(&to_block.id())?;
-    let mut content_block = parent_block.content_block()?.clone();
-    content_block.inline_blocks.splice(from_index + 1..to_index, []);
-    let updated_parent_block = parent_block.update_block_content(content_block)?;
-    let from_block_updated_text = format!("{}{}", &from_block.text()?.clone()[..replace_step.from.offset], replace_with);
-    let updated_from_block = from_block.update_text(from_block_updated_text)?;
-    block_map.update_block(Block::InlineBlock(updated_from_block))?;
-    let to_block_updated_text = format!("{}", &to_block.text()?.clone()[replace_step.to.offset..]);
-    let updated_to_block = to_block.update_text(to_block_updated_text)?;
-    block_map.update_block(Block::InlineBlock(updated_to_block))?;
-    block_map = clean_block_after_transform(&updated_parent_block, block_map)?;
+    let updated_parent_block = remove_inline_blocks_between_from_and_to(
+        &block_map,
+        &from_block,
+        &to_block._id,
+    )?;
+    let block_map = update_from_block_text(from_block, block_map, &replace_step, replace_with)?;
+    let block_map = update_to_block_text(to_block, block_map, &replace_step)?;
+    let block_map = clean_block_after_transform(&updated_parent_block, block_map)?;
     return Ok(UpdatedState {
         block_map,
         selection: Selection::update_selection_from(replace_step)
     })
+}
+
+fn remove_inline_blocks_between_from_and_to(
+    block_map: &BlockMap,
+    from_block: &InlineBlock,
+    to_block_id: &str,
+) -> Result<StandardBlock, StepError> {
+    let parent_block = block_map.get_standard_block(&from_block.parent)?;
+    let from_index = parent_block.index_of(&from_block._id)?;
+    let to_index = parent_block.index_of(to_block_id)?;
+    let mut content_block = parent_block.content_block()?.clone();
+    content_block.inline_blocks.splice(from_index + 1..to_index, []);
+    return parent_block.update_block_content(content_block)
+}
+
+fn update_from_block_text(
+    from_block: InlineBlock,
+    block_map: BlockMap,
+    replace_step: &ReplaceStep,
+    replace_with: String
+) -> Result<BlockMap, StepError> {
+    let updated_text = format!("{}{}", &from_block.text()?.clone()[..replace_step.from.offset], replace_with);
+    return update_inline_block_with_new_text_in_block(from_block, block_map, updated_text)
+}
+
+fn update_to_block_text(to_block: InlineBlock, block_map: BlockMap, replace_step: &ReplaceStep) -> Result<BlockMap, StepError> {
+    let updated_text = format!("{}", &to_block.text()?.clone()[replace_step.to.offset..]);
+    return update_inline_block_with_new_text_in_block(to_block, block_map, updated_text)
+}
+
+fn update_inline_block_with_new_text_in_block(
+    inline_block: InlineBlock,
+    mut block_map: BlockMap,
+    updated_text: String
+) -> Result<BlockMap, StepError> {
+    let updated_inline_block = inline_block.update_text(updated_text)?;
+    block_map.update_block(Block::InlineBlock(updated_inline_block))?;
+    return Ok(block_map)
 }
