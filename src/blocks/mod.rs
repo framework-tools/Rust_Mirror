@@ -200,6 +200,12 @@ impl Block {
         };
         Ok(())
     }
+
+    pub fn remove_child_from_id(mut self, id: &str) -> Result<Self, StepError> {
+        let child_index = self.index_of_child(id)?;
+        self.splice_children(child_index, child_index + 1, vec![])?;
+        return Ok(self)
+    }
 }
 
 pub fn id_from_json_block(json: &Value) -> Result<String, StepError> {

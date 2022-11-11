@@ -347,144 +347,111 @@ mod tests {
     // ///        | | |
     // ///        V V V
     // /// Output:
-    // /// <1>Hadbye world</1>
+    // /// <1>H dbye world</1>
     // ///    <2/>
-    // #[test]
-    // fn can_handle_across_2_standard_blocks() {
-    //     let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+    #[test]
+    fn can_handle_across_2_standard_blocks() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
-    //     let root_block_id = new_ids.get_id().unwrap();
-    //     let std_block_id1 = new_ids.get_id().unwrap();
-    //     let inline_block_id1 = new_ids.get_id().unwrap();
-    //     let std_block_id2 = new_ids.get_id().unwrap();
-    //     let inline_block_id2 = new_ids.get_id().unwrap();
-    //     let std_block_id3 = new_ids.get_id().unwrap();
-    //     let std_block_id4 = new_ids.get_id().unwrap();
+        let root_block_id = new_ids.get_id().unwrap();
+        let std_block_id1 = new_ids.get_id().unwrap();
+        let inline_block_id1 = new_ids.get_id().unwrap();
+        let std_block_id2 = new_ids.get_id().unwrap();
+        let inline_block_id2 = new_ids.get_id().unwrap();
+        let std_block_id3 = new_ids.get_id().unwrap();
+        let std_block_id4 = new_ids.get_id().unwrap();
 
-    //     let inline_block1 = json!({
-    //         "_id": inline_block_id1.clone(),
-    //         "kind": "inline",
-    //         "_type": "text",
-    //         "content": {
-    //             "text": "Hello world!"
-    //         },
-    //         "marks": [],
-    //         "parent": std_block_id1.clone()
-    //     });
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello world!"
+            },
+            "marks": [],
+            "parent": std_block_id1.clone()
+        });
 
-    //     let std_block1 = json!({
-    //         "_id": std_block_id1.clone(),
-    //         "kind": "standard",
-    //         "_type": "paragraph",
-    //         "content": {
-    //             "inline_blocks": [inline_block_id1.clone()]
-    //         },
-    //         "children": [std_block_id4.to_string()],
-    //         "marks": [],
-    //         "parent": root_block_id.clone()
-    //     });
-    //     let std_block_4 = Block::new_std_block_json(std_block_id4.clone(), std_block_id1.clone());
+        let std_block1 = json!({
+            "_id": std_block_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [std_block_id4.to_string()],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let std_block_4 = Block::new_std_block_json(std_block_id4.clone(), std_block_id1.clone());
 
-    //     let inline_block2 = json!({
-    //         "_id": inline_block_id2.clone(),
-    //         "kind": "inline",
-    //         "_type": "text",
-    //         "content": {
-    //             "text": "Goodbye world!"
-    //         },
-    //         "marks": [],
-    //         "parent": std_block_id3.clone()
-    //     });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Goodbye world!"
+            },
+            "marks": [],
+            "parent": std_block_id3.clone()
+        });
 
-    //     let std_block2 = Block::new_std_block_json(std_block_id2.clone(), std_block_id3.clone());
-    //     let std_block3 = json!({
-    //         "_id": std_block_id3.clone(),
-    //         "kind": "standard",
-    //         "_type": "paragraph",
-    //         "content": {
-    //             "inline_blocks": [inline_block_id2.clone()]
-    //         },
-    //         "children": [std_block_id2.clone()],
-    //         "marks": [],
-    //         "parent": root_block_id.clone()
-    //     });
+        let std_block2 = Block::new_std_block_json(std_block_id2.clone(), std_block_id3.clone());
+        let std_block3 = json!({
+            "_id": std_block_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [std_block_id2.clone()],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
 
-    //     let root_block = RootBlock::json_from(root_block_id.clone(),
-    //     vec![std_block_id1.clone(), std_block_id3.clone()]);
+        let root_block = RootBlock::json_from(root_block_id.clone(),
+        vec![std_block_id1.clone(), std_block_id3.clone()]);
 
-    //     let block_map = BlockMap::from(vec![
-    //         inline_block1.to_string(), inline_block2.to_string(), std_block1.to_string(), std_block2.to_string(),
-    //         root_block.to_string(), std_block3.to_string(), std_block_4.to_string()
-    //     ]).unwrap();
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), std_block1.to_string(), std_block2.to_string(),
+            root_block.to_string(), std_block3.to_string(), std_block_4.to_string()
+        ]).unwrap();
 
-    //     let event = Event::KeyPress(KeyPress::new(Key::Standard('a'), None));
+        let event = Event::KeyPress(KeyPress::new(Key::Standard(' '), None));
 
-    //     let selection = Selection {
-    //         from: SubSelection {
-    //             block_id: std_block_id1.clone(),
-    //             offset: 0,
-    //             subselection: Some(Box::new(SubSelection {
-    //                 block_id: inline_block_id1.clone(),
-    //                 offset: 1,
-    //                 subselection: None,
-    //             }))
-    //         },
-    //         to: SubSelection {
-    //             block_id: std_block_id3,
-    //             offset: 0,
-    //             subselection: Some(Box::new(SubSelection {
-    //                 block_id: inline_block_id2.clone(),
-    //                 offset: 3,
-    //                 subselection: None,
-    //             }))
-    //         },
-    //     };
+        let selection = Selection {
+            from: SubSelection {
+                block_id: std_block_id1.clone(),
+                offset: 0,
+                subselection: Some(Box::new(SubSelection {
+                    block_id: inline_block_id1.clone(),
+                    offset: 1,
+                    subselection: None,
+                }))
+            },
+            to: SubSelection {
+                block_id: std_block_id3,
+                offset: 0,
+                subselection: Some(Box::new(SubSelection {
+                    block_id: inline_block_id2.clone(),
+                    offset: 3,
+                    subselection: None,
+                }))
+            },
+        };
 
-    //     let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection.clone(), &mut new_ids).unwrap();
 
-    //     assert_eq!(steps.len(), 1);
+        assert_eq!(steps.len(), 1);
 
-    //     match &steps[0] {
-    //         Step::ReplaceStep(replace_step) => {
-    //             assert_eq!(replace_step.block_id, root_block_id);
-    //             assert_eq!(replace_step.from, SubSelection::from(root_block_id.clone(), 0, None));
-    //             assert_eq!(replace_step.to, SubSelection::from(root_block_id.clone(), 2, None));
-
-    //             assert_eq!(replace_step.slice.len(), 1);
-    //             assert_eq!(replace_step.slice[0], std_block_id1);
-
-    //             assert_eq!(replace_step.blocks_to_update.len(), 3);
-    //             match &replace_step.blocks_to_update[0] {
-    //                 Block::StandardBlock(standard_block) => {
-    //                     assert_eq!(standard_block.content, StandardBlockType::Paragraph(ContentBlock {
-    //                         inline_blocks: vec![inline_block_id1.clone(), inline_block_id2.clone()]
-    //                     }));
-    //                     assert_eq!(standard_block.children, vec![std_block_id2]);
-    //                     assert_eq!(standard_block.marks, vec![]);
-    //                     assert_eq!(standard_block.id(), std_block_id1);
-    //                 },
-    //                 _ => panic!("Expected Some Standard Block"),
-    //             };
-    //             match &replace_step.blocks_to_update[1] {
-    //                 Block::InlineBlock(inline_block) => {
-    //                     assert_eq!(inline_block.content, InlineBlockType::TextBlock(TextBlock{ text: "Ha".to_string() }));
-    //                     assert_eq!(inline_block.parent, std_block_id1);
-    //                     assert_eq!(inline_block.marks, vec![]);
-    //                     assert_eq!(inline_block.id(), inline_block_id1);
-    //                 },
-    //                 _ => panic!("Expected Some Inline Block"),
-    //             };
-    //             match &replace_step.blocks_to_update[2] {
-    //                 Block::InlineBlock(inline_block) => {
-    //                     assert_eq!(inline_block.content, InlineBlockType::TextBlock(TextBlock{ text: "dbye world!".to_string() }));
-    //                     assert_eq!(inline_block.parent, std_block_id1);
-    //                     assert_eq!(inline_block.marks, vec![]);
-    //                     assert_eq!(inline_block.id(), inline_block_id2);
-    //                 },
-    //                 _ => panic!("Expected Some Inline Block"),
-    //             };
-    //         },
-    //         _ => panic!("Expected ReplaceStep")
-    //     };
-    // }
+        match &steps[0] {
+            Step::ReplaceStep(replace_step) => {
+                assert_eq!(replace_step.block_id, root_block_id);
+                assert_eq!(replace_step.from, selection.from);
+                assert_eq!(replace_step.to, selection.to);
+                assert_eq!(replace_step.slice, ReplaceSlice::String(" ".to_string()));
+            },
+            _ => panic!("Expected ReplaceStep")
+        }
+    }
 }

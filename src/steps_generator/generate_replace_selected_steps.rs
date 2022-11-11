@@ -17,14 +17,14 @@ pub fn generate_replace_selected_steps(
                 slice: ReplaceSlice::String(replace_with)
             })
         ]),
-        Block::StandardBlock(_) => {unreachable!()}
-        // replace_selected_across_standard_blocks(
-        //     from_block,
-        //     block_map,
-        //     from,
-        //     to,
-        //     replace_with
-        // ),
+        Block::StandardBlock(standard_block) => Ok(vec![
+            Step::ReplaceStep(ReplaceStep {
+                block_id: standard_block.parent,
+                from,
+                to,
+                slice: ReplaceSlice::String(replace_with)
+            })
+        ]),
         Block::Root(_) => unimplemented!()
     }
 }

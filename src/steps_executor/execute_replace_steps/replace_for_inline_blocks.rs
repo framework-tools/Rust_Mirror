@@ -74,8 +74,8 @@ fn replace_across_multiple_inline_blocks(
         &from_block,
         &to_block._id,
     )?;
-    let block_map = update_from_block_text(from_block, block_map, &replace_step, replace_with)?;
-    let block_map = update_to_block_text(to_block, block_map, &replace_step)?;
+    let block_map = update_from_inline_block_text(from_block, block_map, replace_step.from.offset, replace_with)?;
+    let block_map = update_to_inline_block_text(to_block, block_map, replace_step.to.offset)?;
     let block_map = clean_block_after_transform(&updated_parent_block, block_map)?;
     return Ok(UpdatedState {
         block_map,
@@ -96,18 +96,18 @@ fn remove_inline_blocks_between_from_and_to(
     return parent_block.update_block_content(content_block)
 }
 
-fn update_from_block_text(
+pub fn update_from_inline_block_text(
     from_block: InlineBlock,
     block_map: BlockMap,
-    replace_step: &ReplaceStep,
+    offset: usize,
     replace_with: String
 ) -> Result<BlockMap, StepError> {
-    let updated_text = format!("{}{}", &from_block.text()?.clone()[..replace_step.from.offset], replace_with);
+    let updated_text = format!("{}{}", &from_block.text()?.clone()[..offset], replace_with);
     return update_inline_block_with_new_text_in_block(from_block, block_map, updated_text)
 }
 
-fn update_to_block_text(to_block: InlineBlock, block_map: BlockMap, replace_step: &ReplaceStep) -> Result<BlockMap, StepError> {
-    let updated_text = format!("{}", &to_block.text()?.clone()[replace_step.to.offset..]);
+pub fn update_to_inline_block_text(to_block: InlineBlock, block_map: BlockMap, offset: usize) -> Result<BlockMap, StepError> {
+    let updated_text = format!("{}", &to_block.text()?.clone()[offset..]);
     return update_inline_block_with_new_text_in_block(to_block, block_map, updated_text)
 }
 
