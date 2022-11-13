@@ -446,11 +446,11 @@ mod tests {
         assert_eq!(updated_root_block.children, vec![paragraph_block_id1.clone()]);
 
         let updated_paragraph_block1 = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
-        assert_eq!(updated_paragraph_block1.content_block().unwrap().inline_blocks, vec![inline_block_id1, inline_block_id2, inline_block_id3.clone()]);
+        assert_eq!(updated_paragraph_block1.content_block().unwrap().inline_blocks, vec![inline_block_id1.clone(), inline_block_id2, inline_block_id3]);
 
         assert_eq!(updated_state.selection, Some(Selection {
-            from: SubSelection { block_id: inline_block_id3.clone(), offset: 6, subselection: None },
-            to: SubSelection { block_id: inline_block_id3.clone(), offset: 6, subselection: None }
+            from: SubSelection { block_id: inline_block_id1.clone(), offset: 5, subselection: None },
+            to: SubSelection { block_id: inline_block_id1.clone(), offset: 5, subselection: None }
         }))
 
     }

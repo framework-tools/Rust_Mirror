@@ -101,11 +101,13 @@ fn get_subselection_inline_block(
 /// }
 fn replace_across_standard_blocks_no_subselection(
     from_block: StandardBlock,
-    mut block_map: BlockMap,
+    block_map: BlockMap,
     replace_step: ReplaceStep
 ) -> Result<UpdatedState, StepError> {
     if replace_step.from.block_id == replace_step.to.block_id { // same block
         if replace_step.from.offset == replace_step.to.offset { // same offset
+            let updated_subselection = SubSelection::at_end_of_block(&from_block._id, &block_map)?;
+
             let mut inline_blocks = from_block.content_block()?.clone().inline_blocks;
             let blocks_to_add = match replace_step.slice {
                 ReplaceSlice::Blocks(blocks) => blocks,
@@ -117,9 +119,7 @@ fn replace_across_standard_blocks_no_subselection(
                 inline_blocks = vec![inline_blocks, blocks_to_add].concat();
             }
             let updated_standard_block = from_block.update_block_content(ContentBlock { inline_blocks })?;
-            let updated_standard_block_id = updated_standard_block.id();
             let block_map = clean_block_after_transform(updated_standard_block, block_map)?;
-            let updated_subselection = SubSelection::at_end_of_block(&updated_standard_block_id, &block_map)?;
             return Ok(UpdatedState { block_map, selection: Some(Selection{ from: updated_subselection.clone(), to: updated_subselection } ) })
         } else {
             unimplemented!()

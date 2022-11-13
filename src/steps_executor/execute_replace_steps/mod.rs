@@ -14,7 +14,7 @@ pub mod replace_for_standard_blocks;
 /// For each "update" we need to:
 /// -> merge adjacent inline blocks with same marks (unimplemented)
 /// -> delete any text blocks with no text (unimplemented)
-pub fn execute_replace_step(replace_step: ReplaceStep, block_map: BlockMap) -> Result<UpdatedState, StepError> {
+pub fn execute_replace_step(replace_step: ReplaceStep, block_map: BlockMap, current_updated_selection: Option<Selection>) -> Result<UpdatedState, StepError> {
     let from_block = block_map.get_block(&replace_step.from.block_id)?;
     return match from_block {
         Block::InlineBlock(from_block) => replace_selected_across_inline_blocks(from_block, block_map, replace_step),
@@ -24,7 +24,8 @@ pub fn execute_replace_step(replace_step: ReplaceStep, block_map: BlockMap) -> R
             block_map,
             replace_step.from,
             replace_step.to,
-            replace_step.slice
+            replace_step.slice,
+            current_updated_selection
         ),
     }
 }
@@ -36,6 +37,7 @@ pub fn replace_selected_across_blocks_children(
     from: SubSelection,
     to: SubSelection,
     slice: ReplaceSlice,
+    current_updated_selection: Option<Selection>
 ) -> Result<UpdatedState, StepError> {
     let blocks_to_add = match slice {
         ReplaceSlice::Blocks(blocks) => blocks,
@@ -44,8 +46,12 @@ pub fn replace_selected_across_blocks_children(
     block.splice_children(from.offset, to.offset, blocks_to_add);
     let block_before_first_child_deleted_id = block.get_child_from_index(from.offset - 1)?;
     block_map.update_block(block)?;
-    let updated_subselection = SubSelection::at_end_of_block(&block_before_first_child_deleted_id, &block_map)?;
-    return Ok(UpdatedState { block_map, selection: Some(Selection{ from: updated_subselection.clone(), to: updated_subselection } ) })
+    if current_updated_selection.is_some() {
+        return Ok(UpdatedState { block_map, selection: current_updated_selection })
+    } else {
+        let updated_subselection = SubSelection::at_end_of_block(&block_before_first_child_deleted_id, &block_map)?;
+        return Ok(UpdatedState { block_map, selection: Some(Selection{ from: updated_subselection.clone(), to: updated_subselection } ) })
+    }
 }
 
 // fn from_and_to_are_inline_blocks(replace_step: &ReplaceStep, block_map: &BlockMap) -> bool {
