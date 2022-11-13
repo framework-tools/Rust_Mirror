@@ -40,7 +40,7 @@
 //         let sub_selection_to = SubSelection::from(inline_block_id.clone(), 5, None);
 //         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
-//         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+//         let steps = generate_steps(&event, &block_map, selection).unwrap();
 //         let updated_block_map = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
 //         let updated_standard_block = updated_block_map.get_standard_block(&paragraph_block_id).unwrap();
@@ -111,7 +111,7 @@
 //         let sub_selection_to = SubSelection::from(inline_block_id2.clone(), 3, None);
 //         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
-//         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+//         let steps = generate_steps(&event, &block_map, selection).unwrap();
 //         let updated_block_map = execute_steps(steps, block_map, &mut new_ids).unwrap();
 //         let updated_standard_block = updated_block_map.get_standard_block(&paragraph_block_id).unwrap();
 //         let content_block = updated_standard_block.content_block().unwrap();
@@ -204,7 +204,7 @@
 //             inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), block.to_string(), root_block.to_string()
 //         ]).unwrap();
 
-//         let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+//         let steps = generate_steps(&event, &block_map, selection).unwrap();
 //         let updated_block_map = execute_steps(steps, block_map, &mut new_ids).unwrap();
 //         let updated_standard_block = updated_block_map.get_standard_block(&paragraph_block_id).unwrap();
 //         let content_block = updated_standard_block.content_block().unwrap();

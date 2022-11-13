@@ -15,7 +15,7 @@ pub fn execute_event(
         Err(err) => return ReturnJson::Err(err).create_response()
     };
 
-    let steps = match generate_steps(&event, &block_map, selection, &mut new_ids) {
+    let steps = match generate_steps(&event, &block_map, selection) {
         Ok(steps) => steps,
         Err(StepError(err)) => return ReturnJson::Err(err).create_response()
     };

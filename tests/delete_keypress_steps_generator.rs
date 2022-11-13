@@ -39,7 +39,7 @@ mod tests {
         let sub_selection = SubSelection::from(inline_block_id.clone(), 2, None);
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
 
         assert_eq!(steps.len(), 1);
         match &steps[0] {
@@ -100,7 +100,7 @@ mod tests {
         let sub_selection = SubSelection::from(inline_block_id2.clone(), 0, None);
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
 
         assert_eq!(steps.len(), 1);
         match &steps[0] {
@@ -184,7 +184,7 @@ mod tests {
         let sub_selection = SubSelection::from(inline_block_id2.clone(), 0, None);
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
 
         assert_eq!(steps.len(), 2);
         match &steps[0] {

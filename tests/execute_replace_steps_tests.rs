@@ -39,7 +39,7 @@ mod tests {
         let sub_selection = SubSelection::from(inline_block_id.clone(), 0, None);
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids)?;
+        let steps = generate_steps(&event, &block_map, selection)?;
         let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id)?;
@@ -96,7 +96,7 @@ mod tests {
     //     let sub_selection = SubSelection::from(inline_block_id2.clone(), 0, None);
     //     let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
-    //     let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+    //     let steps = generate_steps(&event, &block_map, selection).unwrap();
     //     let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
     //     let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id)?;
@@ -147,7 +147,7 @@ mod tests {
         let to_sub_selection = SubSelection::from(inline_block_id.clone(), 4, None);
         let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id).unwrap();
@@ -218,7 +218,7 @@ mod tests {
         let to_sub_selection = SubSelection::from(inline_block_id3.clone(), 2, None);
         let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
@@ -344,7 +344,7 @@ mod tests {
             },
         };
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children, vec![std_block_id1.clone()]);
@@ -439,7 +439,7 @@ mod tests {
         let sub_selection = SubSelection::from(inline_block_id2.clone(), 0, None);
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
@@ -456,7 +456,7 @@ mod tests {
     }
 
     #[test]
-    pub fn backspace_with_selection_across_all_paragraphs_text() {
+    pub fn backspace_with_selection_across_all_of_a_paragraphs_text() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
@@ -503,7 +503,7 @@ mod tests {
         let to_sub_selection = SubSelection::from(inline_block_id2.clone(), 6, None);
         let selection = Selection::from(from_sub_selection, to_sub_selection);
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();

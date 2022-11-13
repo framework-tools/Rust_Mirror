@@ -41,7 +41,7 @@ mod tests {
         let sub_selection_to = SubSelection::from(inline_block_id.clone(), 11, None);
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
 
         assert_eq!(steps.len(), 1);
         match &steps[0] {
@@ -105,7 +105,7 @@ mod tests {
         let sub_selection_to = SubSelection::from(inline_block_id2, 3, None);
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
         assert_eq!(steps.len(), 1);
         match &steps[0] {
             Step::RemoveMarkStep(remove_mark_step) => {
@@ -174,7 +174,7 @@ mod tests {
         let sub_selection_to = SubSelection::from(inline_block_id2, 3, None);
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
         assert_eq!(steps.len(), 1);
         match &steps[0] {
             Step::AddMarkStep(add_mark_step) => {
@@ -297,7 +297,7 @@ mod tests {
         ))));
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids)?;
+        let steps = generate_steps(&event, &block_map, selection)?;
 
         assert_eq!(steps.len(), 1);
         match &steps[0] {

@@ -12,7 +12,7 @@ use crate::{step::{Step, ReplaceStep}, blocks::{BlockMap, standard_blocks::{Stan
 /// -> use this removed text to create a new inline block
 /// -> create a new standard block with this new inline block & all removed inline blocks from previous block
 /// -> move children from "from" block to new block
-pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: SubSelection, new_ids: &mut NewIds) -> Result<Vec<Step>, StepError> {
+pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: SubSelection) -> Result<Vec<Step>, StepError> {
     unimplemented!()
 //     let mut from_standard_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
 //     let to_standard_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;

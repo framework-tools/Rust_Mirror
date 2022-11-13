@@ -12,8 +12,7 @@ pub fn generate_keyboard_event_steps(
     key_press: &KeyPress,
     block_map: &BlockMap,
     from: SubSelection,
-    to: SubSelection,
-    new_ids: &mut NewIds
+    to: SubSelection
 ) -> Result<Vec<Step>, StepError> {
     return match key_press.key {
         //Shortcuts
@@ -26,7 +25,7 @@ pub fn generate_keyboard_event_steps(
         //standard press
         Key::Standard(key) => generate_replace_selected_steps(block_map, from, to, key.to_string()),
         Key::Backspace => generate_steps_for_backspace(block_map, from, to),
-        Key::Enter => generate_steps_for_enter(block_map, from, to, new_ids),
+        Key::Enter => generate_steps_for_enter(block_map, from, to),
         _ => unimplemented!(),
     }
 }

@@ -34,6 +34,7 @@ pub fn execute_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewIds
     for step in steps {
         updated_state = match step {
             Step::ReplaceStep(replace_step) => execute_replace_step(replace_step, updated_state.block_map, updated_state.selection)?,
+            Step::SplitStep(split_step) => unimplemented!(),
             Step::AddMarkStep(mark_step) => unimplemented!(), // execute_mark_step(mark_step, block_map, true, new_ids)?,
             Step::RemoveMarkStep(mark_step) => unimplemented!() // execute_mark_step(mark_step, block_map, false, new_ids)?
         };

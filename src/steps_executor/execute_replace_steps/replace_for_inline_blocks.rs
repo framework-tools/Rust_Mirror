@@ -16,7 +16,7 @@ pub fn replace_selected_across_inline_blocks(
 ) -> Result<UpdatedState, StepError> {
     let replace_with = match &replace_step.slice {
         ReplaceSlice::String(string) => string.clone(),
-        ReplaceSlice::Blocks(_) => return Err(StepError("Expected string replace slice for inline blocks. Got vec of blocks".to_string()))
+        _ => return Err(StepError("Replace slice should be string".to_string()))
     };
     let to_block = block_map.get_inline_block(&replace_step.to.block_id)?;
     if from_block.parent != to_block.parent {

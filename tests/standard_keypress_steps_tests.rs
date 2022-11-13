@@ -42,7 +42,7 @@ mod tests {
         let sub_selection = SubSelection::from(inline_block_id.clone(), 0, None);
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
 
         assert_eq!(steps.len(), 1);
         match &steps[0] {
@@ -96,7 +96,7 @@ mod tests {
         let sub_selection = SubSelection::from(inline_block_id.clone(), 2, None);
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
 
         assert_eq!(steps.len(), 1);
 
@@ -152,7 +152,7 @@ mod tests {
         let to_sub_selection = SubSelection::from(inline_block_id.clone(), 4, None);
         let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
 
         assert_eq!(steps.len(), 1);
 
@@ -218,7 +218,7 @@ mod tests {
         let to = SubSelection::from(inline_block_id_2.clone(), 2, None);
         let selection = Selection::from(from, to);
 
-        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
 
         match &steps[0] {
             Step::ReplaceStep(replace_step) => {
@@ -302,7 +302,7 @@ mod tests {
     //         },
     //     };
 
-    //     let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+    //     let steps = generate_steps(&event, &block_map, selection).unwrap();
 
     //     assert_eq!(steps.len(), 1);
 
@@ -440,7 +440,7 @@ mod tests {
             },
         };
 
-        let steps = generate_steps(&event, &block_map, selection.clone(), &mut new_ids).unwrap();
+        let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
 
         assert_eq!(steps.len(), 1);
 

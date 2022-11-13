@@ -5,6 +5,7 @@ use crate::{steps_generator::selection::SubSelection, mark::Mark, blocks::Block}
 #[derive(Debug, PartialEq)]
 pub enum Step {
     ReplaceStep(ReplaceStep),
+    SplitStep(SplitStep),
     AddMarkStep(MarkStep),
     RemoveMarkStep(MarkStep),
     //ReplaceAroundStep
@@ -30,4 +31,10 @@ pub struct MarkStep {
     pub from: SubSelection,
     pub to: SubSelection,
     pub mark: Mark,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct SplitStep {
+    pub block_id: String,
+    pub subselection: SubSelection
 }

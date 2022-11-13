@@ -58,7 +58,7 @@ fn update_from_subselecton_inline_block_text(
     let (from_subselection_block, offset) = get_subselection_inline_block(&block_map, &replace_step.from)?;
     let replace_with = match &replace_step.slice {
         ReplaceSlice::String(string) => string.clone(),
-        ReplaceSlice::Blocks(_) => unimplemented!()
+        _ => return Err(StepError("Replace slice should be string".to_string()))
     };
     return update_from_inline_block_text(from_subselection_block, block_map, offset, replace_with)
 }
@@ -111,7 +111,7 @@ fn replace_across_standard_blocks_no_subselection(
             let mut inline_blocks = from_block.content_block()?.clone().inline_blocks;
             let blocks_to_add = match replace_step.slice {
                 ReplaceSlice::Blocks(blocks) => blocks,
-                ReplaceSlice::String(_) => return Err(StepError("Cannot replace with string on standard block with None subselection".to_string())),
+                _ => return Err(StepError("Replace slice should be blocks".to_string()))
             };
             if replace_step.from.offset == 0 { // add blocks at start of this blocks inline blocks
                 inline_blocks.splice(0..0, blocks_to_add);
