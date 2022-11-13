@@ -43,7 +43,7 @@ pub fn replace_selected_across_blocks_children(
         ReplaceSlice::Blocks(blocks) => blocks,
         ReplaceSlice::String(_) => return Err(StepError("Cannot replace with string when replacing across blocks children".to_string()))
     };
-    block.splice_children(from.offset, to.offset, blocks_to_add);
+    block.splice_children(from.offset, to.offset, blocks_to_add)?;
     let block_before_first_child_deleted_id = block.get_child_from_index(from.offset - 1)?;
     block_map.update_block(block)?;
     if current_updated_selection.is_some() {

@@ -455,6 +455,70 @@ mod tests {
 
     }
 
+    #[test]
+    pub fn backspace_with_selection_across_all_paragraphs_text() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id().unwrap();
+        let paragraph_block_id1 = new_ids.get_id().unwrap();
+        let inline_block_id1 = new_ids.get_id().unwrap();
+        let inline_block_id2 = new_ids.get_id().unwrap();
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello"
+            },
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": " World"
+            },
+            "marks": ["bold"],
+            "parent": paragraph_block_id1.clone()
+        });
+        let paragraph_block1 = json!({
+            "_id": paragraph_block_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone(), inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id1.clone()]);
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), paragraph_block1.to_string(), root_block.to_string()
+        ]).unwrap();
+        let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
+        let from_sub_selection = SubSelection::from(inline_block_id1.clone(), 0, None);
+        let to_sub_selection = SubSelection::from(inline_block_id2.clone(), 6, None);
+        let selection = Selection::from(from_sub_selection, to_sub_selection);
+
+        let steps = generate_steps(&event, &block_map, selection, &mut new_ids).unwrap();
+        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+
+        let updated_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
+        assert_eq!(updated_paragraph_block.content_block().unwrap().inline_blocks, vec![inline_block_id1.clone()]);
+
+        let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
+        assert_eq!(updated_inline_block.text().unwrap(), &"".to_string());
+
+        assert_eq!(updated_state.selection, Some(Selection {
+            from: SubSelection { block_id: inline_block_id1.clone(), offset: 0, subselection: None },
+            to: SubSelection { block_id: inline_block_id1.clone(), offset: 0, subselection: None }
+        }))
+
+    }
+
 //     #[test]
 //     pub fn can_merge_2_inline_blocks_that_should_be() {
 //         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();

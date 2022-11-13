@@ -1,6 +1,7 @@
 use crate::blocks::Block;
 use crate::blocks::inline_blocks::InlineBlockType;
 use crate::blocks::standard_blocks::StandardBlock;
+use crate::blocks::standard_blocks::content_block::ContentBlock;
 use crate::mark::Mark;
 use crate::new_ids::NewIds;
 use crate::steps_generator::selection::{SubSelection, Selection};
@@ -45,7 +46,7 @@ pub fn clean_block_after_transform(block: StandardBlock, mut block_map: BlockMap
     if block.content_block()?.inline_blocks.len() > 1 {
         block_map = merge_inline_blocks_with_identical_marks(&block, block_map)?;
         let block = block_map.get_standard_block(&block.id())?; // need to get newly updated block
-        block_map = remove_empty_inline_blocks(&block, block_map)?;
+        block_map = remove_empty_inline_blocks(&block, block_map, &block.content_block()?.inline_blocks[0])?;
     }
     return Ok(block_map)
 }
@@ -82,6 +83,7 @@ pub fn merge_inline_blocks_with_identical_marks(standard_block: &StandardBlock, 
 pub fn remove_empty_inline_blocks(
     standard_block: &StandardBlock,
     mut block_map: BlockMap,
+    first_block_id: &str
 ) -> Result<BlockMap, StepError> {
     let content_block = standard_block.content_block()?;
     let mut i = 0;
@@ -89,13 +91,18 @@ pub fn remove_empty_inline_blocks(
         let inline_block = block_map.get_inline_block(&id)?;
         if inline_block.text()?.is_empty() {
             let mut content_block = content_block.clone();
-            block_map.remove_block(id)?;
             content_block.inline_blocks.remove(i);
             let standard_block = standard_block.clone().update_block_content(content_block)?;
             block_map.update_block(Block::StandardBlock(standard_block.clone()))?;
-            return remove_empty_inline_blocks(&standard_block, block_map)
+            return remove_empty_inline_blocks(&standard_block, block_map, first_block_id)
         }
         i += 1;
+    }
+
+    // if content block is empty -> readd the first inline block
+    if content_block.inline_blocks.len() == 0 {
+        let updated_content_block = ContentBlock { inline_blocks: vec![first_block_id.to_string()]};
+        block_map.update_block(Block::StandardBlock(standard_block.clone().update_block_content(updated_content_block)?))?;
     }
     return Ok(block_map)
 }
