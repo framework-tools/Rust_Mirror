@@ -74,4 +74,20 @@ impl SubSelection {
             None => self,
         }
     }
+
+    pub fn at_end_of_block(block_id: &str, block_map: &BlockMap) -> Result<Self, StepError> {
+        let block = block_map.get_block(&block_id)?;
+        match block {
+            Block::InlineBlock(inline_block) => {
+                return Ok(SubSelection { block_id: inline_block.id(), offset: inline_block.text()?.len(), subselection: None })
+            },
+            Block::StandardBlock(standard_block) => {
+                let last_inline_block = standard_block.get_last_inline_block(block_map)?;
+                return SubSelection::at_end_of_block(&last_inline_block._id, block_map)
+            },
+            Block::Root(root_block) => {
+                return SubSelection::at_end_of_block(&root_block.children[root_block.children.len() - 1], block_map)
+            }
+        }
+    }
 }

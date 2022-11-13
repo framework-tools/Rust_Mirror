@@ -48,6 +48,11 @@ impl InlineBlock {
         })
     }
 
+    pub fn index(&self, block_map: &BlockMap) -> Result<usize, StepError> {
+        let parent = block_map.get_standard_block(&self.parent)?;
+        return parent.index_of(&self._id)
+    }
+
     pub fn is_same_type(&self, block_type: &InlineBlockType) -> bool {
         match self.content {
             InlineBlockType::TextBlock(_) => match block_type {

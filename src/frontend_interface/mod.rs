@@ -31,7 +31,7 @@ pub fn execute_event(
 enum ReturnJson {
     Data {
         updated_block_map: HashMap<String, String>,
-        updated_selection: Selection
+        updated_selection: Option<Selection>
     },
     Err(String)
 }

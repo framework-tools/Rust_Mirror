@@ -21,30 +21,34 @@ pub fn replace_selected_across_standard_blocks(
         return Err(StepError("Expected from_block and to_block to have the same parent".to_string()))
     }
 
-    let from_inner_subselection = replace_step.from.get_child_subselection()?;
-    let to_inner_subselection = replace_step.to.get_child_subselection()?;
-    let inner_from_index = from_block.index_of(&from_inner_subselection.block_id)?;
-    let inner_to_index = to_block.index_of(&to_inner_subselection.block_id)?;
+    match &replace_step.from.subselection {
+        Some(from_inner_subselection) => {
+            let to_inner_subselection = replace_step.to.get_child_subselection()?;
+            let inner_from_index = from_block.index_of(&from_inner_subselection.block_id)?;
+            let inner_to_index = to_block.index_of(&to_inner_subselection.block_id)?;
 
-    let updated_content_block = from_block.content_block()?.clone();
-    let mut updated_inline_blocks = updated_content_block.inline_blocks[..inner_from_index + 1].to_vec();
-    let to_content_block = to_block.content_block()?;
-    let mut to_inline_blocks_after_deletion = to_content_block.inline_blocks[inner_to_index..].to_vec();
-    updated_inline_blocks.append(&mut to_inline_blocks_after_deletion);
-    let mut from_block = from_block.update_block_content(ContentBlock {
-        inline_blocks: updated_inline_blocks
-    })?;
-    from_block.children = to_block.children.clone();
+            let updated_content_block = from_block.content_block()?.clone();
+            let mut updated_inline_blocks = updated_content_block.inline_blocks[..inner_from_index + 1].to_vec();
+            let to_content_block = to_block.content_block()?;
+            let mut to_inline_blocks_after_deletion = to_content_block.inline_blocks[inner_to_index..].to_vec();
+            updated_inline_blocks.append(&mut to_inline_blocks_after_deletion);
+            let mut from_block = from_block.update_block_content(ContentBlock {
+                inline_blocks: updated_inline_blocks
+            })?;
+            from_block.children = to_block.children.clone();
 
-    let parent_block = block_map.get_block(&from_block.parent)?;
-    let parent_block = parent_block.remove_child_from_id(&to_block._id)?;
-    block_map.update_block(parent_block)?;
+            let parent_block = block_map.get_block(&from_block.parent)?;
+            let parent_block = parent_block.remove_child_from_id(&to_block._id)?;
+            block_map.update_block(parent_block)?;
 
-    let block_map = update_from_subselecton_inline_block_text(block_map, &replace_step)?;
-    let block_map = update_to_subselecton_inline_block_text(block_map, &replace_step,&from_block._id)?;
-    let block_map = clean_block_after_transform(from_block, block_map)?;
+            let block_map = update_from_subselecton_inline_block_text(block_map, &replace_step)?;
+            let block_map = update_to_subselecton_inline_block_text(block_map, &replace_step,&from_block._id)?;
+            let block_map = clean_block_after_transform(from_block, block_map)?;
 
-    return Ok(UpdatedState { block_map, selection: Selection::update_selection_from(replace_step) })
+            return Ok(UpdatedState { block_map, selection: Some(Selection::update_selection_from(replace_step)) })
+        },
+        None => return replace_across_standard_blocks_no_subselection(from_block, block_map, replace_step)
+    }
 }
 
 fn update_from_subselecton_inline_block_text(
@@ -77,4 +81,50 @@ fn get_subselection_inline_block(
     return Ok((block_map.get_inline_block(&inner_subselection.block_id)?, inner_subselection.offset))
 }
 
-
+/// match &steps[0] {
+///     Step::ReplaceStep(replace_step) => {
+///         assert_eq!(replace_step.block_id, paragraph_block_id1);
+///         assert_eq!(replace_step.from, SubSelection::from(paragraph_block_id1.clone(), 1, None));
+///         assert_eq!(replace_step.to, SubSelection::from(paragraph_block_id1.clone(), 1, None));
+///         assert_eq!(replace_step.slice, ReplaceSlice::Blocks(vec![inline_block_id2, inline_block_id3]));
+///     },
+///     _ => panic!("Expected ReplaceStep")
+/// };
+/// match &steps[1] {
+///     Step::ReplaceStep(replace_step) => {
+///         assert_eq!(replace_step.block_id, root_block_id);
+///         assert_eq!(replace_step.from, SubSelection::from(root_block_id.clone(), 1, None));
+///         assert_eq!(replace_step.to, SubSelection::from(root_block_id.clone(), 2, None));
+///         assert_eq!(replace_step.slice, ReplaceSlice::Blocks(vec![]));
+///     },
+///     _ => panic!("Expected ReplaceStep")
+/// }
+fn replace_across_standard_blocks_no_subselection(
+    from_block: StandardBlock,
+    mut block_map: BlockMap,
+    replace_step: ReplaceStep
+) -> Result<UpdatedState, StepError> {
+    if replace_step.from.block_id == replace_step.to.block_id { // same block
+        if replace_step.from.offset == replace_step.to.offset { // same offset
+            let mut inline_blocks = from_block.content_block()?.clone().inline_blocks;
+            let blocks_to_add = match replace_step.slice {
+                ReplaceSlice::Blocks(blocks) => blocks,
+                ReplaceSlice::String(_) => return Err(StepError("Cannot replace with string on standard block with None subselection".to_string())),
+            };
+            if replace_step.from.offset == 0 { // add blocks at start of this blocks inline blocks
+                inline_blocks.splice(0..0, blocks_to_add);
+            } else { // add blocks at end of this blocks inline blocks
+                inline_blocks = vec![inline_blocks, blocks_to_add].concat();
+            }
+            let updated_standard_block = from_block.update_block_content(ContentBlock { inline_blocks })?;
+            let updated_standard_block_id = updated_standard_block.id();
+            let block_map = clean_block_after_transform(updated_standard_block, block_map)?;
+            let updated_subselection = SubSelection::at_end_of_block(&updated_standard_block_id, &block_map)?;
+            return Ok(UpdatedState { block_map, selection: Some(Selection{ from: updated_subselection.clone(), to: updated_subselection } ) })
+        } else {
+            unimplemented!()
+        }
+    } else {
+        unimplemented!()
+    }
+}

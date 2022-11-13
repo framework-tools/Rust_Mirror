@@ -45,7 +45,7 @@ fn replace_across_single_inline_block(
 
     return Ok(UpdatedState {
         block_map,
-        selection: Selection::update_selection_from(replace_step)
+        selection: Some(Selection::update_selection_from(replace_step))
     })
 }
 
@@ -81,7 +81,7 @@ fn replace_across_multiple_inline_blocks(
     let block_map = clean_block_after_transform(updated_parent_block, block_map)?;
     return Ok(UpdatedState {
         block_map,
-        selection: Selection::update_selection_from(replace_step)
+        selection: Some(Selection::update_selection_from(replace_step))
     })
 }
 

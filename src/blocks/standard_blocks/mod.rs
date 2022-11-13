@@ -5,7 +5,7 @@ use crate::{mark::Mark, steps_generator::StepError};
 
 use self::content_block::ContentBlock;
 
-use super::{inline_blocks::InlineBlock, BlockMap};
+use super::{inline_blocks::InlineBlock, BlockMap, Block};
 
 pub mod content_block;
 
@@ -44,6 +44,24 @@ impl StandardBlock {
             children: self.children,
             marks: self.marks,
         })
+    }
+
+    pub fn get_parent(&self, block_map: &BlockMap) -> Result<Block, StepError> {
+        return block_map.get_block(&self.parent)
+    }
+
+    pub fn index(&self, block_map: &BlockMap) -> Result<usize, StepError> {
+        let parent: Block = self.get_parent(block_map)?;
+        return parent.index_of_child(&self._id)
+    }
+
+    pub fn get_previous(&self, block_map: &BlockMap) -> Result<Option<StandardBlock>, StepError> {
+        if self.index(block_map)? == 0 {
+            return Ok(None)
+        } else {
+            let parent: Block = self.get_parent(block_map)?;
+            return Ok(Some(block_map.get_standard_block(&parent.get_child_from_index(self.index(block_map)? - 1)?)?))
+        }
     }
 
     pub fn inline_blocks_length(&self) -> Result<usize, StepError> {
@@ -99,6 +117,12 @@ impl StandardBlock {
             i += 1;
         }
         return Ok(true)
+    }
+
+    pub fn get_last_inline_block(&self, block_map: &BlockMap) -> Result<InlineBlock, StepError> {
+        let inline_blocks = &self.content_block()?.inline_blocks;
+        let last_block_id = inline_blocks[inline_blocks.len() - 1].clone();
+        return block_map.get_inline_block(&last_block_id)
     }
 }
 

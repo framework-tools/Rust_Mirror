@@ -14,16 +14,30 @@ pub mod execute_mark_step;
 
 pub struct UpdatedState {
     pub block_map: BlockMap,
-    pub selection: Selection
+    pub selection: Option<Selection>
 }
 
-pub fn execute_steps(mut steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
-    let step = steps.remove(0);
-    return match step {
-        Step::ReplaceStep(replace_step) => execute_replace_step(replace_step, block_map),
-        Step::AddMarkStep(mark_step) => unimplemented!(), // execute_mark_step(mark_step, block_map, true, new_ids)?,
-        Step::RemoveMarkStep(mark_step) => unimplemented!() // execute_mark_step(mark_step, block_map, false, new_ids)?
+impl UpdatedState {
+    pub fn new(block_map: BlockMap) -> Self {
+        return Self {
+            block_map,
+            selection: None
+        }
     }
+}
+
+
+
+pub fn execute_steps(mut steps: Vec<Step>, mut block_map: BlockMap, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
+    let mut updated_state = UpdatedState::new(block_map);
+    for step in steps {
+        updated_state = match step {
+            Step::ReplaceStep(replace_step) => execute_replace_step(replace_step, updated_state.block_map)?,
+            Step::AddMarkStep(mark_step) => unimplemented!(), // execute_mark_step(mark_step, block_map, true, new_ids)?,
+            Step::RemoveMarkStep(mark_step) => unimplemented!() // execute_mark_step(mark_step, block_map, false, new_ids)?
+        };
+    }
+    return Ok(updated_state)
 }
 
 pub fn clean_block_after_transform(block: StandardBlock, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
