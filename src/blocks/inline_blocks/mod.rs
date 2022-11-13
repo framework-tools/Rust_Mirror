@@ -111,6 +111,18 @@ impl InlineBlock {
         let previous_block_id = parent_block.content_block()?.inline_blocks[parent_block.index_of(&self._id)? - 1].clone();
         return block_map.get_inline_block(&previous_block_id)
     }
+
+    pub fn split(mut self, offset: usize, new_ids: &mut NewIds) -> Result<(Self, Self), StepError> {
+        let text = self.text()?;
+        if offset > text.len() {
+            return Err(StepError(format!("Offset is larger than text size. Offset: {}, text: {}", offset, text)))
+        }
+        let first_half = text[..offset].to_string();
+        let second_half = text[offset..].to_string();
+        self = self.update_text(first_half)?;
+        let new_block = self.clone().to_new_block(new_ids)?.update_text(second_half)?;
+        return Ok((self, new_block))
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

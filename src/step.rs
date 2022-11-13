@@ -35,6 +35,5 @@ pub struct MarkStep {
 
 #[derive(Debug, PartialEq)]
 pub struct SplitStep {
-    pub block_id: String,
     pub subselection: SubSelection
 }

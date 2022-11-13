@@ -9,9 +9,11 @@ use crate::{step::Step, blocks::BlockMap, steps_generator::StepError};
 use crate::steps_executor::execute_mark_step::execute_mark_step;
 
 use self::execute_replace_steps::execute_replace_step;
+use self::execute_split_step::execute_split_step;
 
 pub mod execute_replace_steps;
 pub mod execute_mark_step;
+pub mod execute_split_step;
 
 pub struct UpdatedState {
     pub block_map: BlockMap,
@@ -34,7 +36,7 @@ pub fn execute_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewIds
     for step in steps {
         updated_state = match step {
             Step::ReplaceStep(replace_step) => execute_replace_step(replace_step, updated_state.block_map, updated_state.selection)?,
-            Step::SplitStep(split_step) => unimplemented!(),
+            Step::SplitStep(split_step) => execute_split_step(split_step, updated_state.block_map, new_ids)?,
             Step::AddMarkStep(mark_step) => unimplemented!(), // execute_mark_step(mark_step, block_map, true, new_ids)?,
             Step::RemoveMarkStep(mark_step) => unimplemented!() // execute_mark_step(mark_step, block_map, false, new_ids)?
         };

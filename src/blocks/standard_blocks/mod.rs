@@ -1,7 +1,7 @@
 
 use serde_json::json;
 
-use crate::{mark::Mark, steps_generator::StepError};
+use crate::{mark::Mark, steps_generator::StepError, new_ids::NewIds};
 
 use self::content_block::ContentBlock;
 
@@ -24,6 +24,16 @@ impl StandardBlock {
     }
     pub fn parent(&self) -> String {
         return self.parent.clone()
+    }
+
+    pub fn from(content: StandardBlockType, parent: String, new_ids: &mut NewIds) -> Result<Self, StepError> {
+        return Ok(Self {
+            _id: new_ids.get_id()?,
+            content,
+            children: vec![],
+            parent,
+            marks: vec![]
+        })
     }
 
     pub fn new_paragraph_block(_id: String, inline_blocks: Vec<String>, marks: Vec<Mark>, children: Vec<String>, parent: String) -> Self {
@@ -82,7 +92,6 @@ impl StandardBlock {
 
     pub fn get_inline_block_from_index(&self, index: usize) -> Result<String, StepError> {
         return Ok(self.content_block()?.inline_blocks[index].clone())
-
     }
 
     pub fn get_child_from_index(&self, index: usize) -> Result<String, StepError> {
@@ -124,6 +133,27 @@ impl StandardBlock {
         let last_block_id = inline_blocks[inline_blocks.len() - 1].clone();
         return block_map.get_inline_block(&last_block_id)
     }
+
+    pub fn split(mut self, index: usize, mut new_block_content: StandardBlockType, new_ids: &mut NewIds) -> Result<(Self, Self), StepError> {
+        let inline_blocks = &self.content_block()?.inline_blocks;
+        if index > inline_blocks.len() {
+            return Err(StepError(format!("Inline blocks length: {}, is less than index: {}", inline_blocks.len(), index)))
+        }
+
+        let first_half = inline_blocks[..index].to_vec();
+        let second_half = inline_blocks[index..].to_vec();
+        self = self.update_block_content(ContentBlock { inline_blocks: first_half })?;
+        let mut new_block = StandardBlock::from(new_block_content, self.parent.clone(), new_ids)?.push_to_content(second_half)?;
+        new_block.children = self.children;
+        self.children = vec![];
+        //std::mem::swap(&mut self.children, &mut new_block.children);
+        return Ok((self, new_block))
+    }
+
+    fn push_to_content(mut self, new_inline_blocks: Vec<String>) -> Result<Self, StepError> {
+        self.content = self.content.push_to_content(new_inline_blocks)?;
+        return Ok(self)
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -138,26 +168,10 @@ impl StandardBlockType {
     pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
         let block_type = json.get("_type").ok_or(StepError("Block does not have _type field".to_string()))?.as_str().ok_or(StepError("Block _type field is not a string".to_string()))?;
         match block_type {
-            "paragraph" => {
-                let paragraph_block_json = json.get("content").ok_or(StepError("Block does not have block field".to_string()))?;
-                let block = ContentBlock::from_json(json)?;
-                Ok(StandardBlockType::Paragraph(block))
-            },
-            "h1" => {
-                let h1_block_json = json.get("content").ok_or(StepError("Block does not have block field".to_string()))?;
-                let block = ContentBlock::from_json(json)?;
-                Ok(StandardBlockType::H1(block))
-            },
-            "h2" => {
-                let h2_block_json = json.get("content").ok_or(StepError("Block does not have block field".to_string()))?;
-                let block = ContentBlock::from_json(json)?;
-                Ok(StandardBlockType::H2(block))
-            },
-            "h3" => {
-                let h3_block_json = json.get("content").ok_or(StepError("Block does not have block field".to_string()))?;
-                let block = ContentBlock::from_json(json)?;
-                Ok(StandardBlockType::H3(block))
-            },
+            "paragraph" => Ok(StandardBlockType::Paragraph(ContentBlock::from_json(json)?)),
+            "h1" => Ok(StandardBlockType::H1(ContentBlock::from_json(json)?)),
+            "h2" => Ok(StandardBlockType::H2(ContentBlock::from_json(json)?)),
+            "h3" => Ok(StandardBlockType::H3(ContentBlock::from_json(json)?)),
             _ => Err(StepError(format!("Block type {} not found", block_type)))
         }
     }
@@ -204,6 +218,27 @@ impl StandardBlockType {
             StandardBlockType::H1(_) => Ok(StandardBlockType::H1(content_block)),
             StandardBlockType::H2(_) => Ok(StandardBlockType::H2(content_block)),
             StandardBlockType::H3(_) => Ok(StandardBlockType::H3(content_block)),
+        }
+    }
+
+    pub fn push_to_content(self, new_inline_blocks: Vec<String>) -> Result<Self, StepError> {
+        match self {
+            StandardBlockType::Paragraph(ContentBlock { inline_blocks } ) => {
+                let updated_inline_blocks = vec![inline_blocks, new_inline_blocks].concat();
+                return Ok(StandardBlockType::Paragraph(ContentBlock { inline_blocks: updated_inline_blocks } ))
+            },
+            StandardBlockType::H1(ContentBlock { inline_blocks }) => {
+                let updated_inline_blocks = vec![inline_blocks, new_inline_blocks].concat();
+                return Ok(StandardBlockType::H1(ContentBlock { inline_blocks: updated_inline_blocks } ))
+            },
+            StandardBlockType::H2(ContentBlock { inline_blocks }) => {
+                let updated_inline_blocks = vec![inline_blocks, new_inline_blocks].concat();
+                return Ok(StandardBlockType::H2(ContentBlock { inline_blocks: updated_inline_blocks } ))
+            },
+            StandardBlockType::H3(ContentBlock { inline_blocks }) => {
+                let updated_inline_blocks = vec![inline_blocks, new_inline_blocks].concat();
+                return Ok(StandardBlockType::H3(ContentBlock { inline_blocks: updated_inline_blocks } ))
+            },
         }
     }
 }

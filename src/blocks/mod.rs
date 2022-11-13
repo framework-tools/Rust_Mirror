@@ -356,6 +356,13 @@ impl BlockMap {
         let json = block.to_json()?.to_string();
         return Ok(self.0.insert(id, json))
     }
+    pub fn update_blocks(&mut self, blocks: Vec<Block>) -> Result<Vec<Option<String>>, StepError> {
+        let mut return_values = vec![];
+        for block in blocks {
+            return_values.push(self.update_block(block)?)
+        }
+        return Ok(return_values)
+    }
 
     pub fn remove_block(&mut self, id: &String) -> Result<Option<Block>, StepError> {
         let returned_block_as_json = self.0.remove(id);
@@ -366,5 +373,29 @@ impl BlockMap {
             },
             None => Ok(None)
         }
+    }
+
+    /// Utility for tests
+    pub fn get_newly_added_blocks(&self, previously_used_ids: Vec<String>) -> Result<Vec<Block>, StepError> {
+        let mut newly_added_blocks = vec![];
+        for (id, _) in &self.0 {
+            if !previously_used_ids.contains(id) {
+                newly_added_blocks.push(self.get_block(id)?)
+            }
+        }
+        return Ok(newly_added_blocks)
+    }
+
+    /// Utility for tests
+    pub fn get_newly_added_standard_blocks(&self, previously_used_ids: Vec<String>) -> Result<Vec<StandardBlock>, StepError> {
+        let mut newly_added_standard_blocks = vec![];
+        let newly_added_blocks = self.get_newly_added_blocks(previously_used_ids)?;
+        for block in newly_added_blocks {
+            match block {
+                Block::StandardBlock(std_block) => newly_added_standard_blocks.push(std_block),
+                _ => {}
+            };
+        }
+        return Ok(newly_added_standard_blocks)
     }
 }
