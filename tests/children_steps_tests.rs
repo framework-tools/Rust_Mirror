@@ -329,7 +329,7 @@ mod tests {
             },
             "children": [],
             "marks": [],
-            "parent": paragraph_block_id1.clone()
+            "parent": root_block_id.clone()
         });
         let paragraph_block3 = json!({
             "_id": paragraph_block_id3.clone(),
@@ -340,7 +340,7 @@ mod tests {
             },
             "children": [],
             "marks": [],
-            "parent": paragraph_block_id1.clone()
+            "parent": root_block_id.clone()
         });
         let inline_block3 = json!({
             "_id": inline_block_id3.clone(),
@@ -353,30 +353,46 @@ mod tests {
             "parent": paragraph_block_id3.clone()
         });
 
-        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id1.clone()]);
+        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id1.clone(), paragraph_block_id2.clone(), paragraph_block_id3.clone()]);
         let block_map = BlockMap::from(vec![
             inline_block1.to_string(), inline_block2.to_string(), paragraph_block1.to_string(), paragraph_block2.to_string(), root_block.to_string(), paragraph_block3.to_string(),
             inline_block3.to_string()
         ]).unwrap();
-        let event = Event::KeyPress(KeyPress { key: Key::Tab, metadata: KeyPressMetadata { shift_down: true, meta_down: false, ctrl_down: false, alt_down: false } });
-        let from_sub_selection = SubSelection::from(inline_block_id1.clone(), 4, None);
-        let to_sub_selection = SubSelection::from(inline_block_id3.clone(), 1, None);
+        let event = Event::KeyPress(KeyPress { key: Key::Tab, metadata: KeyPressMetadata { shift_down: false, meta_down: false, ctrl_down: false, alt_down: false } });
+        let from_sub_selection = SubSelection {
+            block_id: paragraph_block_id1.clone(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection {
+                block_id: inline_block_id1.clone(),
+                offset: 1,
+                subselection: None
+            }))
+        };
+        let to_sub_selection = SubSelection {
+            block_id: paragraph_block_id3.clone(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection {
+                block_id: inline_block_id3.clone(),
+                offset: 1,
+                subselection: None
+            }))
+        };
         let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
 
         assert_eq!(steps.len(), 2);
         match &steps[0] {
-            Step::TurnToParent(turn_to_parent_step) => {
-                assert_eq!(turn_to_parent_step.block_id, paragraph_block_id2);
+            Step::TurnToChild(turn_to_child_step) => {
+                assert_eq!(turn_to_child_step.block_id, paragraph_block_id2);
             },
-            _ => panic!("Expected ReplaceStep")
+            _ => panic!("Expected TurnToChild")
         };
         match &steps[1] {
-            Step::TurnToParent(turn_to_parent_step) => {
-                assert_eq!(turn_to_parent_step.block_id, paragraph_block_id3);
+            Step::TurnToChild(turn_to_child_step) => {
+                assert_eq!(turn_to_child_step.block_id, paragraph_block_id3);
             },
-            _ => panic!("Expected ReplaceStep")
+            _ => panic!("Expected TurnToChild")
         }
     }
 }

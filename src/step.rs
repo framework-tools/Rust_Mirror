@@ -2,7 +2,7 @@
 use crate::{steps_generator::selection::SubSelection, mark::Mark, blocks::Block};
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Step {
     ReplaceStep(ReplaceStep),
     SplitStep(SplitStep),
@@ -13,7 +13,7 @@ pub enum Step {
     //ReplaceAroundStep
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ReplaceStep {
     pub block_id: String,
     pub from: SubSelection,
@@ -21,13 +21,13 @@ pub struct ReplaceStep {
     pub slice: ReplaceSlice
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ReplaceSlice {
     Blocks(Vec<String>), // Vec<Id>
     String(String)
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct MarkStep {
     pub block_id: String,
     pub from: SubSelection,
@@ -35,17 +35,17 @@ pub struct MarkStep {
     pub mark: Mark,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct SplitStep {
     pub subselection: SubSelection
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct TurnToChild {
     pub block_id: String
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct TurnToParent {
     pub block_id: String
 }
