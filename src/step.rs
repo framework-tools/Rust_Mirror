@@ -8,6 +8,8 @@ pub enum Step {
     SplitStep(SplitStep),
     AddMarkStep(MarkStep),
     RemoveMarkStep(MarkStep),
+    TurnToChild(TurnToChild),
+    TurnToParent(TurnToParent),
     //ReplaceAroundStep
 }
 
@@ -36,4 +38,14 @@ pub struct MarkStep {
 #[derive(Debug, PartialEq)]
 pub struct SplitStep {
     pub subselection: SubSelection
+}
+
+#[derive(Debug, PartialEq)]
+pub struct TurnToChild {
+    pub block_id: String
+}
+
+#[derive(Debug, PartialEq)]
+pub struct TurnToParent {
+    pub block_id: String
 }

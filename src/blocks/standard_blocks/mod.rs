@@ -15,13 +15,14 @@ pub struct StandardBlock {
     pub content: StandardBlockType,
     pub children: Vec<String>, //Vec<StandardBlock>
     pub parent: String, //StandardBlock
-    pub marks: Vec<Mark>,
+    pub marks: Vec<Mark>
 }
 
 impl StandardBlock {
     pub fn id(&self) -> String {
         return self._id.clone()
     }
+
     pub fn parent(&self) -> String {
         return self.parent.clone()
     }

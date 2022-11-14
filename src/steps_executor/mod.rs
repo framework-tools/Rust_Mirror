@@ -38,7 +38,9 @@ pub fn execute_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewIds
             Step::ReplaceStep(replace_step) => execute_replace_step(replace_step, updated_state.block_map, updated_state.selection)?,
             Step::SplitStep(split_step) => execute_split_step(split_step, updated_state.block_map, new_ids)?,
             Step::AddMarkStep(mark_step) => execute_mark_step(mark_step, updated_state.block_map, true, new_ids)?, // execute_mark_step(mark_step, block_map, true, new_ids)?,
-            Step::RemoveMarkStep(mark_step) => execute_mark_step(mark_step, updated_state.block_map, false, new_ids)? // execute_mark_step(mark_step, block_map, false, new_ids)?
+            Step::RemoveMarkStep(mark_step) => execute_mark_step(mark_step, updated_state.block_map, false, new_ids)?, // execute_mark_step(mark_step, block_map, false, new_ids)?
+            Step::TurnToChild(turn_to_child_step) => unimplemented!(),
+            Step::TurnToParent(turn_to_parent_step) => unimplemented!()
         };
     }
     return Ok(updated_state)

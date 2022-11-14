@@ -1,12 +1,13 @@
 
 use crate::{blocks::{BlockMap}, step::Step, mark::Mark, new_ids::NewIds};
 
-use self::{backspace::generate_steps_for_backspace, enter::generate_steps_for_enter, };
+use self::{backspace::generate_steps_for_backspace, enter::generate_steps_for_enter, tab::generate_steps_for_tab, };
 
 use super::{event::{KeyPress, Key}, selection::{SubSelection}, StepError, mark_steps::generate_mark_steps, generate_replace_selected_steps::generate_replace_selected_steps};
 
 pub mod backspace;
 pub mod enter;
+pub mod tab;
 
 pub fn generate_keyboard_event_steps(
     key_press: &KeyPress,
@@ -26,6 +27,7 @@ pub fn generate_keyboard_event_steps(
         Key::Standard(key) => generate_replace_selected_steps(block_map, from, to, key.to_string()),
         Key::Backspace => generate_steps_for_backspace(block_map, from, to),
         Key::Enter => generate_steps_for_enter(block_map, from, to),
+        Key::Tab => generate_steps_for_tab(block_map, from, to),
         _ => unimplemented!(),
     }
 }
