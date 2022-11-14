@@ -1,0 +1,139 @@
+
+#[cfg(test)]
+mod tests {
+    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap}, steps_generator::{event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps}, steps_executor::execute_steps, mark::Mark};
+    use serde_json::json;
+
+
+    #[test]
+    fn can_execute_enter_with_no_text_and_no_selection() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let inline_block_id = new_ids.get_id().unwrap();
+        let paragraph_block_id = new_ids.get_id().unwrap();
+        let root_block_id = new_ids.get_id().unwrap();
+
+        let inline_block = json!({
+            "_id": inline_block_id.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": ""
+            },
+            "marks": [],
+            "parent": paragraph_block_id.clone()
+        }).to_string();
+        let block = json!({
+            "_id": paragraph_block_id,
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone().to_string()
+        }).to_string();
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]).to_string();
+
+        let block_map = BlockMap::from(vec![inline_block, block, root_block]).unwrap();
+        let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
+        let sub_selection = SubSelection::from(inline_block_id.clone().clone(), 0, None);
+        let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
+
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
+        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+
+        let original_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
+        let inline_blocks = &original_paragraph_block.content_block().unwrap().inline_blocks;
+        assert_eq!(inline_blocks.len(), 1);
+        assert_eq!(inline_blocks[0], inline_block_id.clone());
+
+        let newly_added_standard_blocks = updated_state.block_map.get_newly_added_standard_blocks(vec![
+            inline_block_id,
+            paragraph_block_id,
+            root_block_id
+        ]).unwrap();
+        assert_eq!(newly_added_standard_blocks.len(), 1);
+        let new_std_block = &newly_added_standard_blocks[0];
+        let inline_blocks = &new_std_block.content_block().unwrap().inline_blocks;
+        assert_eq!(inline_blocks.len(), 1);
+        let new_inline_block = updated_state.block_map.get_inline_block(&inline_blocks[0]).unwrap();
+        assert_eq!(new_inline_block.text().unwrap(), &"".to_string());
+        assert_eq!(new_inline_block.parent, new_std_block.id());
+    }
+
+    #[test]
+    fn can_execute_enter_in_middle_of_text_with_caret_selection() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let inline_block_id1= new_ids.get_id().unwrap();
+        let inline_block_id2 = new_ids.get_id().unwrap();
+        let paragraph_block_id = new_ids.get_id().unwrap();
+        let root_block_id = new_ids.get_id().unwrap();
+
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello "
+            },
+            "marks": ["bold"],
+            "parent": paragraph_block_id.clone()
+        }).to_string();
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "World!"
+            },
+            "marks": [],
+            "parent": paragraph_block_id.clone()
+        }).to_string();
+        let block = json!({
+            "_id": paragraph_block_id.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone(), inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone().to_string()
+        }).to_string();
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]).to_string();
+
+        let block_map = BlockMap::from(vec![inline_block1, inline_block2, block, root_block]).unwrap();
+        let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
+        let sub_selection = SubSelection::from(inline_block_id1.clone(), 3, None);
+        let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
+
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
+        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+
+        let original_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
+        let inline_blocks = &original_paragraph_block.content_block().unwrap().inline_blocks;
+        assert_eq!(inline_blocks.len(), 1);
+        assert_eq!(inline_blocks[0], inline_block_id1.clone());
+
+        let newly_added_standard_blocks = updated_state.block_map.get_newly_added_standard_blocks(vec![
+            inline_block_id1,
+            inline_block_id2.clone(),
+            paragraph_block_id,
+            root_block_id
+        ]).unwrap();
+        assert_eq!(newly_added_standard_blocks.len(), 1);
+        let new_std_block = &newly_added_standard_blocks[0];
+        let inline_blocks = &new_std_block.content_block().unwrap().inline_blocks;
+        assert_eq!(inline_blocks.len(), 2);
+        let new_inline_block = updated_state.block_map.get_inline_block(&inline_blocks[0]).unwrap();
+        assert_eq!(new_inline_block.text().unwrap(), &"lo ".to_string());
+        assert_eq!(new_inline_block.parent, new_std_block.id());
+        assert_eq!(new_inline_block.marks, vec![Mark::Bold]);
+        assert_eq!(inline_blocks[1], inline_block_id2);
+        let inline_block_2 = updated_state.block_map.get_inline_block(&inline_block_id2).unwrap();
+        assert_eq!(inline_block_2.text().unwrap(), "World!");
+    }
+}
