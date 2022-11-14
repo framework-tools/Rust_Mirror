@@ -33,7 +33,7 @@ mod tests {
             "marks": [],
             "parent": root_block_id.to_string()
         });
-        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id]);
+        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id.clone()]);
 
         let block_map = BlockMap::from(vec![inline_block.to_string(), block.to_string(), root_block.to_string()]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::Bold);
@@ -46,7 +46,7 @@ mod tests {
         assert_eq!(steps.len(), 1);
         match &steps[0] {
             Step::AddMarkStep(add_mark_step) => {
-                assert_eq!(add_mark_step.block_id, inline_block_id);
+                assert_eq!(add_mark_step.block_id, paragraph_block_id);
                 assert_eq!(add_mark_step.from, sub_selection_from);
                 assert_eq!(add_mark_step.to, sub_selection_to);
                 assert_eq!(add_mark_step.mark, Mark::Bold);

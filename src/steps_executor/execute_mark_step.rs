@@ -1,23 +1,23 @@
 
 use crate::{step::{MarkStep}, blocks::{BlockMap, Block, inline_blocks::InlineBlock}, steps_generator::StepError, new_ids::NewIds};
 
-use super::clean_block_after_transform;
+use super::{clean_block_after_transform, UpdatedState};
 
 
-pub fn execute_mark_step(mark_step: MarkStep, mut block_map: BlockMap, add_mark: bool, new_ids: &mut NewIds) -> Result<BlockMap, StepError> {
+pub fn execute_mark_step(mark_step: MarkStep, mut block_map: BlockMap, add_mark: bool, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
     let block = block_map.get_block(&mark_step.from.block_id)?;
     match block {
         Block::InlineBlock(inline_block) => {
             return execute_mark_step_on_inline_block(mark_step, inline_block, block_map, add_mark, new_ids)
         },
         Block::StandardBlock(standard_block) => {
+            unimplemented!()
             // match mark_step.from.subselection {
 
             // }
         },
         Block::Root(root_block) => return Err(StepError("Cannot mark root block".to_string()))
     };
-    return Ok(block_map)
 }
 
 fn execute_mark_step_on_inline_block(
@@ -26,7 +26,7 @@ fn execute_mark_step_on_inline_block(
     mut block_map: BlockMap,
     add_mark: bool,
     new_ids: &mut NewIds
-) -> Result<BlockMap, StepError> {
+) -> Result<UpdatedState, StepError> {
     if mark_step.from.block_id == mark_step.to.block_id {
         //split block into 3 new inline blocks
         //add mark to middle block
@@ -103,5 +103,5 @@ fn execute_mark_step_on_inline_block(
         block_map.update_block(Block::StandardBlock(updated_parent_block.clone()))?;
         block_map = clean_block_after_transform(updated_parent_block, block_map)?;
     }
-    return Ok(block_map)
+    return Ok(UpdatedState { block_map, selection: None })
 }

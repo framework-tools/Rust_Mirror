@@ -81,24 +81,6 @@ fn get_subselection_inline_block(
     return Ok((block_map.get_inline_block(&inner_subselection.block_id)?, inner_subselection.offset))
 }
 
-/// match &steps[0] {
-///     Step::ReplaceStep(replace_step) => {
-///         assert_eq!(replace_step.block_id, paragraph_block_id1);
-///         assert_eq!(replace_step.from, SubSelection::from(paragraph_block_id1.clone(), 1, None));
-///         assert_eq!(replace_step.to, SubSelection::from(paragraph_block_id1.clone(), 1, None));
-///         assert_eq!(replace_step.slice, ReplaceSlice::Blocks(vec![inline_block_id2, inline_block_id3]));
-///     },
-///     _ => panic!("Expected ReplaceStep")
-/// };
-/// match &steps[1] {
-///     Step::ReplaceStep(replace_step) => {
-///         assert_eq!(replace_step.block_id, root_block_id);
-///         assert_eq!(replace_step.from, SubSelection::from(root_block_id.clone(), 1, None));
-///         assert_eq!(replace_step.to, SubSelection::from(root_block_id.clone(), 2, None));
-///         assert_eq!(replace_step.slice, ReplaceSlice::Blocks(vec![]));
-///     },
-///     _ => panic!("Expected ReplaceStep")
-/// }
 fn replace_across_standard_blocks_no_subselection(
     from_block: StandardBlock,
     block_map: BlockMap,
