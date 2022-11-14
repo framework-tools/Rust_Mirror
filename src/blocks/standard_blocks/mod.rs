@@ -154,6 +154,15 @@ impl StandardBlock {
         self.content = self.content.push_to_content(new_inline_blocks)?;
         return Ok(self)
     }
+
+    pub fn set_as_parent_for_all_inline_blocks(&self, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
+        for id in &self.content_block()?.inline_blocks {
+            let mut inline_block = block_map.get_inline_block(&id)?;
+            inline_block.parent = self.id();
+            block_map.update_block(Block::InlineBlock(inline_block))?;
+        }
+        return Ok(block_map)
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

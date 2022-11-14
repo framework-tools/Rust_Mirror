@@ -148,4 +148,106 @@ mod tests {
             None => panic!("Should be some selection")
         }
     }
+
+    #[test]
+    fn can_handle_with_selection_across_inline_blocks() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let inline_block_id1 = new_ids.get_id().unwrap();
+        let inline_block_id2 = new_ids.get_id().unwrap();
+        let inline_block_id3 = new_ids.get_id().unwrap();
+        let paragraph_block_id = new_ids.get_id().unwrap();
+        let root_block_id = new_ids.get_id().unwrap();
+
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello"
+            },
+            "marks": [],
+            "parent": paragraph_block_id.clone()
+        }).to_string();
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "brave new "
+            },
+            "marks": ["italic"],
+            "parent": paragraph_block_id.clone()
+        }).to_string();
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "World!"
+            },
+            "marks": [],
+            "parent": paragraph_block_id.clone()
+        }).to_string();
+        let block = json!({
+            "_id": paragraph_block_id.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [
+                    inline_block_id1.clone(), inline_block_id2.clone(), inline_block_id3.clone()
+                ]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        }).to_string();
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]).to_string();
+
+        let block_map = BlockMap::from(vec![inline_block1, inline_block2, inline_block3, block, root_block]).unwrap();
+        let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
+        let from_sub_selection = SubSelection::from(inline_block_id1.clone(), 4, None);
+        let to_sub_selection = SubSelection::from(inline_block_id2.clone(), 1, None);
+        let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
+
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
+
+        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+
+        let original_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
+        let inline_blocks = &original_paragraph_block.content_block().unwrap().inline_blocks;
+        assert_eq!(inline_blocks.len(), 1);
+        assert_eq!(inline_blocks[0], inline_block_id1.clone());
+
+        let newly_added_standard_blocks = updated_state.block_map.get_newly_added_standard_blocks(vec![
+            inline_block_id1,
+            inline_block_id2.clone(),
+            paragraph_block_id,
+            root_block_id.clone()
+        ]).unwrap();
+        assert_eq!(newly_added_standard_blocks.len(), 1);
+        let new_std_block = &newly_added_standard_blocks[0];
+        let inline_blocks = &new_std_block.content_block().unwrap().inline_blocks;
+
+        assert_eq!(inline_blocks.len(), 2);
+        let new_inline_block = updated_state.block_map.get_inline_block(&inline_blocks[0]).unwrap();
+        assert_eq!(new_inline_block.text().unwrap(), &"rave new ".to_string());
+        assert_eq!(new_inline_block.parent, new_std_block.id());
+        assert_eq!(new_inline_block.marks, vec![Mark::Italic]);
+        assert_eq!(inline_blocks[1], inline_block_id3);
+        let updated_inline_block_2 = updated_state.block_map.get_inline_block(&inline_block_id2).unwrap();
+        assert_eq!(updated_inline_block_2.parent, new_std_block.id());
+
+        let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
+        assert_eq!(updated_root_block.children[1], new_std_block.id());
+
+        match updated_state.selection {
+            Some(selection) => {
+                assert_eq!(selection.from, selection.to);
+                assert_eq!(selection.from.block_id, new_inline_block.id());
+                assert_eq!(selection.from.offset, 0);
+            },
+            None => panic!("Should be some selection")
+        }
+    }
 }
