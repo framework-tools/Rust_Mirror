@@ -259,171 +259,119 @@ mod tests {
         };
     }
 
-//     #[test]
-//     fn can_handle_enter_over_standard_blocks() -> Result<(), StepError> {
-//         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+    #[test]
+    fn can_handle_enter_over_standard_blocks() -> Result<(), StepError> {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
-//         let inline_block_id1 = new_ids.get_id()?;
-//         let inline_block_id2 = new_ids.get_id()?;
-//         let inline_block_id3 = new_ids.get_id()?;
-//         let paragraph_block_id1 = new_ids.get_id()?;
-//         let paragraph_block_id2 = new_ids.get_id()?;
-//         let paragraph_block_id3 = new_ids.get_id()?;
-//         let root_block_id = new_ids.get_id()?;
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block_id2 = new_ids.get_id()?;
+        let inline_block_id3 = new_ids.get_id()?;
+        let paragraph_block_id1 = new_ids.get_id()?;
+        let paragraph_block_id2 = new_ids.get_id()?;
+        let paragraph_block_id3 = new_ids.get_id()?;
+        let root_block_id = new_ids.get_id()?;
 
-//         let inline_block1 = json!({
-//             "_id": inline_block_id1.clone(),
-//             "kind": "inline",
-//             "_type": "text",
-//             "content": {
-//                 "text": "Hello World"
-//             },
-//             "marks": [],
-//             "parent": paragraph_block_id1.clone()
-//         });
-//         let inline_block2 = json!({
-//             "_id": inline_block_id2.clone(),
-//             "kind": "inline",
-//             "_type": "text",
-//             "content": {
-//                 "text": "Hello again!"
-//             },
-//             "marks": [],
-//             "parent": paragraph_block_id2.clone()
-//         });
-//         let inline_block3 = json!({
-//             "_id": inline_block_id3.clone(),
-//             "kind": "inline",
-//             "_type": "text",
-//             "content": {
-//                 "text": "Goodbye World"
-//             },
-//             "marks": [],
-//             "parent": paragraph_block_id2.clone()
-//         });
-//         let paragraph_block1 = json!({
-//             "_id": paragraph_block_id1.clone(),
-//             "kind": "standard",
-//             "_type": "paragraph",
-//             "content": {
-//                 "inline_blocks": [inline_block_id1.clone()]
-//             },
-//             "children": [],
-//             "marks": [],
-//             "parent": root_block_id.clone()
-//         });
-//         let paragraph_block2 = json!({
-//             "_id": paragraph_block_id2.to_string(),
-//             "kind": "standard",
-//             "_type": "paragraph",
-//             "content": {
-//                 "inline_blocks": [inline_block_id2.clone()]
-//             },
-//             "children": [],
-//             "marks": [],
-//             "parent": root_block_id.clone()
-//         });
-//         let paragraph_block3 = json!({
-//             "_id": paragraph_block_id3.clone(),
-//             "kind": "standard",
-//             "_type": "paragraph",
-//             "content": {
-//                 "inline_blocks": [inline_block_id3.clone()]
-//             },
-//             "children": [],
-//             "marks": [],
-//             "parent": root_block_id.clone()
-//         });
-//         let root_block = RootBlock::json_from(root_block_id.clone(), vec![
-//             paragraph_block_id1.clone(), paragraph_block_id2.clone(), paragraph_block_id3.clone()
-//         ]);
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello World"
+            },
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello again!"
+            },
+            "marks": [],
+            "parent": paragraph_block_id2.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Goodbye World"
+            },
+            "marks": [],
+            "parent": paragraph_block_id2.clone()
+        });
+        let paragraph_block1 = json!({
+            "_id": paragraph_block_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let paragraph_block2 = json!({
+            "_id": paragraph_block_id2.to_string(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let paragraph_block3 = json!({
+            "_id": paragraph_block_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id3.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![
+            paragraph_block_id1.clone(), paragraph_block_id2.clone(), paragraph_block_id3.clone()
+        ]);
 
-//         let block_map = BlockMap::from(vec![
-//             inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(),
-//             paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), root_block.to_string()
-//         ]).unwrap();
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(),
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), root_block.to_string()
+        ]).unwrap();
 
-//         let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
-//         let from_sub_selection = SubSelection::from(paragraph_block_id1.clone(), 0, Some(Box::new(
-//             SubSelection::from(inline_block_id1.clone(), 1, None)
-//         )));
-//         let to_sub_selection = SubSelection::from(paragraph_block_id3.clone(), 1, Some(Box::new(
-//             SubSelection::from(inline_block_id3.clone(), 3, None)
-//         )));
-//         let selection = Selection::from(from_sub_selection, to_sub_selection);
+        let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
+        let from_sub_selection = SubSelection::from(paragraph_block_id1.clone(), 0, Some(Box::new(
+            SubSelection::from(inline_block_id1.clone(), 1, None)
+        )));
+        let to_sub_selection = SubSelection::from(paragraph_block_id3.clone(), 1, Some(Box::new(
+            SubSelection::from(inline_block_id3.clone(), 3, None)
+        )));
+        let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
-//         let steps = generate_steps(&event, &block_map, selection).unwrap();
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
 
-//         assert_eq!(steps.len(), 1);
-//         match &steps[0] {
-//             Step::ReplaceStep(replace_step) => {
-//                 assert_eq!(replace_step.from, SubSelection::from(root_block_id.clone(), 0, None));
-//                 assert_eq!(replace_step.to, SubSelection::from(root_block_id.clone(), 3, None));
-//                 assert_eq!(replace_step.slice.len(), 3);
-//                 assert_eq!(replace_step.slice[0], paragraph_block_id1);
-//                 assert_eq!(replace_step.slice[2], paragraph_block_id3);
-//                 assert_eq!(replace_step.blocks_to_update.len(), 4);
-//                 // need to finish
-//                 // match &replace_step.blocks_to_update[0] {
-//                 //     Block::StandardBlock(standard_block) => {
-//                 //         assert_eq!(standard_block.id(), paragraph_block_id);
-//                 //         match &standard_block.content {
-//                 //             StandardBlockType::Paragraph(content_block) => {
-//                 //                 assert_eq!(content_block.inline_blocks.len(), 1);
-//                 //                 assert_eq!(content_block.inline_blocks[0], inline_block_id.clone()1);
-//                 //             },
-//                 //             _ => panic!("Expected paragraph block"),
-//                 //         };
-//                 //         assert_eq!(standard_block.parent, root_block_id.clone());
-//                 //         assert_eq!(standard_block.marks, vec![]);
-//                 //     },
-//                 //     _ => panic!("Expected inline block"),
-//                 // };
-//                 // match &replace_step.blocks_to_update[1] {
-//                 //     Block::InlineBlock(inline_block) => {
-//                 //         assert_eq!(inline_block.id(), inline_block_id.clone()1);
-//                 //         match &inline_block.content {
-//                 //             InlineBlockType::TextBlock(TextBlock { text }) => {
-//                 //                 assert_eq!(text, &"Hell".to_string());
-//                 //             },
-//                 //             _ => panic!("Expected paragraph block"),
-//                 //         };
-//                 //         assert_eq!(inline_block.parent, paragraph_block_id);
-//                 //         assert_eq!(inline_block.marks, vec![Mark::Bold]);
-//                 //     },
-//                 //     _ => panic!("Expected inline block"),
-//                 // };
-//                 // match &replace_step.blocks_to_update[2] {
-//                 //     Block::StandardBlock(standard_block) => {
-//                 //         match &standard_block.content {
-//                 //             StandardBlockType::Paragraph(content_block) => {
-//                 //                 assert_eq!(content_block.inline_blocks.len(), 1);
-//                 //                 assert_eq!(content_block.inline_blocks[0], replace_step.blocks_to_update[3].id());
-//                 //                 assert_eq!(content_block.inline_blocks[1], inline_block_id.clone()3);
-//                 //             },
-//                 //             _ => panic!("Expected paragraph block"),
-//                 //         };
-//                 //         assert_eq!(standard_block.parent, root_block_id.clone());
-//                 //         assert_eq!(standard_block.marks, vec![]);
-//                 //     },
-//                 //     _ => panic!("Expected inline block"),
-//                 // };
-//                 // match &replace_step.blocks_to_update[3] {
-//                 //     Block::InlineBlock(inline_block) => {
-//                 //         match &inline_block.content {
-//                 //             InlineBlockType::TextBlock(TextBlock { text }) => {
-//                 //                 assert_eq!(text, &"orld!".to_string());
-//                 //             },
-//                 //             _ => panic!("Expected paragraph block"),
-//                 //         };
-//                 //         assert_eq!(inline_block.parent, replace_step.blocks_to_update[2].id());
-//                 //         assert_eq!(inline_block.marks, vec![Mark::Bold]);
-//                 //     },
-//                 //     _ => panic!("Expected inline block"),
-//                 // }
-//             },
-//             _ => panic!("Expected ReplaceStep")
-//         };
-//         Ok(())
-//     }
+        assert_eq!(steps.len(), 2);
+        match &steps[0] {
+            Step::ReplaceStep(replace_step) => {
+                assert_eq!(replace_step.from, from_sub_selection.clone());
+                assert_eq!(replace_step.to, to_sub_selection.clone());
+                match &replace_step.slice {
+                    ReplaceSlice::String(s) => assert_eq!(s, &"".to_string()),
+                    ReplaceSlice::Blocks(_) => panic!("Expected string replace slice")
+                }
+            },
+            _ => panic!("Expected ReplaceStep")
+        };
+        match &steps[1] {
+            Step::SplitStep(split_step) => {
+                assert_eq!(split_step.subselection, from_sub_selection.clone());
+            },
+            _ => panic!("Expected Split step")
+        };
+        return Ok(())
+    }
 }
