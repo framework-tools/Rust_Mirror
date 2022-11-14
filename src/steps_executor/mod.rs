@@ -8,6 +8,7 @@ use crate::steps_generator::selection::{SubSelection, Selection};
 use crate::{step::Step, blocks::BlockMap, steps_generator::StepError};
 use crate::steps_executor::execute_mark_step::execute_mark_step;
 
+use self::execute_child_steps::execute_child_steps;
 use self::execute_replace_steps::execute_replace_step;
 use self::execute_split_step::execute_split_step;
 
@@ -40,7 +41,7 @@ pub fn execute_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewIds
             Step::SplitStep(split_step) => execute_split_step(split_step, updated_state.block_map, new_ids)?,
             Step::AddMarkStep(mark_step) => execute_mark_step(mark_step, updated_state.block_map, true, new_ids)?, // execute_mark_step(mark_step, block_map, true, new_ids)?,
             Step::RemoveMarkStep(mark_step) => execute_mark_step(mark_step, updated_state.block_map, false, new_ids)?, // execute_mark_step(mark_step, block_map, false, new_ids)?
-            Step::TurnToChild(turn_to_child_step) => unimplemented!(),
+            Step::TurnToChild(turn_to_child_step) => execute_child_steps(updated_state.block_map, turn_to_child_step)?,
             Step::TurnToParent(turn_to_parent_step) => unimplemented!()
         };
     }
