@@ -22,7 +22,7 @@ pub fn execute_event(
 
     return match execute_steps(steps, block_map, &mut new_ids) {
         Ok(UpdatedState { block_map: BlockMap(updated_block_map), selection }) => {
-            ReturnJson::Data{ updated_block_map, updated_selection: selection }.create_response()
+            ReturnJson::Data{ updated_block_map, updated_selection: selection, new_ids: new_ids.0 }.create_response()
         },
         Err(StepError(err)) => ReturnJson::Err(err).create_response()
     }
@@ -31,7 +31,8 @@ pub fn execute_event(
 enum ReturnJson {
     Data {
         updated_block_map: HashMap<String, String>,
-        updated_selection: Option<Selection>
+        updated_selection: Option<Selection>,
+        new_ids: Vec<String>
     },
     Err(String)
 }
@@ -39,10 +40,11 @@ enum ReturnJson {
 impl ReturnJson {
     fn create_response(self) -> String {
         return match self {
-            Self::Data { updated_block_map, updated_selection } => json!({
+            Self::Data { updated_block_map, updated_selection, new_ids } => json!({
                 "data": {
                     "block_map": updated_block_map,
-                    "selection": updated_selection
+                    "selection": updated_selection,
+                    "new_ids": new_ids,
                 },
                 "error": ""
             }).to_string(),
