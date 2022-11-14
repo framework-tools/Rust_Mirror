@@ -35,6 +35,7 @@ pub fn replace_selected_across_standard_blocks(
             let mut from_block = from_block.update_block_content(ContentBlock {
                 inline_blocks: updated_inline_blocks
             })?;
+
             from_block.children = to_block.children.clone();
 
             let parent_block = block_map.get_block(&from_block.parent)?;
