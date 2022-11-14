@@ -122,7 +122,7 @@ mod tests {
             inline_block_id1,
             inline_block_id2.clone(),
             paragraph_block_id,
-            root_block_id
+            root_block_id.clone()
         ]).unwrap();
         assert_eq!(newly_added_standard_blocks.len(), 1);
         let new_std_block = &newly_added_standard_blocks[0];
@@ -135,5 +135,17 @@ mod tests {
         assert_eq!(inline_blocks[1], inline_block_id2);
         let inline_block_2 = updated_state.block_map.get_inline_block(&inline_block_id2).unwrap();
         assert_eq!(inline_block_2.text().unwrap(), "World!");
+
+        let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
+        assert_eq!(updated_root_block.children[1], new_std_block.id());
+
+        match updated_state.selection {
+            Some(selection) => {
+                assert_eq!(selection.from, selection.to);
+                assert_eq!(selection.from.block_id, new_inline_block.id());
+                assert_eq!(selection.from.offset, 0);
+            },
+            None => panic!("Should be some selection")
+        }
     }
 }
