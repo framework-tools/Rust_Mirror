@@ -1,7 +1,9 @@
-use crate::{step::{Step, TurnToChild}, steps_generator::{StepError, selection::SubSelection}, blocks::{BlockMap, Block}};
+use std::fs::Metadata;
+
+use crate::{step::{Step, TurnToChild, TurnToParent}, steps_generator::{StepError, selection::SubSelection, event::{KeyPressMetadata, KeyPress}}, blocks::{BlockMap, Block}};
 
 
-pub fn generate_steps_for_tab(block_map: &BlockMap, from: SubSelection, to: SubSelection) -> Result<Vec<Step>, StepError> {
+pub fn generate_steps_for_tab(block_map: &BlockMap, from: SubSelection, to: SubSelection, key_press: KeyPressMetadata) -> Result<Vec<Step>, StepError> {
     let from_block = block_map.get_block(&from.block_id)?;
     match from_block {
 
@@ -9,13 +11,23 @@ pub fn generate_steps_for_tab(block_map: &BlockMap, from: SubSelection, to: SubS
         
             let parent_block = inline_block.get_parent(block_map)?;
 
-            if parent_block.index(block_map)? == 0 {
-                return Ok(vec![])
-            } else {
+            if key_press.shift_down {
                 return Ok(vec![
-                    Step::TurnToChild(TurnToChild { block_id: inline_block.parent })
-                ])        
+                    Step::TurnToParent(TurnToParent { block_id: inline_block.parent })
+                ])
+            } else {
+                if parent_block.index(block_map)? == 0 {
+                    return Ok(vec![])
+                } else {
+                    return Ok(vec![
+                        Step::TurnToChild(TurnToChild { block_id: inline_block.parent })
+                    ])        
+                }
             }
+
+
+
+
         },
 
         Block::StandardBlock(_) => unimplemented!(),

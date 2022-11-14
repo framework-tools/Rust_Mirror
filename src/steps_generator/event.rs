@@ -70,7 +70,7 @@ impl KeyPress {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct KeyPressMetadata {
     pub shift_down: bool,
     pub meta_down: bool,
