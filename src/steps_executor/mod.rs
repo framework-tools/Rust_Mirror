@@ -14,6 +14,7 @@ use self::execute_split_step::execute_split_step;
 pub mod execute_replace_steps;
 pub mod execute_mark_step;
 pub mod execute_split_step;
+pub mod execute_child_steps;
 
 pub struct UpdatedState {
     pub block_map: BlockMap,
