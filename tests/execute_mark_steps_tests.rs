@@ -60,7 +60,20 @@ mod tests {
         assert_eq!(inline_block3.text().unwrap(), " World");
         assert_eq!(inline_block3.marks.len(), 0);
 
-        assert_eq!(updated_state.selection, None);
+        let expected_selection = Selection {
+            anchor: SubSelection {
+                block_id: inline_block2.id(),
+                offset: 0,
+                subselection: None
+            },
+            head: SubSelection {
+                block_id: inline_block2.id(),
+                offset: 4,
+                subselection: None
+            },
+        };
+
+        assert_eq!(updated_state.selection, Some(expected_selection));
         return Ok(())
     }
 

@@ -1,5 +1,5 @@
 
-use crate::{step::{MarkStep}, blocks::{BlockMap, Block, inline_blocks::InlineBlock}, steps_generator::StepError, new_ids::NewIds};
+use crate::{step::{MarkStep}, blocks::{BlockMap, Block, inline_blocks::InlineBlock}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
 
 use super::{clean_block_after_transform, UpdatedState};
 
@@ -47,11 +47,17 @@ fn execute_mark_step_on_inline_block(
             vec![before_block.id(), middle_block.id(), after_block.id()]
         );
         let updated_parent_block = parent_block.update_block_content(content_block)?;
+
+        let new_selection = Selection {
+            anchor: SubSelection { block_id: middle_block.id(), offset: 0, subselection: None },
+            head: SubSelection { block_id: middle_block.id(), offset: middle_block.text()?.len(), subselection: None },
+        };
         block_map.update_block(Block::StandardBlock(updated_parent_block.clone()))?;
         block_map.update_block(Block::InlineBlock(before_block))?;
         block_map.update_block(Block::InlineBlock(middle_block))?;
         block_map.update_block(Block::InlineBlock(after_block))?;
         block_map = clean_block_after_transform(updated_parent_block, block_map)?;
+        return Ok(UpdatedState { block_map, selection: Some(new_selection) })
     } else {
         //split from block
         //split to block
@@ -102,6 +108,8 @@ fn execute_mark_step_on_inline_block(
         let updated_parent_block = from_parent_block.update_block_content(content_block)?;
         block_map.update_block(Block::StandardBlock(updated_parent_block.clone()))?;
         block_map = clean_block_after_transform(updated_parent_block, block_map)?;
+
+        unimplemented!()
+        // return Ok(UpdatedState { block_map, selection: Some(new_selection) })
     }
-    return Ok(UpdatedState { block_map, selection: None })
 }
