@@ -11,6 +11,7 @@ use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_
 /// -> remove text from "from subselection" block after the subselection offset 
 /// -> remove text from "to subselection" block before the subselection offset
 /// -> update "to subselection" block's parent to "from" block
+/// -> remove all standard blocks between from & to
 pub fn replace_selected_across_standard_blocks(
     from_block: StandardBlock,
     mut block_map: BlockMap,
@@ -38,12 +39,12 @@ pub fn replace_selected_across_standard_blocks(
 
             from_block.children = to_block.children.clone();
 
-            let parent_block = block_map.get_block(&from_block.parent)?;
-            let parent_block = parent_block.remove_child_from_id(&to_block._id)?;
+            let mut parent_block = block_map.get_block(&from_block.parent)?;
+            parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
             block_map.update_block(parent_block)?;
 
-            let block_map = update_from_subselecton_inline_block_text(block_map, &replace_step)?;
-            let block_map = update_to_subselecton_inline_block_text(block_map, &replace_step,&from_block._id)?;
+            let block_map = update_from_subselection_inline_block_text(block_map, &replace_step)?;
+            let block_map = update_to_subselection_inline_block_text(block_map, &replace_step,&from_block._id)?;
             let block_map = clean_block_after_transform(from_block, block_map)?;
 
             return Ok(UpdatedState { block_map, selection: Some(Selection::update_selection_from(replace_step)) })
@@ -52,7 +53,7 @@ pub fn replace_selected_across_standard_blocks(
     }
 }
 
-fn update_from_subselecton_inline_block_text(
+fn update_from_subselection_inline_block_text(
     block_map: BlockMap,
     replace_step: &ReplaceStep,
 ) -> Result<BlockMap, StepError> {
@@ -64,7 +65,7 @@ fn update_from_subselecton_inline_block_text(
     return update_from_inline_block_text(from_subselection_block, block_map, offset, replace_with)
 }
 
-fn update_to_subselecton_inline_block_text(
+fn update_to_subselection_inline_block_text(
     block_map: BlockMap,
     replace_step: &ReplaceStep,
     new_parent_id: &str

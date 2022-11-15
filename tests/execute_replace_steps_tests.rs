@@ -229,19 +229,20 @@ mod tests {
         assert_eq!(updated_content_block.inline_blocks.contains(&inline_block_id1), true);
     }
 
-//     /// Input:
-//     /// <1>H|ello world</1>
-//     ///     <4/>
-//     /// <3>Goo|dbye world</3>
-//     ///     <2/>
-//     ///        | | |
-//     ///        | | |
-//     ///        V V V
-//     /// Output:
-//     /// <1>H dbye world</1>
-//     ///    <2/>
+    /// Input:
+    /// <1>H|ello world</1>
+    ///     <4/>
+    /// <5></5>
+    /// <3>Goo|dbye world</3>
+    ///     <2/>
+    ///        | | |
+    ///        | | |
+    ///        V V V
+    /// Output:
+    /// <1>H dbye world</1>
+    ///    <2/>
     #[test]
-    fn can_handle_keypress_execution_across_2_standard_blocks() {
+    fn can_handle_keypress_execution_across_3_standard_blocks() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
@@ -252,6 +253,7 @@ mod tests {
         let inline_block_id3 = new_ids.get_id().unwrap();
         let std_block_id3 = new_ids.get_id().unwrap();
         let std_block_id4 = new_ids.get_id().unwrap();
+        let std_block_id5 = new_ids.get_id().unwrap();
 
         let inline_block1 = json!({
             "_id": inline_block_id1.clone(),
@@ -311,14 +313,25 @@ mod tests {
             "marks": [],
             "parent": root_block_id.clone()
         });
+        let std_block5 = json!({
+            "_id": std_block_id5.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
 
         let root_block = RootBlock::json_from(root_block_id.clone(), vec![
-            std_block_id1.clone(), std_block_id3.clone()
+            std_block_id1.clone(), std_block_id5.clone(), std_block_id3.clone()
             ]);
 
         let block_map = BlockMap::from(vec![
             inline_block1.to_string(), inline_block2.to_string(), std_block1.to_string(), std_block2.to_string(),
-            root_block.to_string(), std_block3.to_string(), std_block_4.to_string(), inline_block3.to_string()
+            root_block.to_string(), std_block3.to_string(), std_block_4.to_string(), inline_block3.to_string(), std_block5.to_string()
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Standard(' '), None));

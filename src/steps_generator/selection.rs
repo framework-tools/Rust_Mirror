@@ -107,7 +107,7 @@ impl SubSelection {
         loop {
             subselection = match &subselection.subselection {
                 Some(subselection) => subselection,
-                None => return &self,
+                None => return &subselection,
             };
         }
     }
