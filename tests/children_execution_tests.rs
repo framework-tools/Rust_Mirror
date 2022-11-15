@@ -191,7 +191,10 @@ mod tests {
 
         let new_parent = updated_state.block_map.get_standard_block(&paragraph_block_id3).unwrap();
         assert_eq!(new_parent.parent, root_block_id.clone());
-        assert_eq!(new_parent.children, vec![paragraph_block_id5, paragraph_block_id4]);
+        assert_eq!(new_parent.children, vec![paragraph_block_id5, paragraph_block_id4.clone()]);
+
+        let updated_paragraph_block4 = updated_state.block_map.get_standard_block(&paragraph_block_id4).unwrap();
+        assert_eq!(updated_paragraph_block4.parent, new_parent.id());
 
         let previous_parent = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
         assert_eq!(previous_parent.children, vec![paragraph_block_id2]);

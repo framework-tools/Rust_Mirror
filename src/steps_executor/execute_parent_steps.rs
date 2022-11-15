@@ -15,6 +15,11 @@ pub fn execute_parent_steps(mut block_map: BlockMap, turn_to_parent_step: TurnTo
     let first_half = &previous_parent.children[..current_block_index];
     let second_half = &previous_parent.children[current_block_index + 1..];
     current_block.children = vec![current_block.children, second_half.to_vec()].concat();
+    for id in second_half {
+        let mut block = block_map.get_standard_block(id)?;
+        block.parent = current_block.id();
+        block_map.update_block(Block::StandardBlock(block))?;
+    }
     previous_parent.children = first_half.to_vec();
 
     let mut previous_grandparent = block_map.get_block(&previous_parent.parent())?;
