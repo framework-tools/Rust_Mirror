@@ -214,6 +214,24 @@ impl Block {
         self.splice_children(child_index, child_index + 1, vec![])?;
         return Ok(self)
     }
+
+    pub fn set_children(&mut self, new_children: Vec<String>) -> Result<(), StepError> {
+        match self {
+            Self::StandardBlock(block) => block.children = new_children,
+            Self::Root(block) => block.children = new_children,
+            Self::InlineBlock(_) => return Err(StepError("Inline blocks cannot have children.".to_string()))
+        };
+        return Ok(())
+    }
+
+    pub fn insert_child(&mut self, child_id: String, index: usize)  -> Result<(), StepError> {
+        match self {
+            Self::StandardBlock(block) => block.children.insert(index, child_id),
+            Self::Root(block) => block.children.insert(index, child_id),
+            Self::InlineBlock(_) => return Err(StepError("Inline blocks cannot have children..".to_string()))
+        };
+        return Ok(())
+    }
 }
 
 pub fn id_from_json_block(json: &Value) -> Result<String, StepError> {

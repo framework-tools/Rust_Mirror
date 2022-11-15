@@ -11,11 +11,13 @@ use crate::steps_executor::execute_mark_step::execute_mark_step;
 use self::execute_child_steps::execute_child_steps;
 use self::execute_replace_steps::execute_replace_step;
 use self::execute_split_step::execute_split_step;
+use crate::steps_executor::execute_parent_steps::execute_parent_steps;
 
 pub mod execute_replace_steps;
 pub mod execute_mark_step;
 pub mod execute_split_step;
 pub mod execute_child_steps;
+pub mod execute_parent_steps;
 
 pub struct UpdatedState {
     pub block_map: BlockMap,
@@ -42,7 +44,7 @@ pub fn execute_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewIds
             Step::AddMarkStep(mark_step) => execute_mark_step(mark_step, updated_state.block_map, true, new_ids)?, // execute_mark_step(mark_step, block_map, true, new_ids)?,
             Step::RemoveMarkStep(mark_step) => execute_mark_step(mark_step, updated_state.block_map, false, new_ids)?, // execute_mark_step(mark_step, block_map, false, new_ids)?
             Step::TurnToChild(turn_to_child_step) => execute_child_steps(updated_state.block_map, turn_to_child_step)?,
-            Step::TurnToParent(turn_to_parent_step) => unimplemented!()
+            Step::TurnToParent(turn_to_parent_step) => execute_parent_steps(updated_state.block_map, turn_to_parent_step)?
         };
     }
     return Ok(updated_state)

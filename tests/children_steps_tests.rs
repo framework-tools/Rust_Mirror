@@ -395,4 +395,101 @@ mod tests {
             _ => panic!("Expected TurnToChild")
         }
     }
+
+    #[test]
+    fn shift_tab_in_a_child() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id().unwrap();
+        let paragraph_block_id1 = new_ids.get_id().unwrap();
+        let paragraph_block_id2 = new_ids.get_id().unwrap();
+        let paragraph_block_id3 = new_ids.get_id().unwrap();
+        let paragraph_block_id4 = new_ids.get_id().unwrap();
+        let inline_block_id1 = new_ids.get_id().unwrap();
+        let inline_block_id2 = new_ids.get_id().unwrap();
+
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello"
+            },
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let paragraph_block1 = json!({
+            "_id": paragraph_block_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [paragraph_block_id2.clone(), paragraph_block_id3.clone(), paragraph_block_id4.clone()],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Goodbye"
+            },
+            "marks": [],
+            "parent": paragraph_block_id3.clone()
+        });
+        let paragraph_block2 = json!({
+            "_id": paragraph_block_id2.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let paragraph_block3 = json!({
+            "_id": paragraph_block_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let paragraph_block4 = json!({
+            "_id": paragraph_block_id4.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id1.clone()]);
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), paragraph_block1.to_string(), paragraph_block2.to_string(), root_block.to_string(),
+            paragraph_block3.to_string(), paragraph_block4.to_string()
+        ]).unwrap();
+        let event = Event::KeyPress(KeyPress { key: Key::Tab, metadata: KeyPressMetadata { shift_down: true, meta_down: false, ctrl_down: false, alt_down: false } });
+        let sub_selection = SubSelection::from(inline_block_id2.clone(), 4, None);
+        let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
+
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
+
+        assert_eq!(steps.len(), 1);
+        match &steps[0] {
+            Step::TurnToParent(turn_to_parent_step) => {
+                assert_eq!(turn_to_parent_step.block_id, paragraph_block_id3);
+            },
+            _ => panic!("Expected turn to parent step")
+        };
+    }
 }
