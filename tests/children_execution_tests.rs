@@ -92,6 +92,7 @@ mod tests {
         let paragraph_block_id2 = new_ids.get_id().unwrap();
         let paragraph_block_id3 = new_ids.get_id().unwrap();
         let paragraph_block_id4 = new_ids.get_id().unwrap();
+        let paragraph_block_id5 = new_ids.get_id().unwrap();
         let inline_block_id1 = new_ids.get_id().unwrap();
         let inline_block_id2 = new_ids.get_id().unwrap();
 
@@ -144,7 +145,7 @@ mod tests {
             "content": {
                 "inline_blocks": [inline_block_id2.clone()]
             },
-            "children": [],
+            "children": [paragraph_block_id5.clone()],
             "marks": [],
             "parent": paragraph_block_id1.clone()
         });
@@ -159,11 +160,22 @@ mod tests {
             "marks": [],
             "parent": paragraph_block_id1.clone()
         });
+        let paragraph_block5 = json!({
+            "_id": paragraph_block_id5.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id3.clone()
+        });
 
         let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id1.clone()]);
         let block_map = BlockMap::from(vec![
             inline_block1.to_string(), inline_block2.to_string(), paragraph_block1.to_string(), paragraph_block2.to_string(), root_block.to_string(),
-            paragraph_block3.to_string(), paragraph_block4.to_string()
+            paragraph_block3.to_string(), paragraph_block4.to_string(), paragraph_block5.to_string()
         ]).unwrap();
         let event = Event::KeyPress(KeyPress { key: Key::Tab, metadata: KeyPressMetadata { shift_down: true, meta_down: false, ctrl_down: false, alt_down: false } });
         let sub_selection = SubSelection::from(inline_block_id2.clone(), 4, None);
@@ -179,7 +191,7 @@ mod tests {
 
         let new_parent = updated_state.block_map.get_standard_block(&paragraph_block_id3).unwrap();
         assert_eq!(new_parent.parent, root_block_id.clone());
-        assert_eq!(new_parent.children, vec![paragraph_block_id4]);
+        assert_eq!(new_parent.children, vec![paragraph_block_id5, paragraph_block_id4]);
 
         let previous_parent = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
         assert_eq!(previous_parent.children, vec![paragraph_block_id2]);

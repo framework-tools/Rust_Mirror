@@ -3,7 +3,7 @@ use crate::{blocks::{BlockMap, Block}, step::TurnToParent, steps_generator::Step
 use super::UpdatedState;
 
 /// -> Remove itself from it's current parent
-/// -> split children in half -> set all it's previous siblings that came after it as it's new children
+/// -> split children in half -> push all it's previous siblings that came after it as to it's children
 ///
 /// -> new parent is it's previous parent's parent
 /// -> should be inserted 1 below previous parent as sibling
@@ -14,7 +14,7 @@ pub fn execute_parent_steps(mut block_map: BlockMap, turn_to_parent_step: TurnTo
     let current_block_index = current_block.index(&block_map)?;
     let first_half = &previous_parent.children[..current_block_index];
     let second_half = &previous_parent.children[current_block_index + 1..];
-    current_block.children = second_half.to_vec();
+    current_block.children = vec![current_block.children, second_half.to_vec()].concat();
     previous_parent.children = first_half.to_vec();
 
     let mut previous_grandparent = block_map.get_block(&previous_parent.parent())?;
