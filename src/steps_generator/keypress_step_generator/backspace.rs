@@ -43,19 +43,31 @@ fn caret_at_start_of_parent_block_steps(from_block: InlineBlock, block_map: &Blo
         let block_before_parent: Option<StandardBlock> = parent_block.get_previous(block_map)?;
         return match block_before_parent {
             Some(block_before_parent) => {
+                let inline_blocks = &block_before_parent.content_block()?.inline_blocks;
+                let last_inline_block_in_block_before = block_map.get_inline_block(&inline_blocks[inline_blocks.len() - 1])?;
                 Ok(vec![
                     Step::ReplaceStep(ReplaceStep {
                         block_id: block_before_parent.id(),
-                        from: SubSelection::from(block_before_parent.id(), 1, None),
-                        to: SubSelection::from(block_before_parent.id(), 1, None),
+                        from: SubSelection {
+                            block_id: block_before_parent.id(),
+                            offset: 0,
+                            subselection: Some(Box::new(SubSelection {
+                                block_id: last_inline_block_in_block_before.id(),
+                                offset: last_inline_block_in_block_before.text()?.len(),
+                                subselection: None
+                            }))
+                        },
+                        to: SubSelection {
+                            block_id: parent_block.id(),
+                            offset: 0,
+                            subselection: Some(Box::new(SubSelection {
+                                block_id: from_block.id(),
+                                offset: 0,
+                                subselection: None
+                            }))
+                        },
                         slice: ReplaceSlice::Blocks(parent_block.content_block()?.clone().inline_blocks)
-                    }),
-                    Step::ReplaceStep(ReplaceStep {
-                        block_id: parent_block.get_parent(block_map)?.id(),
-                        from: SubSelection::from(parent_block.get_parent(block_map)?.id(), parent_block.index(block_map)?, None),
-                        to: SubSelection::from(parent_block.get_parent(block_map)?.id(), parent_block.index(block_map)? + 1, None),
-                        slice: ReplaceSlice::Blocks(vec![])
-                    }),
+                    })
                 ])
             },
             None => Ok(vec![])
