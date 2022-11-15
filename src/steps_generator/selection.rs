@@ -60,19 +60,18 @@ impl Selection {
     }
 
     pub fn update_selection_from(replace_step: ReplaceStep) -> Self {
-        unimplemented!()
-    //     match replace_step.slice {
-    //         ReplaceSlice::String(replace_slice) => {
-    //             let deepest_from_subselection = replace_step.from.get_deepest_subselection();
-    //             let subselection = SubSelection {
-    //                 block_id: deepest_from_subselection.block_id,
-    //                 offset: deepest_from_subselection.offset + replace_slice.len(),
-    //                 subselection: None
-    //             };
-    //             return Selection { from: subselection.clone(), to: subselection }
-    //         },
-    //         ReplaceSlice::Blocks(blocks) => unimplemented!()
-    //     }
+        match replace_step.slice {
+            ReplaceSlice::String(replace_slice) => {
+                let deepest_from_subselection = replace_step.from.get_deepest_subselection().clone();
+                let subselection = SubSelection {
+                    block_id: deepest_from_subselection.block_id,
+                    offset: deepest_from_subselection.offset + replace_slice.len(),
+                    subselection: None
+                };
+                return Selection { anchor: subselection.clone(), head: subselection }
+            },
+            ReplaceSlice::Blocks(blocks) => unimplemented!()
+        }
     }
 }
 
