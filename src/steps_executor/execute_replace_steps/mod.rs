@@ -50,7 +50,7 @@ pub fn replace_selected_across_blocks_children(
         return Ok(UpdatedState { block_map, selection: current_updated_selection })
     } else {
         let updated_subselection = SubSelection::at_end_of_block(&block_before_first_child_deleted_id, &block_map)?;
-        return Ok(UpdatedState { block_map, selection: Some(Selection{ from: updated_subselection.clone(), to: updated_subselection } ) })
+        return Ok(UpdatedState { block_map, selection: Some(Selection{ anchor: updated_subselection.clone(), head: updated_subselection } ) })
     }
 }
 

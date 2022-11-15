@@ -121,6 +121,14 @@ impl Block {
         }
     }
 
+    pub fn index(&self, block_map: &BlockMap) -> Result<usize, StepError> {
+        match self {
+            Block::InlineBlock(block) => return block.index(block_map),
+            Block::StandardBlock(block) => return block.index(block_map),
+            Block::Root(_) => return Err(StepError("Should not try to get index of the root block".to_string()))
+        }
+    }
+
     pub fn id(&self) -> String {
         match self {
             Block::StandardBlock(block) => block._id.clone(),

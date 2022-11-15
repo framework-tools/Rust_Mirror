@@ -29,7 +29,7 @@ mod tests {
         assert_eq!(
             selection,
             Selection {
-                from: SubSelection {
+                anchor: SubSelection {
                     block_id: id.clone(),
                     offset: 0,
                     subselection: Some(Box::new(SubSelection {
@@ -38,7 +38,7 @@ mod tests {
                         subselection: None
                     }))
                 },
-                to: SubSelection {
+                head: SubSelection {
                     block_id: id,
                     offset: 0,
                     subselection: None

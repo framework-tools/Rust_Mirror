@@ -30,7 +30,7 @@ pub fn execute_split_step(split_step: SplitStep, mut block_map: BlockMap, new_id
     let new_standard_block = block_map.get_standard_block(&new_standard_block_id)?;
     let first_inline_block_id = new_standard_block.content_block()?.inline_blocks[0].clone();
     let updated_subselection = SubSelection { block_id: first_inline_block_id, offset: 0, subselection: None };
-    return Ok(UpdatedState { block_map, selection: Some(Selection { from: updated_subselection.clone(), to: updated_subselection.clone() }) })
+    return Ok(UpdatedState { block_map, selection: Some(Selection { anchor: updated_subselection.clone(), head: updated_subselection.clone() }) })
 }
 
 fn get_new_enter_block_type(block_type: &StandardBlockType) -> Result<StandardBlockType, StepError> {

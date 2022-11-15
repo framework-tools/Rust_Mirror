@@ -9,35 +9,70 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Selection {
-	pub from: SubSelection,
-	pub to: SubSelection
+	pub anchor: SubSelection,
+	pub head: SubSelection
 }
 
 impl Selection {
-	pub fn from(from: SubSelection, to: SubSelection) -> Self {
+	pub fn from(anchor: SubSelection, head: SubSelection) -> Self {
 		Self {
-			from,
-			to
+			anchor,
+			head
 		}
 	}
 
-	pub fn get_from_to(self) -> Result<(SubSelection, SubSelection), StepError> {
-        return Ok((self.from, self.to))
-	}
+    /// Converts anchor & head to "from" & "to"
+    ///
+    /// Check if top layer blocks are different
+    /// -> if true => block with lower index is the from
+    /// -> else =>
+    ///     Check if inline blocks (deepest layer) are same
+    ///     -> if true => compare offsets & return where lowest offset is the from
+    ///     Check if anchor has more layers
+    ///     -> if true => anchor is from
+	pub fn get_from_to(self, block_map: &BlockMap) -> Result<(SubSelection, SubSelection), StepError> {
+        if &self.anchor.block_id != &self.head.block_id {
+            let anchor_block = block_map.get_block(&self.anchor.block_id)?;
+            let head_block = block_map.get_block(&self.head.block_id)?;
+            if anchor_block.index(block_map)? < head_block.index(block_map)? {
+                return Ok((self.anchor, self.head))
+            } else {
+                return Ok((self.head, self.anchor))
+            }
+        } else {
+            let deepest_anchor = self.anchor.get_deepest_subselection();
+            let deepest_head = self.head.get_deepest_subselection();
+
+            if deepest_anchor.block_id == deepest_head.block_id { // same inline block -> check offset
+                if deepest_anchor.offset < deepest_head.offset {
+                    return Ok((self.anchor, self.head))
+                } else {
+                    return Ok((self.head, self.anchor))
+                }
+            } else {
+                if self.anchor.count_layers() < self.head.count_layers() {
+                    return Ok((self.anchor, self.head))
+                } else {
+                    return Ok((self.head, self.anchor))
+                }
+            }
+        }
+    }
 
     pub fn update_selection_from(replace_step: ReplaceStep) -> Self {
-        match replace_step.slice {
-            ReplaceSlice::String(replace_slice) => {
-                let deepest_from_subselection = replace_step.from.get_deepest_subselection();
-                let subselection = SubSelection {
-                    block_id: deepest_from_subselection.block_id,
-                    offset: deepest_from_subselection.offset + replace_slice.len(),
-                    subselection: None
-                };
-                return Selection { from: subselection.clone(), to: subselection }
-            },
-            ReplaceSlice::Blocks(blocks) => unimplemented!()
-        }
+        unimplemented!()
+    //     match replace_step.slice {
+    //         ReplaceSlice::String(replace_slice) => {
+    //             let deepest_from_subselection = replace_step.from.get_deepest_subselection();
+    //             let subselection = SubSelection {
+    //                 block_id: deepest_from_subselection.block_id,
+    //                 offset: deepest_from_subselection.offset + replace_slice.len(),
+    //                 subselection: None
+    //             };
+    //             return Selection { from: subselection.clone(), to: subselection }
+    //         },
+    //         ReplaceSlice::Blocks(blocks) => unimplemented!()
+    //     }
     }
 }
 
@@ -68,10 +103,24 @@ impl SubSelection {
         }
     }
 
-    pub fn get_deepest_subselection(self) -> Self {
-        match self.subselection {
-            Some(subselection) => subselection.get_deepest_subselection(),
-            None => self,
+    pub fn get_deepest_subselection<'a>(&'a self) -> &'a Self {
+        let mut subselection = self;
+        loop {
+            subselection = match &subselection.subselection {
+                Some(subselection) => subselection,
+                None => return &self,
+            };
+        }
+    }
+    pub fn count_layers(&self) -> usize {
+        let mut subselection = self;
+        let mut layers = 0;
+        loop {
+            layers += 1;
+            subselection = match &subselection.subselection {
+                Some(subselection) => subselection,
+                None => return layers,
+            };
         }
     }
 

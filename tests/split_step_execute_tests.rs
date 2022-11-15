@@ -141,9 +141,9 @@ mod tests {
 
         match updated_state.selection {
             Some(selection) => {
-                assert_eq!(selection.from, selection.to);
-                assert_eq!(selection.from.block_id, new_inline_block.id());
-                assert_eq!(selection.from.offset, 0);
+                assert_eq!(selection.anchor, selection.head);
+                assert_eq!(selection.anchor.block_id, new_inline_block.id());
+                assert_eq!(selection.anchor.offset, 0);
             },
             None => panic!("Should be some selection")
         }
@@ -243,9 +243,9 @@ mod tests {
 
         match updated_state.selection {
             Some(selection) => {
-                assert_eq!(selection.from, selection.to);
-                assert_eq!(selection.from.block_id, new_inline_block.id());
-                assert_eq!(selection.from.offset, 0);
+                assert_eq!(selection.anchor, selection.head);
+                assert_eq!(selection.anchor.block_id, new_inline_block.id());
+                assert_eq!(selection.anchor.offset, 0);
             },
             None => panic!("Should be some selection")
         }
@@ -376,9 +376,9 @@ mod tests {
 
         match updated_state.selection {
             Some(selection) => {
-                assert_eq!(selection.from, selection.to);
-                assert_eq!(selection.from.block_id, new_inline_block.id());
-                assert_eq!(selection.from.offset, 0);
+                assert_eq!(selection.anchor, selection.head);
+                assert_eq!(selection.anchor.block_id, new_inline_block.id());
+                assert_eq!(selection.anchor.offset, 0);
             },
             None => panic!("Should be some selection")
         }

@@ -45,7 +45,7 @@ mod tests {
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id)?;
         assert_eq!(updated_inline_block.text()?, "a");
         let expected_subselection = SubSelection { block_id: inline_block_id, offset: 1, subselection: None };
-        assert_eq!(updated_state.selection, Some(Selection { from: expected_subselection.clone(), to: expected_subselection }));
+        assert_eq!(updated_state.selection, Some(Selection { anchor: expected_subselection.clone(), head: expected_subselection }));
         Ok(())
     }
 
@@ -324,7 +324,7 @@ mod tests {
         let event = Event::KeyPress(KeyPress::new(Key::Standard(' '), None));
 
         let selection = Selection {
-            from: SubSelection {
+            anchor: SubSelection {
                 block_id: std_block_id1.clone(),
                 offset: 0,
                 subselection: Some(Box::new(SubSelection {
@@ -333,7 +333,7 @@ mod tests {
                     subselection: None,
                 }))
             },
-            to: SubSelection {
+            head: SubSelection {
                 block_id: std_block_id3.clone(),
                 offset: 0,
                 subselection: Some(Box::new(SubSelection {
@@ -366,7 +366,7 @@ mod tests {
             offset: 2,
             subselection: None,
         };
-        assert_eq!(updated_state.selection, Some(Selection { from: expected_subselection.clone(), to: expected_subselection }))
+        assert_eq!(updated_state.selection, Some(Selection { anchor: expected_subselection.clone(), head: expected_subselection }))
     }
 
     #[test]
@@ -449,8 +449,8 @@ mod tests {
         assert_eq!(updated_paragraph_block1.content_block().unwrap().inline_blocks, vec![inline_block_id1.clone(), inline_block_id2, inline_block_id3]);
 
         assert_eq!(updated_state.selection, Some(Selection {
-            from: SubSelection { block_id: inline_block_id1.clone(), offset: 5, subselection: None },
-            to: SubSelection { block_id: inline_block_id1.clone(), offset: 5, subselection: None }
+            anchor: SubSelection { block_id: inline_block_id1.clone(), offset: 5, subselection: None },
+            head: SubSelection { block_id: inline_block_id1.clone(), offset: 5, subselection: None }
         }))
 
     }
@@ -513,8 +513,8 @@ mod tests {
         assert_eq!(updated_inline_block.text().unwrap(), &"".to_string());
 
         assert_eq!(updated_state.selection, Some(Selection {
-            from: SubSelection { block_id: inline_block_id1.clone(), offset: 0, subselection: None },
-            to: SubSelection { block_id: inline_block_id1.clone(), offset: 0, subselection: None }
+            anchor: SubSelection { block_id: inline_block_id1.clone(), offset: 0, subselection: None },
+            head: SubSelection { block_id: inline_block_id1.clone(), offset: 0, subselection: None }
         }))
     }
 

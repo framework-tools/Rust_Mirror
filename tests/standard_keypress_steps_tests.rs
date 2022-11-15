@@ -420,7 +420,7 @@ mod tests {
         let event = Event::KeyPress(KeyPress::new(Key::Standard(' '), None));
 
         let selection = Selection {
-            from: SubSelection {
+            anchor: SubSelection {
                 block_id: std_block_id1.clone(),
                 offset: 0,
                 subselection: Some(Box::new(SubSelection {
@@ -429,7 +429,7 @@ mod tests {
                     subselection: None,
                 }))
             },
-            to: SubSelection {
+            head: SubSelection {
                 block_id: std_block_id3,
                 offset: 0,
                 subselection: Some(Box::new(SubSelection {
@@ -447,8 +447,8 @@ mod tests {
         match &steps[0] {
             Step::ReplaceStep(replace_step) => {
                 assert_eq!(replace_step.block_id, root_block_id);
-                assert_eq!(replace_step.from, selection.from);
-                assert_eq!(replace_step.to, selection.to);
+                assert_eq!(replace_step.from, selection.anchor);
+                assert_eq!(replace_step.to, selection.head);
                 assert_eq!(replace_step.slice, ReplaceSlice::String(" ".to_string()));
             },
             _ => panic!("Expected ReplaceStep")

@@ -13,7 +13,7 @@ pub mod mark_steps;
 pub struct StepError (pub String);
 
 pub fn generate_steps(event: &Event, block_map: &BlockMap, selection: Selection) -> Result<Vec<Step>, StepError> {
-    let (from, to) = selection.get_from_to()?;
+    let (from, to) = selection.get_from_to(block_map)?;
     return match event {
         Event::KeyPress(key_press) => generate_keyboard_event_steps(key_press, block_map, from, to),
         Event::FormatBar(event) => match event {

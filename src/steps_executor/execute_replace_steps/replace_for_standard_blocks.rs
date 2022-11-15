@@ -106,7 +106,7 @@ fn replace_across_standard_blocks_no_subselection(
             let block_map = clean_block_after_transform(updated_standard_block, block_map)?;
             let updated_standard_block = block_map.get_standard_block(&updated_standard_block_id)?;
             let block_map = updated_standard_block.set_as_parent_for_all_inline_blocks(block_map)?;
-            return Ok(UpdatedState { block_map, selection: Some(Selection{ from: updated_subselection.clone(), to: updated_subselection } ) })
+            return Ok(UpdatedState { block_map, selection: Some(Selection{ anchor: updated_subselection.clone(), head: updated_subselection } ) })
         } else {
             unimplemented!()
         }
