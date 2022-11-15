@@ -16,6 +16,7 @@ pub fn execute_split_step(split_step: SplitStep, mut block_map: BlockMap, new_id
     let new_block_content = get_new_enter_block_type(&parent.content)?;
     let new_block_content = new_block_content.push_to_content(vec![second_half_inline_block.id()])?;
     let (updated_standard_block, new_standard_block) = parent.split(first_half_inline_block.index(&block_map)? + 1, new_block_content, new_ids)?;
+    new_standard_block.set_new_parent_of_children(&mut block_map)?;
 
     let mut parents_parent = block_map.get_block(&updated_standard_block.parent())?;
     let parent_index = updated_standard_block.index(&block_map)?;

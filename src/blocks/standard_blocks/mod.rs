@@ -147,7 +147,6 @@ impl StandardBlock {
         let mut new_block = StandardBlock::from(new_block_content, self.parent.clone(), new_ids)?.push_to_content(second_half)?;
         new_block.children = self.children;
         self.children = vec![];
-        //std::mem::swap(&mut self.children, &mut new_block.children);
         return Ok((self, new_block))
     }
 
@@ -167,6 +166,15 @@ impl StandardBlock {
 
     pub fn parent_is_root(&self, block_map: &BlockMap) -> bool {
         return block_map.get_root_block(&self.parent).is_ok()
+    }
+
+    pub fn set_new_parent_of_children(&self, block_map: &mut BlockMap) -> Result<(), StepError> {
+        for id in &self.children {
+            let mut block = block_map.get_standard_block(id)?;
+            block.parent = self.id();
+            block_map.update_block(Block::StandardBlock(block))?;
+        }
+        return Ok(())
     }
 }
 
