@@ -1,4 +1,4 @@
-use crate::{blocks::{BlockMap, Block, inline_blocks::InlineBlock, standard_blocks::StandardBlock}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps}, step::{Step, ReplaceStep, ReplaceSlice}};
+use crate::{blocks::{BlockMap, Block, inline_blocks::InlineBlock, standard_blocks::StandardBlock}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps}, step::{Step, ReplaceStep, ReplaceSlice, TurnToParent}};
 
 
 pub fn generate_steps_for_backspace(
@@ -37,24 +37,30 @@ pub fn generate_steps_for_backspace(
 
 fn caret_at_start_of_parent_block_steps(from_block: InlineBlock, block_map: &BlockMap) -> Result<Vec<Step>, StepError> {
     let parent_block = from_block.get_parent(block_map)?;
-    let block_before_parent: Option<StandardBlock> = parent_block.get_previous(block_map)?;
-    return match block_before_parent {
-        Some(block_before_parent) => {
-            Ok(vec![
-                Step::ReplaceStep(ReplaceStep {
-                    block_id: block_before_parent.id(),
-                    from: SubSelection::from(block_before_parent.id(), 1, None),
-                    to: SubSelection::from(block_before_parent.id(), 1, None),
-                    slice: ReplaceSlice::Blocks(parent_block.content_block()?.clone().inline_blocks)
-                }),
-                Step::ReplaceStep(ReplaceStep {
-                    block_id: parent_block.get_parent(block_map)?.id(),
-                    from: SubSelection::from(parent_block.get_parent(block_map)?.id(), parent_block.index(block_map)?, None),
-                    to: SubSelection::from(parent_block.get_parent(block_map)?.id(), parent_block.index(block_map)? + 1, None),
-                    slice: ReplaceSlice::Blocks(vec![])
-                }),
-            ])
-        },
-        None => Ok(vec![])
+    if !parent_block.parent_is_root(block_map) {
+        return Ok(vec![Step::TurnToParent(TurnToParent { block_id: parent_block.id() })])
+    } else {
+        let block_before_parent: Option<StandardBlock> = parent_block.get_previous(block_map)?;
+        return match block_before_parent {
+            Some(block_before_parent) => {
+                Ok(vec![
+                    Step::ReplaceStep(ReplaceStep {
+                        block_id: block_before_parent.id(),
+                        from: SubSelection::from(block_before_parent.id(), 1, None),
+                        to: SubSelection::from(block_before_parent.id(), 1, None),
+                        slice: ReplaceSlice::Blocks(parent_block.content_block()?.clone().inline_blocks)
+                    }),
+                    Step::ReplaceStep(ReplaceStep {
+                        block_id: parent_block.get_parent(block_map)?.id(),
+                        from: SubSelection::from(parent_block.get_parent(block_map)?.id(), parent_block.index(block_map)?, None),
+                        to: SubSelection::from(parent_block.get_parent(block_map)?.id(), parent_block.index(block_map)? + 1, None),
+                        slice: ReplaceSlice::Blocks(vec![])
+                    }),
+                ])
+            },
+            None => Ok(vec![])
+        }
     }
+
+
 }

@@ -164,6 +164,10 @@ impl StandardBlock {
         }
         return Ok(block_map)
     }
+
+    pub fn parent_is_root(&self, block_map: &BlockMap) -> bool {
+        return block_map.get_root_block(&self.parent).is_ok()
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
