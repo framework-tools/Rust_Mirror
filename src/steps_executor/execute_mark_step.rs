@@ -59,6 +59,10 @@ fn execute_mark_step_on_inline_block(
         block_map = clean_block_after_transform(updated_parent_block, block_map)?;
         return Ok(UpdatedState { block_map, selection: Some(new_selection) })
     } else {
+        let mut new_subselection = Selection {
+            anchor: SubSelection { block_id: "".to_string(), offset: 0, subselection: None },
+            head: SubSelection { block_id: "".to_string(), offset: 0, subselection: None },
+        };
         //split from block
         //split to block
         //apply marks to split blocks within the selection & all the blocks in between
@@ -78,15 +82,20 @@ fn execute_mark_step_on_inline_block(
         let after_from_block = from_block.to_new_block(new_ids)?.update_text(after_from_text)?;
         let after_from_block_id = after_from_block.id();
         let after_from_block = after_from_block.apply_mark(mark_step.mark.clone(), add_mark);
+        new_subselection.anchor.block_id = after_from_block.id();
         block_map.update_block(Block::InlineBlock(after_from_block))?;
         let before_to_block = to_block.clone().to_new_block(new_ids)?.update_text(before_to_text)?;
         let before_to_block = before_to_block.apply_mark(mark_step.mark.clone(), add_mark);
         let before_to_block_id = before_to_block.id();
+        new_subselection.head.block_id = before_to_block.id();
+        new_subselection.head.offset = before_to_block.text()?.len();
         block_map.update_block(Block::InlineBlock(before_to_block))?;
         let after_to_block = to_block.update_text(after_to_text)?;
         let after_to_block_id = after_to_block.id();
         block_map.update_block(Block::InlineBlock(after_to_block))?;
         let mut content_block = from_parent_block.content_block()?.clone();
+
+
         let mut i = content_block.index_of(&before_from_block_id)? + 1;
         let j = content_block.index_of(&after_to_block_id)?;
         while i < j {
@@ -109,7 +118,6 @@ fn execute_mark_step_on_inline_block(
         block_map.update_block(Block::StandardBlock(updated_parent_block.clone()))?;
         block_map = clean_block_after_transform(updated_parent_block, block_map)?;
 
-        unimplemented!()
-        // return Ok(UpdatedState { block_map, selection: Some(new_selection) })
+        return Ok(UpdatedState { block_map, selection: Some(new_subselection) })
     }
 }
