@@ -301,7 +301,17 @@ mod tests {
             "parent": std_block_id3.clone()
         });
 
-        let std_block2 = Block::new_std_block_json(std_block_id2.clone(), std_block_id3.clone());
+        let std_block2 = json!({
+            "_id": std_block_id2.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": std_block_id3.clone()
+        });
         let std_block3 = json!({
             "_id": std_block_id3.clone(),
             "kind": "standard",
@@ -362,7 +372,7 @@ mod tests {
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children, vec![std_block_id1.clone()]);
         let updated_std_block1 = updated_state.block_map.get_standard_block(&std_block_id1).unwrap();
-        assert_eq!(updated_std_block1.children, vec![std_block_id2]);
+        assert_eq!(updated_std_block1.children, vec![std_block_id2.clone()]);
         assert_eq!(
             updated_std_block1.content_block().unwrap().inline_blocks,
             vec![inline_block_id1.clone(), inline_block_id3.clone()]
@@ -373,6 +383,8 @@ mod tests {
         let updated_inline_block3 = updated_state.block_map.get_inline_block(&inline_block_id3).unwrap();
         assert_eq!(updated_inline_block3.text().unwrap(), "ld!");
 
+        let updated_paragraph_block2 = updated_state.block_map.get_standard_block(&std_block_id2).unwrap();
+        assert_eq!(updated_paragraph_block2.parent, std_block_id1);
 
         let expected_subselection = SubSelection {
             block_id: inline_block_id1,

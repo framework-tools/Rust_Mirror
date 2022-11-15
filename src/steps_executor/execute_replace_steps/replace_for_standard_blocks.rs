@@ -1,4 +1,4 @@
-use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, inline_blocks::InlineBlock},
+use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, inline_blocks::InlineBlock, Block},
 steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_executor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}};
 
 use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_inline_block_text};
@@ -38,6 +38,11 @@ pub fn replace_selected_across_standard_blocks(
             })?;
 
             from_block.children = to_block.children.clone();
+            for id in &from_block.children {
+                let mut block = block_map.get_standard_block(id)?;
+                block.parent = from_block.id();
+                block_map.update_block(Block::StandardBlock(block))?;
+            }
 
             let mut parent_block = block_map.get_block(&from_block.parent)?;
             parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
