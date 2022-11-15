@@ -66,13 +66,11 @@ fn caret_at_start_of_parent_block_steps(from_block: InlineBlock, block_map: &Blo
                                 subselection: None
                             }))
                         },
-                        slice: ReplaceSlice::Blocks(parent_block.content_block()?.clone().inline_blocks)
+                        slice: ReplaceSlice::String("".to_string())
                     })
                 ])
             },
             None => Ok(vec![])
         }
     }
-
-
 }
