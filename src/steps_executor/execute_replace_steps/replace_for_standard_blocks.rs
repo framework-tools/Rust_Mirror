@@ -31,6 +31,7 @@ pub fn replace_selected_across_standard_blocks(
     block_map.update_block(parent_block)?;
 
     if number_of_from_layers > number_of_to_layers {
+    //if number_of_from_layers != number_of_to_layers {
         replace_step.from = replace_step.from.get_two_deepest_layers()?;
         from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
         replace_step.to = replace_step.to.get_two_deepest_layers()?;

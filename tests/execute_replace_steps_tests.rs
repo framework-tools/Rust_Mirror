@@ -581,6 +581,208 @@ mod tests {
         let updated_block8 = updated_state.block_map.get_standard_block(&std_block_id8).unwrap();
         assert_eq!(updated_block8.parent, std_block_id5.clone());
     }
+    /// Input:
+    /// <1>Hello |world</1>
+    ///     <2/>
+    ///     <3/>
+    /// <4/>
+    /// <5>a b c</5>
+    ///     <6>Good|bye world</6>
+    ///         <7/>
+    ///     <8/>
+    ///        | | |
+    ///        | | |
+    ///        V V V
+    /// Output:
+    /// <1>Hello worldGoodbye world</1>
+    ///     <7/>
+    /// <8/>
+    #[test]
+    fn can_execute_replace_where_from_is_shallower_than_to() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id().unwrap();
+        let std_block_id1 = new_ids.get_id().unwrap();
+        let inline_block_id1 = new_ids.get_id().unwrap();
+        let std_block_id2 = new_ids.get_id().unwrap();
+        let inline_block_id2 = new_ids.get_id().unwrap();
+        let inline_block_id3 = new_ids.get_id().unwrap();
+        let std_block_id3 = new_ids.get_id().unwrap();
+        let std_block_id4 = new_ids.get_id().unwrap();
+        let std_block_id5 = new_ids.get_id().unwrap();
+        let std_block_id6 = new_ids.get_id().unwrap();
+        let std_block_id7 = new_ids.get_id().unwrap();
+        let std_block_id8 = new_ids.get_id().unwrap();
+
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello world!"
+            },
+            "marks": [],
+            "parent": std_block_id1.clone()
+        });
+
+        let std_block1 = json!({
+            "_id": std_block_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [std_block_id2.clone(), std_block_id3.clone()],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+
+        let std_block2 = Block::new_std_block_json(std_block_id2.clone(), std_block_id1.clone());
+        let std_block3 = json!({
+            "_id": std_block_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": std_block_id1.clone()
+        });
+        let std_block4 = json!({
+            "_id": std_block_id4.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let std_block5 = json!({
+            "_id": std_block_id5.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [std_block_id6.clone(), std_block_id8.clone()],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "a b c"
+            },
+            "marks": [],
+            "parent": std_block_id5.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Goodbye World"
+            },
+            "marks": [],
+            "parent": std_block_id6.clone()
+        });
+
+        let std_block6 = json!({
+            "_id": std_block_id6.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id3.clone()]
+            },
+            "children": [std_block_id7.clone()],
+            "marks": [],
+            "parent": std_block_id5.clone()
+        });
+        let std_block7 = json!({
+            "_id": std_block_id7.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": std_block_id6.clone()
+        });
+        let std_block8 = json!({
+            "_id": std_block_id8.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": std_block_id5.clone()
+        });
+
+        let root_block = RootBlock::json_from(root_block_id.clone(),
+        vec![std_block_id1.clone(), std_block_id4.clone(), std_block_id5.clone()]);
+
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), std_block1.to_string(), std_block2.to_string(),
+            root_block.to_string(), std_block3.to_string(), std_block4.to_string(), std_block5.to_string(), std_block6.to_string(), std_block7.to_string(), std_block8.to_string(),
+        ]).unwrap();
+
+        let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
+
+        let from_subselection = SubSelection {
+            block_id: std_block_id1.clone(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection {
+                block_id: inline_block_id1.clone(),
+                offset: 6,
+                subselection: None
+            }))
+        };
+        let to_subselection = SubSelection {
+            block_id: std_block_id5.clone(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection {
+                block_id: std_block_id5.clone().clone(),
+                offset: 0,
+                subselection: Some(Box::new(SubSelection {
+                    block_id: inline_block_id3.clone(),
+                    offset: 4,
+                    subselection: None
+                }))
+            }))
+        };
+
+        let selection = Selection {
+            anchor: from_subselection.clone(),
+            head: to_subselection.clone()
+        };
+
+        let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
+        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+
+        let updated_inline_block_1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
+        assert_eq!(updated_inline_block_1.text().unwrap(), &"Hello WorldGoodbye World".to_string());
+
+        let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
+        assert_eq!(updated_root_block.children, vec![std_block_id1.clone(), std_block_id8.clone()]);
+
+        let updated_block1 = updated_state.block_map.get_standard_block(&std_block_id1).unwrap();
+        assert_eq!(updated_block1.children, vec![std_block_id7.clone()]);
+
+        let updated_block7 = updated_state.block_map.get_standard_block(&std_block_id7).unwrap();
+        assert_eq!(updated_block7.parent, std_block_id1.clone());
+
+        let updated_block8 = updated_state.block_map.get_standard_block(&std_block_id8).unwrap();
+        assert_eq!(updated_block8.parent, root_block.clone());
+    }
 
     // /// Input:
     // /// <1>H|ello world</1>

@@ -1,8 +1,10 @@
 
 
 use std::{collections::HashMap, str::FromStr};
+use js_sys::{Map, JsString};
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
+use wasm_bindgen::JsValue;
 
 use crate::{mark::Mark, steps_generator::StepError};
 
@@ -304,10 +306,16 @@ impl RootBlock {
 }
 
 /// HashMap<Id, JSON (as str)>
-#[derive(Serialize, Deserialize)]
-pub struct BlockMap(pub HashMap<String, String>);
+pub enum BlockMap {
+    Js(Map),
+    Rust(HashMap<String, String>)
+}
 
 impl BlockMap {
+    pub fn from_js_map(js_map: Map) -> Self {
+        return BlockMap::Js(js_map)
+    }
+
     pub fn from(blocks: Vec<String>) -> Result<Self, StepError> {
         let mut map = HashMap::new();
         for block_json_str in blocks {
@@ -321,14 +329,24 @@ impl BlockMap {
             }?;
             map.insert(String::from_str(id).unwrap(), block_json_str);
         }
-        Ok(Self(map))
+        Ok(Self::Rust(map))
     }
 
     pub fn get_block(&self, id: &str) -> Result<Block, StepError> {
-        match self.0.get(id) {
-            Some(block) => Block::from_json(block),
-            None => Err(StepError(format!("Block with id {} does not exist", id)))
+        match self {
+            Self::Rust(rust_map) => match rust_map.get(id) {
+                Some(block) => return Block::from_json(block),
+                None => Err(StepError(format!("Block with id {} does not exist", id)))
+            },
+            Self::Js(js_map) => {
+                let opt_block = js_map.get(&JsString::from(id)).as_string();
+                match opt_block {
+                    Some(block_json) => return Block::from_json(&block_json),
+                    None => Err(StepError(format!("Block with id {} does not exist", id)))
+                }
+            }
         }
+
     }
 
     pub fn get_standard_block(&self, id: &str) -> Result<StandardBlock, StepError> {
@@ -380,8 +398,16 @@ impl BlockMap {
     pub fn update_block(&mut self, block: Block) -> Result<Option<String>, StepError> {
         let id = block.id();
         let json = block.to_json()?.to_string();
-        return Ok(self.0.insert(id, json))
+        match self {
+            Self::Rust(rust_map) => return Ok(rust_map.insert(id, json)),
+            Self::Js(js_map) => {
+                js_map.set(&JsValue::from_str(&id), &JsValue::from_str(&json));
+                return Ok(None)
+            }
+        }
+
     }
+
     pub fn update_blocks(&mut self, blocks: Vec<Block>) -> Result<Vec<Option<String>>, StepError> {
         let mut return_values = vec![];
         for block in blocks {
@@ -391,24 +417,44 @@ impl BlockMap {
     }
 
     pub fn remove_block(&mut self, id: &String) -> Result<Option<Block>, StepError> {
-        let returned_block_as_json = self.0.remove(id);
-        match returned_block_as_json {
-            Some(block_as_json) => {
-                let block = Block::from_json(&block_as_json)?;
-                Ok(Some(block))
+        match self {
+            Self::Rust(rust_map) => {
+                let returned_block_as_json = rust_map.remove(id);
+                match returned_block_as_json {
+                    Some(block_as_json) => {
+                        let block = Block::from_json(&block_as_json)?;
+                        Ok(Some(block))
+                    },
+                    None => Ok(None)
+                }
             },
-            None => Ok(None)
+            Self::Js(js_map) => {
+                // let returned_block_as_json = js_map.remove(id);
+                // match returned_block_as_json {
+                //     Some(block_as_json) => {
+                //         let block = Block::from_json(&block_as_json)?;
+                //         Ok(Some(block))
+                //     },
+                //     None => Ok(None)
+                // }
+                unimplemented!()
+            }
         }
     }
 
     /// Utility for tests
     pub fn get_newly_added_blocks(&self, previously_used_ids: Vec<String>) -> Result<Vec<Block>, StepError> {
         let mut newly_added_blocks = vec![];
-        for (id, _) in &self.0 {
-            if !previously_used_ids.contains(id) {
-                newly_added_blocks.push(self.get_block(id)?)
+        match self {
+            Self::Rust(rust_map) => {
+                for (id, _) in rust_map {
+                    if !previously_used_ids.contains(id) {
+                        newly_added_blocks.push(self.get_block(id)?)
+                    }
+                }
             }
-        }
+            Self::Js(_) => return Err(StepError("This function is only used for tests".to_string()))
+        };
         return Ok(newly_added_blocks)
     }
 
@@ -423,5 +469,12 @@ impl BlockMap {
             };
         }
         return Ok(newly_added_standard_blocks)
+    }
+
+    pub fn to_js_map(self) -> Result<Map, StepError> {
+        match self {
+            Self::Js(js_map) => Ok(js_map),
+            Self::Rust(_) => return Err(StepError("Cannot convert rust map to js map".to_string()))
+        }
     }
 }

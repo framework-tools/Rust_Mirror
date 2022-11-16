@@ -186,24 +186,23 @@ mod tests {
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
 
-        assert_eq!(steps.len(), 2);
+        assert_eq!(steps.len(), 1);
         match &steps[0] {
             Step::ReplaceStep(replace_step) => {
-                assert_eq!(replace_step.block_id, paragraph_block_id1);
-                assert_eq!(replace_step.from, SubSelection::from(paragraph_block_id1.clone(), 1, None));
-                assert_eq!(replace_step.to, SubSelection::from(paragraph_block_id1.clone(), 1, None));
-                assert_eq!(replace_step.slice, ReplaceSlice::Blocks(vec![inline_block_id2, inline_block_id3]));
+                assert_eq!(replace_step.block_id, root_block_id);
+                assert_eq!(replace_step.from, SubSelection {
+                    block_id: paragraph_block_id1,
+                    offset: 0,
+                    subselection: Some(Box::new(SubSelection::from(inline_block_id1.clone(), 5, None)))
+                });
+                assert_eq!(replace_step.to, SubSelection {
+                    block_id: paragraph_block_id2,
+                    offset: 0,
+                    subselection: Some(Box::new(SubSelection::from(inline_block_id2.clone(), 0, None)))
+                });
+                assert_eq!(replace_step.slice, ReplaceSlice::String("".to_string()));
             },
             _ => panic!("Expected ReplaceStep")
         };
-        match &steps[1] {
-            Step::ReplaceStep(replace_step) => {
-                assert_eq!(replace_step.block_id, root_block_id);
-                assert_eq!(replace_step.from, SubSelection::from(root_block_id.clone(), 1, None));
-                assert_eq!(replace_step.to, SubSelection::from(root_block_id.clone(), 2, None));
-                assert_eq!(replace_step.slice, ReplaceSlice::Blocks(vec![]));
-            },
-            _ => panic!("Expected ReplaceStep")
-        }
     }
 }
