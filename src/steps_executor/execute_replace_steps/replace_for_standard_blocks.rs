@@ -13,44 +13,43 @@ use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_
 /// -> update "to subselection" block's parent to "from" block
 /// -> remove all standard blocks between from & to
 pub fn replace_selected_across_standard_blocks(
-    from_block: StandardBlock,
+    mut from_block: StandardBlock,
     mut block_map: BlockMap,
-    replace_step: ReplaceStep,
+    mut replace_step: ReplaceStep,
 ) -> Result<UpdatedState, StepError> {
     let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
     if from_block.parent != to_block.parent {
         return Err(StepError("Expected from_block and to_block to have the same parent".to_string()))
     }
 
+    let number_of_from_layers = replace_step.from.count_layers();
+    let number_of_to_layers = replace_step.to.count_layers();
+
+    if number_of_from_layers > number_of_to_layers {
+        // let inline_block = block_map.get_inline_block(&replace_step.from.get_deepest_subselection().block_id)?;
+        // from_block = block_map.get_standard_block(&inline_block.parent)?;
+        replace_step.from = replace_step.from.get_two_deepest_layers()?;
+        replace_step.to = replace_step.to.get_two_deepest_layers()?;
+    }
     match &replace_step.from.subselection {
         Some(from_inner_subselection) => {
             let to_inner_subselection = replace_step.to.get_child_subselection()?;
             let inner_from_index = from_block.index_of(&from_inner_subselection.block_id)?;
             let inner_to_index = to_block.index_of(&to_inner_subselection.block_id)?;
 
-            let updated_content_block = from_block.content_block()?.clone();
-            let mut updated_inline_blocks = updated_content_block.inline_blocks[..inner_from_index + 1].to_vec();
-            let to_content_block = to_block.content_block()?;
-            let mut to_inline_blocks_after_deletion = to_content_block.inline_blocks[inner_to_index..].to_vec();
-            updated_inline_blocks.append(&mut to_inline_blocks_after_deletion);
-            let mut from_block = from_block.update_block_content(ContentBlock {
-                inline_blocks: updated_inline_blocks
-            })?;
-
             from_block.children = to_block.children.clone();
-            for id in &from_block.children {
-                let mut block = block_map.get_standard_block(id)?;
-                block.parent = from_block.id();
-                block_map.update_block(Block::StandardBlock(block))?;
-            }
+            from_block.set_new_parent_of_children(&mut block_map)?;
 
-            let mut parent_block = block_map.get_block(&from_block.parent)?;
-            parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
+            let to_block_index = to_block.index(&block_map)?;
+            let from_block_with_updated_text = merge_blocks_inline_blocks(from_block, to_block, inner_from_index, inner_to_index)?;
+
+            let mut parent_block = block_map.get_block(&from_block_with_updated_text.parent)?;
+            parent_block.splice_children(from_block_with_updated_text.index(&block_map)? + 1, to_block_index + 1, vec![])?;
             block_map.update_block(parent_block)?;
 
             let block_map = update_from_subselection_inline_block_text(block_map, &replace_step)?;
-            let block_map = update_to_subselection_inline_block_text(block_map, &replace_step,&from_block._id)?;
-            let block_map = clean_block_after_transform(from_block, block_map)?;
+            let block_map = update_to_subselection_inline_block_text(block_map, &replace_step,&from_block_with_updated_text._id)?;
+            let block_map = clean_block_after_transform(from_block_with_updated_text, block_map)?;
 
             return Ok(UpdatedState { block_map, selection: Some(Selection::update_selection_from(replace_step)) })
         },
@@ -119,4 +118,15 @@ fn replace_across_standard_blocks_no_subselection(
     } else {
         unimplemented!()
     }
+}
+
+fn merge_blocks_inline_blocks(from_block: StandardBlock, to_block: StandardBlock, inner_from_index: usize, inner_to_index: usize) -> Result<StandardBlock, StepError> {
+    let updated_content_block = from_block.content_block()?.clone();
+    let mut updated_inline_blocks = updated_content_block.inline_blocks[..inner_from_index + 1].to_vec();
+    let to_content_block = to_block.content_block()?;
+    let mut to_inline_blocks_after_deletion = to_content_block.inline_blocks[inner_to_index..].to_vec();
+    updated_inline_blocks.append(&mut to_inline_blocks_after_deletion);
+    return from_block.update_block_content(ContentBlock {
+        inline_blocks: updated_inline_blocks
+    });
 }

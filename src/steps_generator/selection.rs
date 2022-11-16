@@ -111,6 +111,25 @@ impl SubSelection {
             };
         }
     }
+
+    pub fn get_two_deepest_layers(self) -> Result<Self, StepError> {
+        let mut subselection = &self;
+        match &subselection.subselection {
+            Some(_) => {},
+            None => return Err(StepError("Subselection only has one layer".to_string()))
+        };
+
+        loop {
+            subselection = match &subselection.subselection {
+                Some(sub_subselection) => match &sub_subselection.subselection {
+                    Some(_) => &**sub_subselection,
+                    None => return Ok(subselection.clone()),
+                },
+                None => return Ok(subselection.clone()),
+            };
+        }
+    }
+
     pub fn count_layers(&self) -> usize {
         let mut subselection = self;
         let mut layers = 0;

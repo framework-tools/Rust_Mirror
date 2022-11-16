@@ -206,4 +206,35 @@ mod tests {
         assert_eq!(from, selection.head);
         assert_eq!(to, selection.anchor);
     }
+
+    #[test]
+    fn can_get_deepest_two_layers() {
+        let subselection = SubSelection {
+            block_id: "1".to_string(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection {
+                block_id: "2".to_string(),
+                offset: 0,
+                subselection: Some(Box::new(SubSelection {
+                    block_id: "3".to_string(),
+                    offset: 0,
+                    subselection: Some(Box::new(SubSelection {
+                        block_id: "4".to_string(),
+                        offset: 5,
+                        subselection: None
+                    }))
+        }))}))};
+
+        let two_deepest_layers = subselection.get_two_deepest_layers().unwrap();
+        let expected = SubSelection {
+            block_id: "3".to_string(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection {
+                block_id: "4".to_string(),
+                offset: 5,
+                subselection: None
+            }))
+        };
+        assert_eq!(two_deepest_layers, expected);
+    }
 }
