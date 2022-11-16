@@ -11,24 +11,24 @@ pub fn execute_event(
     new_ids_json: String,
     block_map: Map,
     event_json: String,
-) -> (Option<Map>, String) {
+) -> String {
     let block_map = BlockMap::from_js_map(block_map);
 
     let (selection, mut new_ids, event) = match parse_json_from_interface(selection_json, new_ids_json, event_json) {
         Ok(value) => value,
-        Err(err) => return (None, ReturnJson::Err(err).create_response())
+        Err(err) => return ReturnJson::Err(err).create_response()
     };
 
     let steps = match generate_steps(&event, &block_map, selection) {
         Ok(steps) => steps,
-        Err(StepError(err)) => return (None, ReturnJson::Err(err).create_response())
+        Err(StepError(err)) => return ReturnJson::Err(err).create_response()
     };
 
     return match execute_steps(steps, block_map, &mut new_ids) {
         Ok(UpdatedState { block_map, selection }) => {
-            (Some(block_map.to_js_map().unwrap()), ReturnJson::Data{ updated_selection: selection, new_ids: new_ids.0 }.create_response())
+            ReturnJson::Data{ updated_selection: selection, new_ids: new_ids.0 }.create_response()
         },
-        Err(StepError(err)) => (None, ReturnJson::Err(err).create_response())
+        Err(StepError(err)) => ReturnJson::Err(err).create_response()
     }
 }
 
