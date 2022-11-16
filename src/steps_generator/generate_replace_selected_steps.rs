@@ -25,6 +25,6 @@ pub fn generate_replace_selected_steps(
                 slice: ReplaceSlice::String(replace_with)
             })
         ]),
-        Block::Root(_) => unimplemented!()
+        Block::Root(_) => return Err(StepError("Cannot perform replace step on root".to_string()))
     }
 }

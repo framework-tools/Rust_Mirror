@@ -31,8 +31,6 @@ pub fn replace_selected_across_standard_blocks(
     block_map.update_block(parent_block)?;
 
     if number_of_from_layers > number_of_to_layers {
-        // let inline_block = block_map.get_inline_block(&replace_step.from.get_deepest_subselection().block_id)?;
-        // from_block = block_map.get_standard_block(&inline_block.parent)?;
         replace_step.from = replace_step.from.get_two_deepest_layers()?;
         from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
         replace_step.to = replace_step.to.get_two_deepest_layers()?;
@@ -43,7 +41,7 @@ pub fn replace_selected_across_standard_blocks(
             let inner_from_index = from_block.index_of(&from_inner_subselection.block_id)?;
             let inner_to_index = to_block.index_of(&to_inner_subselection.block_id)?;
 
-            from_block.children.append(&mut to_block.children.clone());
+            from_block.children = to_block.children.clone();
             from_block.set_new_parent_of_children(&mut block_map)?;
 
             let from_block_with_updated_text = merge_blocks_inline_blocks(from_block, to_block, inner_from_index, inner_to_index)?;
