@@ -29,6 +29,7 @@ pub fn replace_selected_across_standard_blocks(
         // let inline_block = block_map.get_inline_block(&replace_step.from.get_deepest_subselection().block_id)?;
         // from_block = block_map.get_standard_block(&inline_block.parent)?;
         replace_step.from = replace_step.from.get_two_deepest_layers()?;
+        from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
         replace_step.to = replace_step.to.get_two_deepest_layers()?;
     }
     match &replace_step.from.subselection {
@@ -37,7 +38,7 @@ pub fn replace_selected_across_standard_blocks(
             let inner_from_index = from_block.index_of(&from_inner_subselection.block_id)?;
             let inner_to_index = to_block.index_of(&to_inner_subselection.block_id)?;
 
-            from_block.children = to_block.children.clone();
+            from_block.children.append(&mut to_block.children.clone());
             from_block.set_new_parent_of_children(&mut block_map)?;
 
             let to_block_index = to_block.index(&block_map)?;
