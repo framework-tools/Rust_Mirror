@@ -43,20 +43,10 @@ fn caret_at_start_of_parent_block_steps(from_block: InlineBlock, block_map: &Blo
         let block_before_parent: Option<StandardBlock> = parent_block.get_previous(block_map)?;
         return match block_before_parent {
             Some(block_before_parent) => {
-                let inline_blocks = &block_before_parent.content_block()?.inline_blocks;
-                let last_inline_block_in_block_before = block_map.get_inline_block(&inline_blocks[inline_blocks.len() - 1])?;
                 Ok(vec![
                     Step::ReplaceStep(ReplaceStep {
-                        block_id: block_before_parent.id(),
-                        from: SubSelection {
-                            block_id: block_before_parent.id(),
-                            offset: 0,
-                            subselection: Some(Box::new(SubSelection {
-                                block_id: last_inline_block_in_block_before.id(),
-                                offset: last_inline_block_in_block_before.text()?.len(),
-                                subselection: None
-                            }))
-                        },
+                        block_id: parent_block.parent.clone(),
+                        from: SubSelection::at_end_of_youngest_descendant(&block_before_parent, block_map)?,
                         to: SubSelection {
                             block_id: parent_block.id(),
                             offset: 0,

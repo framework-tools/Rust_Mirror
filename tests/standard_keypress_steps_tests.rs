@@ -338,17 +338,17 @@ mod tests {
     //     };
     // }
 
-    // /// Input:
-    // /// <1>H|ello world</1>
-    // ///     <4/>
-    // /// <3>Goo|dbye world</3>
-    // ///     <2/>
-    // ///        | | |
-    // ///        | | |
-    // ///        V V V
-    // /// Output:
-    // /// <1>H dbye world</1>
-    // ///    <2/>
+    /// Input:
+    /// <1>H|ello world</1>
+    ///     <4/>
+    /// <3>Goo|dbye world</3>
+    ///     <2/>
+    ///        | | |
+    ///        | | |
+    ///        V V V
+    /// Output:
+    /// <1>H dbye world</1>
+    ///    <2/>
     #[test]
     fn can_handle_across_2_standard_blocks() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
@@ -450,6 +450,212 @@ mod tests {
                 assert_eq!(replace_step.from, selection.anchor);
                 assert_eq!(replace_step.to, selection.head);
                 assert_eq!(replace_step.slice, ReplaceSlice::String(" ".to_string()));
+            },
+            _ => panic!("Expected ReplaceStep")
+        }
+    }
+    /// Input:
+    /// <1>Hello world</1>
+    ///     <2/>
+    ///     <3/>
+    ///         <4/>
+    ///         <5>a b c</5>
+    /// <6>||Goodbye world</6>
+    ///     <7/>
+    ///     <8/>
+    ///        | | |
+    ///        | | |
+    ///        V V V
+    /// Output:
+    /// <1>Hello world</1>
+    ///     <2/>
+    ///     <3/>
+    ///         <4/>
+    ///         <5>a b cGoodbye world</5>
+    /// <7/>
+    /// <8/>
+    #[test]
+    fn can_handle_backspace_at_start_caret_on_top_layer_creates_replace_step_with_last_and_youngest_child_above() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id().unwrap();
+        let std_block_id1 = new_ids.get_id().unwrap();
+        let inline_block_id1 = new_ids.get_id().unwrap();
+        let std_block_id2 = new_ids.get_id().unwrap();
+        let inline_block_id2 = new_ids.get_id().unwrap();
+        let inline_block_id3 = new_ids.get_id().unwrap();
+        let std_block_id3 = new_ids.get_id().unwrap();
+        let std_block_id4 = new_ids.get_id().unwrap();
+        let std_block_id5 = new_ids.get_id().unwrap();
+        let std_block_id6 = new_ids.get_id().unwrap();
+        let std_block_id7 = new_ids.get_id().unwrap();
+        let std_block_id8 = new_ids.get_id().unwrap();
+
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello world!"
+            },
+            "marks": [],
+            "parent": std_block_id1.clone()
+        });
+
+        let std_block1 = json!({
+            "_id": std_block_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [std_block_id2.clone(), std_block_id3.clone()],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+
+        let std_block2 = Block::new_std_block_json(std_block_id2.clone(), std_block_id1.clone());
+        let std_block3 = json!({
+            "_id": std_block_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [std_block_id4.clone(), std_block_id5.clone()],
+            "marks": [],
+            "parent": std_block_id1.clone()
+        });
+        let std_block4 = json!({
+            "_id": std_block_id4.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": std_block_id3.clone()
+        });
+        let std_block5 = json!({
+            "_id": std_block_id5.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": std_block_id3.clone()
+        });
+
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "a b c"
+            },
+            "marks": [],
+            "parent": std_block_id5.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Goodbye World"
+            },
+            "marks": [],
+            "parent": std_block_id6.clone()
+        });
+
+        let std_block6 = json!({
+            "_id": std_block_id6.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id3.clone()]
+            },
+            "children": [std_block_id7.clone(), std_block_id8.clone()],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let std_block7 = json!({
+            "_id": std_block_id7.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": std_block_id6.clone()
+        });
+        let std_block8 = json!({
+            "_id": std_block_id8.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": std_block_id6.clone()
+        });
+
+        let root_block = RootBlock::json_from(root_block_id.clone(),
+        vec![std_block_id1.clone(), std_block_id6.clone()]);
+
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), std_block1.to_string(), std_block2.to_string(),
+            root_block.to_string(), std_block3.to_string(), std_block4.to_string(), std_block5.to_string(), std_block6.to_string(), std_block7.to_string(), std_block8.to_string(),
+        ]).unwrap();
+
+        let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
+
+        let subselection = SubSelection {
+            block_id: inline_block_id3.clone(),
+            offset: 0,
+            subselection: None,
+        };
+        let selection = Selection {
+            anchor: subselection.clone(),
+            head: subselection.clone()
+        };
+
+        let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
+
+        assert_eq!(steps.len(), 1);
+
+        match &steps[0] {
+            Step::ReplaceStep(replace_step) => {
+                assert_eq!(replace_step.block_id, root_block_id);
+                assert_eq!(replace_step.from, SubSelection {
+                    block_id: std_block_id1.clone(),
+                    offset: 0,
+                    subselection: Some(Box::new(SubSelection {
+                        block_id: std_block_id3.clone(),
+                        offset: 0,
+                        subselection: Some(Box::new(SubSelection {
+                            block_id: std_block_id5.clone(),
+                            offset: 0,
+                            subselection: Some(Box::new(SubSelection {
+                                block_id: inline_block_id2.clone(),
+                                offset: 5,
+                                subselection: None
+                            }))
+                }))}))});
+                assert_eq!(replace_step.to, SubSelection {
+                    block_id: std_block_id6.clone(),
+                    offset: 0,
+                    subselection: Some(Box::new(SubSelection {
+                        block_id: inline_block_id3.clone(),
+                        offset: 0,
+                        subselection: None
+                    }))
+                });
+                assert_eq!(replace_step.slice, ReplaceSlice::String("".to_string()));
             },
             _ => panic!("Expected ReplaceStep")
         }

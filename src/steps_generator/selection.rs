@@ -1,6 +1,6 @@
-use std::{str::FromStr};
+use std::{str::FromStr, ops::Sub};
 
-use crate::{blocks::{Block, BlockMap}, step::{ReplaceStep, ReplaceSlice}};
+use crate::{blocks::{Block, BlockMap, standard_blocks::StandardBlock}, step::{ReplaceStep, ReplaceSlice}};
 
 use super::StepError;
 use serde::{Deserialize, Serialize};
@@ -135,6 +135,32 @@ impl SubSelection {
             },
             Block::Root(root_block) => {
                 return SubSelection::at_end_of_block(&root_block.children[root_block.children.len() - 1], block_map)
+            }
+        }
+    }
+
+    pub fn at_end_of_youngest_descendant(standard_block: &StandardBlock, block_map: &BlockMap) -> Result<SubSelection, StepError> {
+        match standard_block.children.len() > 0 {
+            true => {
+                let youngest_child = block_map.get_standard_block(&standard_block.children[standard_block.children.len() - 1])?;
+                return Ok(SubSelection {
+                    block_id: standard_block.id(),
+                    offset: 0,
+                    subselection: Some(Box::new(SubSelection::at_end_of_youngest_descendant(&youngest_child, block_map)?))
+                })
+            }
+            false => {
+                let inline_blocks = &standard_block.content_block()?.inline_blocks;
+                let last_inline_block_in_block_before = block_map.get_inline_block(&inline_blocks[inline_blocks.len() - 1])?;
+                return Ok(SubSelection {
+                    block_id: standard_block.id(),
+                    offset: 0,
+                    subselection: Some(Box::new(SubSelection {
+                        block_id: last_inline_block_in_block_before.id(),
+                        offset: last_inline_block_in_block_before.text()?.len(),
+                        subselection: None
+                    }))
+                })
             }
         }
     }

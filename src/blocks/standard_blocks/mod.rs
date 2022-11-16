@@ -176,6 +176,17 @@ impl StandardBlock {
         }
         return Ok(())
     }
+
+    /// Getting the last child on the deepest layer
+    pub fn get_youngest_descendant(self, block_map: &BlockMap) -> Result<Self, StepError> {
+        match self.children.len() > 0 {
+            true => {
+                let youngest_child = block_map.get_standard_block(&self.children[self.children.len() - 1])?;
+                return youngest_child.get_youngest_descendant(block_map)
+            },
+            false => return Ok(self)
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
