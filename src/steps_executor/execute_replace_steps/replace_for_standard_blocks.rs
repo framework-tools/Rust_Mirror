@@ -25,6 +25,11 @@ pub fn replace_selected_across_standard_blocks(
     let number_of_from_layers = replace_step.from.count_layers();
     let number_of_to_layers = replace_step.to.count_layers();
 
+    let mut parent_block = block_map.get_block(&from_block.parent)?;
+    let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
+    parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
+    block_map.update_block(parent_block)?;
+
     if number_of_from_layers > number_of_to_layers {
         // let inline_block = block_map.get_inline_block(&replace_step.from.get_deepest_subselection().block_id)?;
         // from_block = block_map.get_standard_block(&inline_block.parent)?;
@@ -41,12 +46,7 @@ pub fn replace_selected_across_standard_blocks(
             from_block.children.append(&mut to_block.children.clone());
             from_block.set_new_parent_of_children(&mut block_map)?;
 
-            let to_block_index = to_block.index(&block_map)?;
             let from_block_with_updated_text = merge_blocks_inline_blocks(from_block, to_block, inner_from_index, inner_to_index)?;
-
-            let mut parent_block = block_map.get_block(&from_block_with_updated_text.parent)?;
-            parent_block.splice_children(from_block_with_updated_text.index(&block_map)? + 1, to_block_index + 1, vec![])?;
-            block_map.update_block(parent_block)?;
 
             let block_map = update_from_subselection_inline_block_text(block_map, &replace_step)?;
             let block_map = update_to_subselection_inline_block_text(block_map, &replace_step,&from_block_with_updated_text._id)?;
