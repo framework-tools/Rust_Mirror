@@ -368,7 +368,7 @@ mod tests {
         };
         match &steps[1] {
             Step::SplitStep(split_step) => {
-                assert_eq!(split_step.subselection, from_sub_selection.clone());
+                assert_eq!(split_step.subselection, SubSelection::from(inline_block_id1.clone(), 1, None));
             },
             _ => panic!("Expected Split step")
         };

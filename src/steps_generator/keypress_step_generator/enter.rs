@@ -13,6 +13,6 @@ pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: Su
         }
     }
 
-    steps.push(Step::SplitStep(SplitStep { subselection: from }));
+    steps.push(Step::SplitStep(SplitStep { subselection: from.get_deepest_subselection().clone() }));
     return Ok(steps)
 }

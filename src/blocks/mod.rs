@@ -96,7 +96,7 @@ impl Block {
             Block::InlineBlock(inline_block) => {
                 js_sys::Reflect::set(&obj, &JsValue::from_str("kind"), &JsValue::from_str("inline")).unwrap();
                 js_sys::Reflect::set(&obj, &JsValue::from_str("_type"), &JsValue::from_str(inline_block.content._type_as_string()?.as_str())).unwrap();
-                js_sys::Reflect::set(&obj, &JsValue::from_str("content"), &JsValue::from(inline_block.content.to_js_content()?)).unwrap();
+                js_sys::Reflect::set(&obj, &JsValue::from_str("content"), &inline_block.content.to_js_content()?).unwrap();
                 js_sys::Reflect::set(&obj, &JsValue::from_str("marks"), &marks_to_js_arr(inline_block.marks)?).unwrap();
                 js_sys::Reflect::set(&obj, &JsValue::from_str("parent"), &JsValue::from_str(inline_block.parent.as_str())).unwrap();
             },
