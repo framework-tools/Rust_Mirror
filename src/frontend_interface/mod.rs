@@ -55,11 +55,9 @@ pub fn get_js_field_as_string(obj: &JsValue, field: &str) -> Result<String, Step
                 ))
             }
         },
-        Err(_) => {
-            return Err(StepError(
-                format!("Failed to get field: '{}' from js obj", field),
-            ))
-        },
+        Err(_) => return Err(StepError(
+            format!("Failed to get field: '{}' from js obj", field),
+        ))
     }
 }
 
@@ -73,7 +71,9 @@ pub fn get_js_field_as_f64(obj: &JsValue, field: &str) -> Result<f64, StepError>
                 ))
             }
         },
-        Err(e) => Err(StepError(e.as_string().unwrap()))
+        Err(_) => return Err(StepError(
+            format!("Failed to get field: '{}' from js obj", field),
+        ))
     }
 }
 
@@ -87,6 +87,8 @@ pub fn get_js_field_as_bool(obj: &JsValue, field: &str) -> Result<bool, StepErro
                 ))
             }
         },
-        Err(e) => Err(StepError(e.as_string().unwrap()))
+        Err(e) => return Err(StepError(
+            format!("Failed to get field: '{}' from js obj", field),
+        ))
     }
 }
