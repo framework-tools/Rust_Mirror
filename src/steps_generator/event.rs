@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use wasm_bindgen::JsValue;
 
-use crate::mark::{Color, Mark};
+use crate::{mark::{Color, Mark}, frontend_interface::{get_js_field_as_string, get_js_field, get_js_field_as_bool}};
 
 use super::StepError;
 
@@ -12,21 +12,7 @@ pub enum Event {
 
 impl Event {
     pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
-        let _type = match js_sys::Reflect::get(&obj, &JsValue::from_str("_type")) {
-            Ok(_type) => match _type.as_string() {
-                Some(_type) => _type,
-                None => {
-                    return Err(StepError(
-                        "_type on js obj event is not a string".to_string(),
-                    ))
-                }
-            },
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get _type from event js obj".to_string(),
-                ))
-            }
-        };
+        let _type = get_js_field_as_string(&JsValue::from(obj), "_type")?;
         return match _type.as_str() {
             "keypress" => Ok(Event::KeyPress(KeyPress::from_js_obj(obj)?)),
             "formatbar" => Ok(Event::FormatBar(FormatBarEvent::from_js_obj(obj)?)),
@@ -60,30 +46,9 @@ impl KeyPress {
     }
 
     pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
-        let key = match js_sys::Reflect::get(&obj, &JsValue::from_str("value")) {
-            Ok(key) => match key.as_string() {
-                Some(key) => Key::from_str(&key)?,
-                None => {
-                    return Err(StepError(
-                        "value on js obj event is not a string".to_string(),
-                    ))
-                }
-            },
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get value from event js obj".to_string(),
-                ))
-            }
-        };
-
-        let metadata = match js_sys::Reflect::get(&obj, &JsValue::from_str("metadata")) {
-            Ok(metadata) => KeyPressMetadata::from_js_obj(metadata),
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get value from event js obj".to_string(),
-                ))
-            }
-        }?;
+        let key = Key::from_str(&get_js_field_as_string(&JsValue::from(obj), "key")?)?;
+        let metadata = get_js_field(&JsValue::from(obj), "metadata")?;
+        let metadata = KeyPressMetadata::from_js_obj(&obj)?;
 
         return Ok(KeyPress {
             key,
@@ -101,67 +66,11 @@ pub struct KeyPressMetadata {
 }
 
 impl KeyPressMetadata {
-    pub fn from_js_obj(obj: JsValue) -> Result<Self, StepError> {
-        let shift_down = match js_sys::Reflect::get(&obj, &JsValue::from_str("shift_down")) {
-            Ok(shift_down) => match shift_down.as_bool() {
-                Some(shift_down) => shift_down,
-                None => {
-                    return Err(StepError(
-                        "shift_down on js obj event.metadata is not a bool".to_string(),
-                    ))
-                }
-            },
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get shift_down from event.metadata js obj".to_string(),
-                ))
-            }
-        };
-        let meta_down = match js_sys::Reflect::get(&obj, &JsValue::from_str("meta_down")) {
-            Ok(meta_down) => match meta_down.as_bool() {
-                Some(meta_down) => meta_down,
-                None => {
-                    return Err(StepError(
-                        "meta_down on js obj event.metadata is not a bool".to_string(),
-                    ))
-                }
-            },
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get meta_down from event.metadata js obj".to_string(),
-                ))
-            }
-        };
-        let ctrl_down = match js_sys::Reflect::get(&obj, &JsValue::from_str("ctrl_down")) {
-            Ok(ctrl_down) => match ctrl_down.as_bool() {
-                Some(ctrl_down) => ctrl_down,
-                None => {
-                    return Err(StepError(
-                        "ctrl_down on js obj event.metadata is not a bool".to_string(),
-                    ))
-                }
-            },
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get ctrl_down from event.metadata js obj".to_string(),
-                ))
-            }
-        };
-        let alt_down = match js_sys::Reflect::get(&obj, &JsValue::from_str("alt_down")) {
-            Ok(alt_down) => match alt_down.as_bool() {
-                Some(alt_down) => alt_down,
-                None => {
-                    return Err(StepError(
-                        "alt_down on js obj event.metadata is not a bool".to_string(),
-                    ))
-                }
-            },
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get ctrl_down from event.metadata js obj".to_string(),
-                ))
-            }
-        };
+    pub fn from_js_obj(obj: &JsValue) -> Result<Self, StepError> {
+        let shift_down = get_js_field_as_bool(obj, "shift_down")?;
+        let meta_down = get_js_field_as_bool(obj, "meta_down")?;
+        let ctrl_down = get_js_field_as_bool(obj, "ctrl_down")?;
+        let alt_down = get_js_field_as_bool(obj, "alt_down")?;
 
         return Ok(Self { shift_down, meta_down, ctrl_down, alt_down })
     }
@@ -207,21 +116,7 @@ pub enum FormatBarEvent {
 
 impl FormatBarEvent {
     pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
-        let value = match js_sys::Reflect::get(&obj, &JsValue::from_str("value")) {
-            Ok(value) => match value.as_string() {
-                Some(value) => value,
-                None => {
-                    return Err(StepError(
-                        "value on js obj event is not a string".to_string(),
-                    ))
-                }
-            },
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get value from event js obj".to_string(),
-                ))
-            }
-        };
+        let value = get_js_field_as_string(&JsValue::from(obj), "value")?;
 
         return match value.as_str() {
             "bold" => Ok(FormatBarEvent::Bold),

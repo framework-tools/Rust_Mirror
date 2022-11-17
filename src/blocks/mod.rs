@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 use wasm_bindgen::JsValue;
 
-use crate::{mark::Mark, steps_generator::StepError};
+use crate::{mark::Mark, steps_generator::StepError, frontend_interface::{get_js_field_as_string, get_js_field}};
 
 use self::{standard_blocks::{StandardBlock, StandardBlockType}, inline_blocks::{InlineBlock, InlineBlockType}};
 
@@ -22,36 +22,31 @@ pub enum Block {
 }
 
 impl Block {
-    pub fn from_json(json_str: &str) -> Result<Self, StepError> {
-        let json = match serde_json::Value::from_str(json_str) {
-            Ok(json) => json,
-            Err(_) => return Err(StepError(format!("Could not parse json block from str: {}", json_str)))
-        };
+    pub fn from_js_obj(obj: &JsValue) -> Result<Self, StepError> {
+        let kind = get_js_field_as_string(obj, "kind")?;
 
-        let kind = json.get("kind").ok_or(StepError(format!("Block does not have kind field: {}", json)))?
-            .as_str().ok_or(StepError("Block kind field is not a string".to_string()))?;
-        return match kind {
+        return match kind.as_str() {
             "standard" => {
                 Ok(Block::StandardBlock(StandardBlock {
-                    _id: id_from_json_block(&json)?,
-                    content: StandardBlockType::from_json(&json)?,
-                    children: children_from_json_block(&json)?,
-                    parent: parent_from_json_block(&json)?,
-                    marks: marks_from_json_block(&json)?,
+                    _id: id_from_js_block(obj)?,
+                    content: StandardBlockType::from_js_block(obj)?,
+                    children: children_from_js_block(obj)?,
+                    parent: parent_from_js_block(obj)?,
+                    marks: marks_from_js_block(obj)?,
                 }))
             },
             "inline" => {
                 Ok(Block::InlineBlock(InlineBlock {
-                    _id: id_from_json_block(&json)?,
-                    content: InlineBlockType::from_json(&json)?,
-                    parent: parent_from_json_block(&json)?,
-                    marks: marks_from_json_block(&json)?,
+                    _id: id_from_js_block(obj)?,
+                    content: InlineBlockType::from_js_block(obj)?,
+                    parent: parent_from_js_block(obj)?,
+                    marks: marks_from_js_block(obj)?,
                 }))
             },
             "root" => {
                 Ok(Block::Root(RootBlock {
-                    _id: id_from_json_block(&json)?,
-                    children: children_from_json_block(&json)?,
+                    _id: id_from_js_block(obj)?,
+                    children: children_from_js_block(obj)?,
                 }))
             },
             _ => Err(StepError(format!("Block kind {} not found", kind)))
@@ -236,31 +231,29 @@ impl Block {
     }
 }
 
-pub fn id_from_json_block(json: &Value) -> Result<String, StepError> {
-    let _id = json.get("_id").ok_or(StepError(format!("Block json does not have _id field: {}", json)))?
-        .as_str().ok_or(StepError("Block _id field is not a string".to_string()))?;
-    String::from_str(_id).map_err(|_| StepError("Block _id field is not a valid String".to_string()))
+pub fn id_from_js_block(obj: &JsValue) -> Result<String, StepError> {
+    return get_js_field_as_string(obj, "_id")
 }
 
-pub fn children_from_json_block(json: &Value) -> Result<Vec<String>, StepError> {
-    let children = json.get("children").ok_or(StepError("Block does not have children field".to_string()))?.as_array().ok_or(StepError("Block children field is not an array".to_string()))?;
-    children.iter().map(|child| {
-        let child_id = child.as_str().ok_or(StepError("Block children field is not an array of strings".to_string()))?;
-        String::from_str(child_id).map_err(|_| StepError("Block children field is not an array of valid Strings".to_string()))
-    }).collect()
+pub fn children_from_js_block(obj: &JsValue) -> Result<Vec<String>, StepError> {
+    let children = js_sys::Array::from(&get_js_field(obj, "children")?);
+    let children: Vec<String> = children.iter().map(|child| {
+        child.as_string().ok_or(StepError("Block children field is not an array of strings".to_string()))
+    }).flatten().collect();
+    return Ok(children)
 }
 
-pub fn parent_from_json_block(json: &Value) -> Result<String, StepError> {
-    let parent = json.get("parent").ok_or(StepError("Block does not have parent field".to_string()))?.as_str().ok_or(StepError("Block parent field is not a string".to_string()))?;
-    String::from_str(parent).map_err(|_| StepError("Block parent field is not a valid String".to_string()))
+pub fn parent_from_js_block(obj: &JsValue) -> Result<String, StepError> {
+    return get_js_field_as_string(obj, "parent")
 }
 
-pub fn marks_from_json_block(json: &Value) -> Result<Vec<Mark>, StepError> {
-    let marks = json.get("marks").ok_or(StepError("Block does not have marks field".to_string()))?.as_array().ok_or(StepError("Block marks field is not an array".to_string()))?;
-    marks.iter().map(|mark| {
-        let mark = mark.as_str().ok_or(StepError("Block marks field is not an array of strings".to_string()))?;
-        Mark::from_str(mark).map_err(|_| StepError("Block marks field is not an array of valid Mark strings".to_string()))
-    }).collect()
+pub fn marks_from_js_block(obj: &JsValue) -> Result<Vec<Mark>, StepError> {
+    let marks = js_sys::Array::from(&get_js_field(obj, "marks")?);
+    let marks: Vec<Mark> = marks.iter().map(|mark| {
+        let mark = mark.as_string().ok_or(StepError("Block marks field is not an array of strings".to_string()))?;
+        Mark::from_str(&mark).map_err(|_| StepError("Block marks field is not an array of valid Mark strings".to_string()))
+    }).flatten().collect();
+    return Ok(marks)
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -339,10 +332,10 @@ impl BlockMap {
                 None => Err(StepError(format!("Block with id {} does not exist", id)))
             },
             Self::Js(js_map) => {
-                let opt_block = js_map.get(&JsString::from(id)).as_string();
-                match opt_block {
-                    Some(block_json) => return Block::from_json(&block_json),
-                    None => Err(StepError(format!("Block with id {} does not exist", id)))
+                let opt_block = js_map.get(&JsString::from(id));
+                match opt_block.is_null() {
+                    true => return Block::from_js_obj(&opt_block),
+                    false => Err(StepError(format!("Block with id {} does not exist", id)))
                 }
             }
         }

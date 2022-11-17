@@ -1,7 +1,8 @@
 
 use serde_json::json;
+use wasm_bindgen::JsValue;
 
-use crate::{mark::Mark, steps_generator::StepError, new_ids::NewIds};
+use crate::{mark::Mark, steps_generator::StepError, new_ids::NewIds, frontend_interface::get_js_field_as_string};
 
 use self::content_block::ContentBlock;
 
@@ -198,14 +199,15 @@ pub enum StandardBlockType {
 }
 
 impl StandardBlockType {
-    pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
-        let block_type = json.get("_type").ok_or(StepError("Block does not have _type field".to_string()))?.as_str().ok_or(StepError("Block _type field is not a string".to_string()))?;
-        match block_type {
-            "paragraph" => Ok(StandardBlockType::Paragraph(ContentBlock::from_json(json)?)),
-            "h1" => Ok(StandardBlockType::H1(ContentBlock::from_json(json)?)),
-            "h2" => Ok(StandardBlockType::H2(ContentBlock::from_json(json)?)),
-            "h3" => Ok(StandardBlockType::H3(ContentBlock::from_json(json)?)),
-            _ => Err(StepError(format!("Block type {} not found", block_type)))
+    pub fn from_js_block(obj: &JsValue) -> Result<Self, StepError> {
+        let _type = get_js_field_as_string(obj, "_type")?;
+
+        match _type.as_str() {
+            "paragraph" => Ok(StandardBlockType::Paragraph(ContentBlock::from_js_block(obj)?)),
+            "h1" => Ok(StandardBlockType::H1(ContentBlock::from_js_block(obj)?)),
+            "h2" => Ok(StandardBlockType::H2(ContentBlock::from_js_block(obj)?)),
+            "h3" => Ok(StandardBlockType::H3(ContentBlock::from_js_block(obj)?)),
+            _type => Err(StepError(format!("Block type '{}' not found", _type)))
         }
     }
     pub fn to_json(&self) -> serde_json::Value {
@@ -275,4 +277,3 @@ impl StandardBlockType {
         }
     }
 }
-

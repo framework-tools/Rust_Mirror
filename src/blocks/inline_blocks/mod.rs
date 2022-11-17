@@ -1,8 +1,9 @@
 
 
 use serde_json::json;
+use wasm_bindgen::JsValue;
 
-use crate::{mark::Mark, steps_generator::StepError, new_ids::{self, NewIds}};
+use crate::{mark::Mark, steps_generator::StepError, new_ids::{self, NewIds}, frontend_interface::{get_js_field_as_string, get_js_field}};
 
 use self::text_block::TextBlock;
 
@@ -131,13 +132,14 @@ pub enum InlineBlockType {
 }
 
 impl InlineBlockType {
-    pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
-        let _type = json.get("_type").ok_or(StepError("Block does not have _type field".to_string()))?.as_str().ok_or(StepError("Block _type field is not a string".to_string()))?;
-        match _type {
+    pub fn from_js_block(obj: &JsValue) -> Result<Self, StepError> {
+        let _type = get_js_field_as_string(obj, "_type")?;
+        let content = get_js_field(obj, "content")?;
+
+        match _type.as_str() {
             "text" => {
-                let text_block = json.get("content").ok_or(StepError("Block does not have block field".to_string()))?;
                 return Ok(InlineBlockType::TextBlock(TextBlock {
-                    text: text_block.get("text").ok_or(StepError("Block does not have text field".to_string()))?.as_str().ok_or(StepError("Block text field is not a string".to_string()))?.to_string()
+                    text:  get_js_field_as_string(&content, "text")?
                 }))
             },
             _ => Err(StepError(format!("Block kind {} not found", _type)))

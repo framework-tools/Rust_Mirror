@@ -2,7 +2,7 @@ use std::{ops::Sub, str::FromStr};
 
 use crate::{
     blocks::{standard_blocks::StandardBlock, Block, BlockMap},
-    step::{ReplaceSlice, ReplaceStep},
+    step::{ReplaceSlice, ReplaceStep}, frontend_interface::{get_js_field, get_js_field_as_string, get_js_field_as_f64},
 };
 
 use super::StepError;
@@ -21,23 +21,8 @@ impl Selection {
     }
 
     pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
-        let anchor_obj =
-            match js_sys::Reflect::get(&obj, &JsValue::from_str("anchor")) {
-                Ok(anchor_obj) => anchor_obj,
-                Err(_) => {
-                    return Err(StepError(
-                        "Failed to get anchor from selection js obj".to_string(),
-                    ))
-                }
-            };
-        let head_obj = match js_sys::Reflect::get(&obj, &JsValue::from_str("head")) {
-            Ok(head_obj) => head_obj,
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get head from selection js obj".to_string(),
-                ))
-            }
-        };
+        let anchor_obj = get_js_field(&JsValue::from(obj), "anchor")?;
+        let head_obj = get_js_field(&JsValue::from(obj), "head")?;
         return Ok(Self {
             anchor: SubSelection::from_js_obj(anchor_obj)?,
             head: SubSelection::from_js_obj(head_obj)?,
@@ -130,36 +115,8 @@ impl SubSelection {
     }
 
     pub fn from_js_obj(obj: JsValue) -> Result<Self, StepError> {
-        let block_id = match js_sys::Reflect::get(&obj, &JsValue::from_str("block_id")) {
-            Ok(block_id) => match block_id.as_string() {
-                Some(block_id) => block_id,
-                None => {
-                    return Err(StepError(
-                        "Block id on js obj subselection is not a string".to_string(),
-                    ))
-                }
-            },
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get block id from subselection js obj".to_string(),
-                ))
-            }
-        };
-        let offset = match js_sys::Reflect::get(&obj, &JsValue::from_str("offset")) {
-            Ok(offset) => match offset.as_f64() {
-                Some(offset) => offset as usize,
-                None => {
-                    return Err(StepError(
-                        "Offset on js obj subselection is not a number".to_string(),
-                    ))
-                }
-            },
-            Err(_) => {
-                return Err(StepError(
-                    "Failed to get offset from subselection js obj".to_string(),
-                ))
-            }
-        };
+        let block_id = get_js_field_as_string(&obj, "block_id")?;
+        let offset = get_js_field_as_f64(&obj, "offset")? as usize;
         let subselection = match js_sys::Reflect::get(&obj, &JsValue::from_str("subselection")) {
             Ok(subselection) => match subselection.is_null() {
                 true => None,
