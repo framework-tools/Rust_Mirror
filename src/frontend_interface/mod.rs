@@ -57,10 +57,9 @@ pub fn get_js_field_as_string(obj: &JsValue, field: &str) -> Result<String, Step
         },
         Err(_) => {
             return Err(StepError(
-                "Failed to get _type from block js obj".to_string(),
+                format!("Failed to get field: '{}' from js obj", field),
             ))
         },
-        Err(e) => Err(StepError(e.as_string().unwrap()))
     }
 }
 
