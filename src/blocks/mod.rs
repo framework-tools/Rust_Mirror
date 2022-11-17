@@ -303,7 +303,7 @@ pub fn children_from_js_block(obj: &JsValue) -> Result<Vec<String>, StepError> {
     let children = js_sys::Array::from(&get_js_field(obj, "children")?);
     let children: Vec<String> = children.iter().map(|child| {
         child.as_string().ok_or(StepError("Block children field is not an array of strings".to_string()))
-    }).flatten().collect();
+    }).collect::<Result<Vec<String>, StepError>>()?;
     return Ok(children)
 }
 
@@ -316,7 +316,7 @@ pub fn marks_from_js_block(obj: &JsValue) -> Result<Vec<Mark>, StepError> {
     let marks: Vec<Mark> = marks.iter().map(|mark| {
         let mark = mark.as_string().ok_or(StepError("Block marks field is not an array of strings".to_string()))?;
         Mark::from_str(&mark).map_err(|_| StepError("Block marks field is not an array of valid Mark strings".to_string()))
-    }).flatten().collect();
+    }).collect::<Result<Vec<Mark>, StepError>>()?;
     return Ok(marks)
 }
 

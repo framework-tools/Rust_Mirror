@@ -142,7 +142,7 @@ impl InlineBlockType {
                     text:  get_js_field_as_string(&content, "text")?
                 }))
             },
-            _ => Err(StepError(format!("Block kind {} not found", _type)))
+            _ => Err(StepError(format!("Block _type {} not found", _type)))
         }
     }
 
