@@ -46,7 +46,7 @@ impl KeyPress {
     }
 
     pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
-        let key = Key::from_str(&get_js_field_as_string(&JsValue::from(&obj), "key")?)?;
+        let key = Key::from_str(&get_js_field_as_string(&JsValue::from(&obj), "value")?)?;
         let metadata = get_js_field(&JsValue::from(obj), "metadata")?;
         let metadata = KeyPressMetadata::from_js_obj(&metadata)?;
 
