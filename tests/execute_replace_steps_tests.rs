@@ -382,6 +382,7 @@ mod tests {
         assert_eq!(updated_inline_block1.text().unwrap(), "H ");
         let updated_inline_block3 = updated_state.block_map.get_inline_block(&inline_block_id3).unwrap();
         assert_eq!(updated_inline_block3.text().unwrap(), "ld!");
+        assert_eq!(updated_inline_block3.parent, updated_std_block1.id());
 
         let updated_paragraph_block2 = updated_state.block_map.get_standard_block(&std_block_id2).unwrap();
         assert_eq!(updated_paragraph_block2.parent, std_block_id1);
