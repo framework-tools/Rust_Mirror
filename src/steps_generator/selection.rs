@@ -104,6 +104,13 @@ impl Selection {
             ReplaceSlice::Blocks(blocks) => unimplemented!(),
         }
     }
+
+    pub fn to_js_obj(self) -> Result<JsValue, StepError> {
+        let obj = js_sys::Object::new();
+        js_sys::Reflect::set(&obj, &JsValue::from_str("anchor"), &JsValue::from(self.anchor.to_js_obj()?));
+        js_sys::Reflect::set(&obj, &JsValue::from_str("head"), &JsValue::from(self.head.to_js_obj()?));
+        return Ok(obj.into())
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -278,5 +285,20 @@ impl SubSelection {
                 });
             }
         }
+    }
+
+    pub fn to_js_obj(self) -> Result<JsValue, StepError> {
+        let obj = js_sys::Object::new();
+        js_sys::Reflect::set(&obj, &JsValue::from_str("block_id"), &JsValue::from_str(self.block_id.as_str()))
+            .map_err(|_| StepError("Failed to set block id on subselection js obj".to_string()))?;
+        js_sys::Reflect::set(&obj, &JsValue::from_str("offset"), &JsValue::from_f64(self.offset as f64))
+            .map_err(|_| StepError("Failed to set offset on subselection js obj".to_string()))?;
+        let js_subselection = match self.subselection {
+            Some(subselection) => subselection.to_js_obj()?,
+            None => JsValue::null()
+        };
+        js_sys::Reflect::set(&obj, &JsValue::from_str("subselection"), &js_subselection)
+            .map_err(|_| StepError("Failed to set offset on subselection js obj".to_string()))?;
+        return Ok(obj.into())
     }
 }
