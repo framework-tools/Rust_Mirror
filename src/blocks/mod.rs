@@ -398,12 +398,14 @@ impl BlockMap {
             Self::Js(js_map) => {
                 let opt_block = js_map.get(&JsString::from(id));
                 match opt_block.is_null() {
-                    true => return Block::from_js_obj(&opt_block),
+                    true => {
+                        let x = Block::from_js_obj(&opt_block)?;
+                        return Err(StepError("Get works".to_string()))
+                    },
                     false => Err(StepError(format!("Block with id {} does not exist", id)))
                 }
             }
         }
-
     }
 
     pub fn get_standard_block(&self, id: &str) -> Result<StandardBlock, StepError> {
