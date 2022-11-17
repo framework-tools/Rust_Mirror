@@ -1,4 +1,3 @@
-use std::{ops::Sub, str::FromStr};
 
 use crate::{
     blocks::{standard_blocks::StandardBlock, Block, BlockMap},
@@ -21,7 +20,7 @@ impl Selection {
     }
 
     pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
-        let anchor_obj = get_js_field(&JsValue::from(obj), "anchor")?;
+        let anchor_obj = get_js_field(&JsValue::from(&obj), "anchor")?;
         let head_obj = get_js_field(&JsValue::from(obj), "head")?;
         return Ok(Self {
             anchor: SubSelection::from_js_obj(anchor_obj)?,

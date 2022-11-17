@@ -146,6 +146,19 @@ impl InlineBlockType {
         }
     }
 
+    pub fn from_json(json: &serde_json::Value) -> Result<Self, StepError> {
+        let _type = json.get("_type").ok_or(StepError("Block does not have _type field".to_string()))?.as_str().ok_or(StepError("Block _type field is not a string".to_string()))?;
+        match _type {
+            "text" => {
+                let text_block = json.get("content").ok_or(StepError("Block does not have block field".to_string()))?;
+                return Ok(InlineBlockType::TextBlock(TextBlock {
+                    text: text_block.get("text").ok_or(StepError("Block does not have text field".to_string()))?.as_str().ok_or(StepError("Block text field is not a string".to_string()))?.to_string()
+                }))
+            },
+            _ => Err(StepError(format!("Block kind {} not found", _type)))
+        }
+    }
+
     pub fn text(&self) -> Result<&String, StepError> {
         match self {
             InlineBlockType::TextBlock(block) => Ok(&block.text),
@@ -167,5 +180,20 @@ impl InlineBlockType {
                 }
             })
         }
+    }
+
+    pub fn _type_as_string(&self) -> Result<String, StepError> {
+        match self {
+            InlineBlockType::TextBlock(_) => return Ok("text".to_string()),
+        }
+    }
+    pub fn to_js_content(&self) -> Result<JsValue, StepError> {
+        let obj = js_sys::Object::new();
+        match self {
+            InlineBlockType::TextBlock(TextBlock { text }) => {
+                js_sys::Reflect::set(&obj, &JsValue::from_str("text"), &JsValue::from_str(text.as_str())).unwrap();
+            },
+        }
+        return Ok(JsValue::from(obj))
     }
 }

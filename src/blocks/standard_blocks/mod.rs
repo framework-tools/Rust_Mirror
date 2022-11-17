@@ -6,7 +6,7 @@ use crate::{mark::Mark, steps_generator::StepError, new_ids::NewIds, frontend_in
 
 use self::content_block::ContentBlock;
 
-use super::{inline_blocks::InlineBlock, BlockMap, Block};
+use super::{inline_blocks::InlineBlock, BlockMap, Block, vec_string_to_arr};
 
 pub mod content_block;
 
@@ -210,6 +210,18 @@ impl StandardBlockType {
             _type => Err(StepError(format!("Block type '{}' not found", _type)))
         }
     }
+
+    pub fn from_json_block(json: &serde_json::Value) -> Result<Self, StepError> {
+        let block_type = json.get("_type").ok_or(StepError("Block does not have _type field".to_string()))?.as_str().ok_or(StepError("Block _type field is not a string".to_string()))?;
+        match block_type {
+            "paragraph" => Ok(StandardBlockType::Paragraph(ContentBlock::from_json(json)?)),
+            "h1" => Ok(StandardBlockType::H1(ContentBlock::from_json(json)?)),
+            "h2" => Ok(StandardBlockType::H2(ContentBlock::from_json(json)?)),
+            "h3" => Ok(StandardBlockType::H3(ContentBlock::from_json(json)?)),
+            _ => Err(StepError(format!("Block type {} not found", block_type)))
+        }
+    }
+
     pub fn to_json(&self) -> serde_json::Value {
         match self {
             StandardBlockType::Paragraph(block) => {
@@ -247,6 +259,26 @@ impl StandardBlockType {
         }
     }
 
+    pub fn _type_as_string(&self) -> Result<String, StepError> {
+        match self {
+            StandardBlockType::Paragraph(_) => return Ok("paragraph".to_string()),
+            StandardBlockType::H1(_) => return Ok("h1".to_string()),
+            StandardBlockType::H2(_) => return Ok("h2".to_string()),
+            StandardBlockType::H3(_) => return Ok("h3".to_string()),
+        }
+    }
+    pub fn to_js(&self) -> Result<JsValue, StepError> {
+        let content = js_sys::Object::new();
+        match self {
+            StandardBlockType::Paragraph(content_block) | StandardBlockType::H1(content_block) |
+            StandardBlockType::H2(content_block) | StandardBlockType::H3(content_block)
+                => {
+                    js_sys::Reflect::set(&content, &JsValue::from_str("inline_blocks"), &vec_string_to_arr(&content_block.inline_blocks)?.into()).unwrap();
+                }
+        }
+        return Ok(content.into())
+    }
+
     pub fn update_block_content(&self, content_block: ContentBlock) -> Result<Self, StepError> {
         match self {
             StandardBlockType::Paragraph(_) => Ok(StandardBlockType::Paragraph(content_block)),
@@ -277,3 +309,4 @@ impl StandardBlockType {
         }
     }
 }
+

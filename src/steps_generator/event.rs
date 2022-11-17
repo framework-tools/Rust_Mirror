@@ -12,7 +12,7 @@ pub enum Event {
 
 impl Event {
     pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
-        let _type = get_js_field_as_string(&JsValue::from(obj), "_type")?;
+        let _type = get_js_field_as_string(&JsValue::from(&obj), "_type")?;
         return match _type.as_str() {
             "keypress" => Ok(Event::KeyPress(KeyPress::from_js_obj(obj)?)),
             "formatbar" => Ok(Event::FormatBar(FormatBarEvent::from_js_obj(obj)?)),
@@ -46,9 +46,9 @@ impl KeyPress {
     }
 
     pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
-        let key = Key::from_str(&get_js_field_as_string(&JsValue::from(obj), "key")?)?;
+        let key = Key::from_str(&get_js_field_as_string(&JsValue::from(&obj), "key")?)?;
         let metadata = get_js_field(&JsValue::from(obj), "metadata")?;
-        let metadata = KeyPressMetadata::from_js_obj(&obj)?;
+        let metadata = KeyPressMetadata::from_js_obj(&metadata)?;
 
         return Ok(KeyPress {
             key,
