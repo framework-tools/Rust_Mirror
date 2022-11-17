@@ -15,12 +15,13 @@ pub fn execute_event(
     let event = Event::from_js_obj(event_js).unwrap();
     let mut new_ids = NewIds::Js(new_ids_arr);
 
-    let steps = match generate_steps(&event, &block_map, selection) {
-        Ok(steps) => steps,
-        Err(StepError(err)) => return Response { selection: None, err: Some(err) }
-    };
-
     return Response { selection: None, err: None }
+    // let steps = match generate_steps(&event, &block_map, selection) {
+    //     Ok(steps) => steps,
+    //     Err(StepError(err)) => return Response { selection: None, err: Some(err) }
+    // };
+
+    // return Response { selection: None, err: None }
     // return match execute_steps(steps, block_map, &mut new_ids) {
     //     Ok(UpdatedState { selection, .. }) => {
     //         let selection = match selection {
