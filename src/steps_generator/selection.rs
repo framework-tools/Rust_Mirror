@@ -4,6 +4,7 @@ use crate::{blocks::{Block, BlockMap, standard_blocks::StandardBlock}, step::{Re
 
 use super::StepError;
 use serde::{Deserialize, Serialize};
+use wasm_bindgen::JsValue;
 
 
 
@@ -20,6 +21,21 @@ impl Selection {
 			head
 		}
 	}
+
+    pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
+        let anchor_obj = match js_sys::Reflect::get(&JsValue::from(&obj), &JsValue::from_str("anchor")) {
+            Ok(anchor_obj) => anchor_obj,
+            Err(_) => return Err(StepError("Failed to get anchor from selection js obj".to_string()))
+        };
+        let head_obj = match js_sys::Reflect::get(&JsValue::from(obj), &JsValue::from_str("head")) {
+            Ok(head_obj) => head_obj,
+            Err(_) => return Err(StepError("Failed to get head from selection js obj".to_string()))
+        };
+        return Ok(Self {
+			anchor: SubSelection::from_js_obj(anchor_obj)?,
+			head: SubSelection::from_js_obj(head_obj)?
+        })
+    }
 
     /// Converts anchor & head to "from" & "to"
     ///
@@ -89,6 +105,35 @@ impl SubSelection {
 			offset,
 			subselection
 		}
+	}
+
+    pub fn from_js_obj(obj: JsValue) -> Result<Self, StepError> {
+        let block_id = match js_sys::Reflect::get(&obj, &JsValue::from_str("block_id")) {
+            Ok(block_id) => match block_id.as_string() {
+                Some(block_id) => block_id,
+                None => return Err(StepError("Block id on js obj subselection is not a string".to_string()))
+            },
+            Err(_) => return Err(StepError("Failed to get block id from subselection js obj".to_string()))
+        };
+        let offset = match js_sys::Reflect::get(&obj, &JsValue::from_str("offset")) {
+            Ok(offset) => match offset.as_f64() {
+                Some(offset) => offset as usize,
+                None => return Err(StepError("Offset on js obj subselection is not a number".to_string()))
+            },
+            Err(_) => return Err(StepError("Failed to get offset from subselection js obj".to_string()))
+        };
+        let subselection = match js_sys::Reflect::get(&obj, &JsValue::from_str("subselection")) {
+            Ok(subselection) => match subselection.is_null() {
+                true => None,
+                false => Some(Box::new(SubSelection::from_js_obj(subselection)?))
+            },
+            Err(_) => return Err(StepError("Failed to get subselection from subselection js obj".to_string()))
+        };
+		return Ok(Self {
+			block_id,
+			offset,
+			subselection
+		})
 	}
 
     pub fn block_id(&self) -> String {

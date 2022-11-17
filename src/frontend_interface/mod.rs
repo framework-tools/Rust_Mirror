@@ -2,25 +2,20 @@ use std::{str::FromStr};
 
 use js_sys::Map;
 use serde_json::json;
-use wasm_bindgen::JsValue;
 
 use crate::{steps_generator::{event::Event, selection::Selection, generate_steps, StepError},
 new_ids::NewIds, blocks::BlockMap, steps_executor::{execute_steps, UpdatedState}};
 
-
-
 pub fn execute_event(
-    selection_json: String,
+    selection_js: js_sys::Object,
     new_ids_json: String,
-    block_map: Map,
+    block_map_js: Map,
     event_json: String,
-    selection: js_sys::Object
 ) -> Reponse {
-    let block_id = js_sys::Reflect::get(&JsValue::from(selection), &JsValue::from_str("block_id")).unwrap();
+    let block_map = BlockMap::from_js_map(block_map_js);
+    let selection = Selection::from_js_obj(selection_js).unwrap();
 
-    let block_map = BlockMap::from_js_map(block_map);
-
-    let (selection, mut new_ids, event) = match parse_json_from_interface(selection_json, new_ids_json, event_json) {
+    let (mut new_ids, event) = match parse_json_from_interface(new_ids_json, event_json) {
         Ok(value) => value,
         Err(err) => return Reponse { map: None, selection_json: "".to_string(), err }
     };
@@ -50,14 +45,9 @@ pub struct Reponse {
 
 
 fn parse_json_from_interface(
-    selection_json: String,
     new_ids_json: String,
     event_json: String,
-) -> Result<(Selection, NewIds, Event), String> {
-    let selection: Selection = match serde_json::from_str(&selection_json) {
-        Ok(selection) => selection,
-        Err(_) => return Err("Selection json could not be parsed".to_string())
-    };
+) -> Result<(NewIds, Event), String> {
     let new_ids: Vec<String> = match serde_json::from_str(&new_ids_json) {
         Ok(new_ids) => new_ids,
         Err(_) => return Err("new_ids json could not be parsed".to_string())
@@ -71,5 +61,5 @@ fn parse_json_from_interface(
         Ok(event) => event,
         Err(_) => return Err("Event json could not be parsed".to_string())
     };
-    return Ok((selection, NewIds(new_ids), event))
+    return Ok((NewIds(new_ids), event))
 }
