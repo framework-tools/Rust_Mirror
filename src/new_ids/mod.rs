@@ -1,18 +1,28 @@
 use crate::steps_generator::StepError;
 
 
-pub struct NewIds(pub Vec<String>);
+pub enum NewIds {
+    Rust(Vec<String>),
+    Js(js_sys::Array)
+}
 
 impl NewIds {
     pub fn get_id(&mut self) -> Result<String, StepError> {
         match self {
-            NewIds(ids) => {
+            Self::Rust(ids) => {
                 let new_id = ids.pop();
                 return match new_id {
                     Some(id) => Ok(id),
                     None => Err(StepError("New ids vec is empty!".to_string()))
                 }
-            }
+            },
+            Self::Js(ids) => {
+                let new_id = ids.pop();
+                return match new_id.as_string() {
+                    Some(id) => Ok(id),
+                    None => Err(StepError("New ids vec is empty!".to_string()))
+                }
+            },
         }
     }
 
@@ -26,7 +36,7 @@ impl NewIds {
             "636b20fc2c8fcc320d5efba0", "636b20fc2c8fcc320d5efba1", "636b20fc2c8fcc320d5efba2", "636b20fc2c8fcc320d5efba3",
             "636b20fc2c8fcc320d5efba4", "636b20fc2c8fcc320d5efba5", "636b20fc2c8fcc320d5efba6", "636b20fc2c8fcc320d5efba7"
         ];
-        return Self(hardcoded_ids.to_vec().into_iter().map(|id| id.to_string()).collect())
+        return Self::Rust(hardcoded_ids.to_vec().into_iter().map(|id| id.to_string()).collect())
     }
 }
 
