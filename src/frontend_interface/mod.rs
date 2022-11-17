@@ -20,16 +20,17 @@ pub fn execute_event(
         Err(StepError(err)) => return Response { selection: None, err: Some(err) }
     };
 
-    return match execute_steps(steps, block_map, &mut new_ids) {
-        Ok(UpdatedState { selection, .. }) => {
-            let selection = match selection {
-                Some(selection) => Some(selection.to_js_obj().unwrap()),
-                None => None
-            };
-            Response { selection, err: None }
-        },
-        Err(StepError(err)) => Response { selection: None, err: Some(err) }
-    }
+    return Response { selection: None, err: None }
+    // return match execute_steps(steps, block_map, &mut new_ids) {
+    //     Ok(UpdatedState { selection, .. }) => {
+    //         let selection = match selection {
+    //             Some(selection) => Some(selection.to_js_obj().unwrap()),
+    //             None => None
+    //         };
+    //         Response { selection, err: None }
+    //     },
+    //     Err(StepError(err)) => Response { selection: None, err: Some(err) }
+    // }
 }
 
 pub struct Response {
