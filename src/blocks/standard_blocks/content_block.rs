@@ -20,7 +20,7 @@ impl ContentBlock {
 
     pub fn from_js_block(obj: &JsValue) -> Result<Self, StepError> {
         let content = get_js_field(obj, "content")?;
-        let inline_blocks = js_sys::Array::from(&get_js_field(obj, "inline_blocks")?)
+        let inline_blocks = js_sys::Array::from(&get_js_field(&content, "inline_blocks")?)
         .iter().map(|id| {
             id.as_string().ok_or(StepError("Block inline_blocks field is not an array of strings".to_string())).map_err(|e| e)
         }).collect::<Result<Vec<String>, StepError>>()?;

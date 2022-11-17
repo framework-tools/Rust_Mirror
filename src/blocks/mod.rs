@@ -398,10 +398,7 @@ impl BlockMap {
             Self::Js(js_map) => {
                 let opt_block = js_map.get(&JsString::from(id));
                 match opt_block.is_null() {
-                    true => {
-                        let x = Block::from_js_obj(&opt_block)?;
-                        return Err(StepError("Get works".to_string()))
-                    },
+                    true => return Block::from_js_obj(&opt_block),
                     false => Err(StepError(format!("Block with id {} does not exist", id)))
                 }
             }
