@@ -12,7 +12,7 @@ pub fn execute_event(
 ) -> Response {
     //let block_map = BlockMap::from_js_map(block_map_js);
     let selection = Selection::from_js_obj(selection_js).unwrap();
-    //let event = Event::from_js_obj(event_js).unwrap();
+    let event = Event::from_js_obj(event_js).unwrap();
     //let mut new_ids = NewIds::Js(new_ids_arr);
 
     return Response { selection: None, err: None }
