@@ -46,6 +46,7 @@ pub fn replace_selected_across_standard_blocks(
             from_block.set_new_parent_of_children(&mut block_map)?;
 
             let from_block_with_updated_text = merge_blocks_inline_blocks(from_block, to_block, inner_from_index, inner_to_index)?;
+            let block_map = from_block_with_updated_text.set_as_parent_for_all_inline_blocks(block_map)?;
 
             let block_map = update_from_subselection_inline_block_text(block_map, &replace_step)?;
             let block_map = update_to_subselection_inline_block_text(block_map, &replace_step,&from_block_with_updated_text._id)?;
