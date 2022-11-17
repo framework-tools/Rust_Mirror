@@ -2,6 +2,7 @@ use std::{str::FromStr};
 
 use js_sys::Map;
 use serde_json::json;
+use wasm_bindgen::JsValue;
 
 use crate::{steps_generator::{event::Event, selection::Selection, generate_steps, StepError},
 new_ids::NewIds, blocks::BlockMap, steps_executor::{execute_steps, UpdatedState}};
@@ -13,7 +14,10 @@ pub fn execute_event(
     new_ids_json: String,
     block_map: Map,
     event_json: String,
+    selection: js_sys::Object
 ) -> Reponse {
+    let block_id = js_sys::Reflect::get(&JsValue::from(selection), &JsValue::from_str("block_id")).unwrap();
+
     let block_map = BlockMap::from_js_map(block_map);
 
     let (selection, mut new_ids, event) = match parse_json_from_interface(selection_json, new_ids_json, event_json) {

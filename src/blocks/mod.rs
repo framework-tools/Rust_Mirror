@@ -405,7 +405,6 @@ impl BlockMap {
                 return Ok(None)
             }
         }
-
     }
 
     pub fn update_blocks(&mut self, blocks: Vec<Block>) -> Result<Vec<Option<String>>, StepError> {
