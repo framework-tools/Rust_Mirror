@@ -30,12 +30,13 @@ pub fn replace_selected_across_standard_blocks(
     parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
     block_map.update_block(parent_block)?;
 
-    if number_of_from_layers > number_of_to_layers {
+    //if number_of_from_layers != number_of_to_layers {
     //if number_of_from_layers != number_of_to_layers {
         replace_step.from = replace_step.from.get_two_deepest_layers()?;
         from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
         replace_step.to = replace_step.to.get_two_deepest_layers()?;
-    }
+    // }
+
     match &replace_step.from.subselection {
         Some(from_inner_subselection) => {
             let to_inner_subselection = replace_step.to.get_child_subselection()?;
