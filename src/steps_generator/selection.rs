@@ -191,7 +191,7 @@ impl SubSelection {
             Block::InlineBlock(inline_block) => {
                 return Ok(SubSelection {
                     block_id: inline_block.id(),
-                    offset: inline_block.text()?.len(),
+                    offset: inline_block.text()?.length() as usize,
                     subselection: None,
                 })
             }
@@ -235,7 +235,7 @@ impl SubSelection {
                     offset: 0,
                     subselection: Some(Box::new(SubSelection {
                         block_id: last_inline_block_in_block_before.id(),
-                        offset: last_inline_block_in_block_before.text()?.len(),
+                        offset: last_inline_block_in_block_before.text()?.length() as usize,
                         subselection: None,
                     })),
                 });

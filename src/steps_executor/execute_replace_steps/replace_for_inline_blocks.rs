@@ -1,4 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
+
+use js_sys::JsString;
 
 use crate::{blocks::{inline_blocks::InlineBlock, BlockMap, Block, standard_blocks::{content_block::ContentBlock, StandardBlock}},
 step::{ReplaceStep, ReplaceSlice}, steps_generator::{StepError, selection::Selection},
@@ -39,7 +41,9 @@ fn replace_across_single_inline_block(
 ) -> Result<UpdatedState, StepError> {
     let text = from_block.text()?.clone();
     // create new block with text from replace_with inserted
-    let updated_text = format!("{}{}{}", &text[0..replace_step.from.offset], replace_with, &text[replace_step.to.offset..]);
+    let first_half = text.substring(0, replace_step.from.offset as u32);
+    let second_half = text.substring(0, replace_step.to.offset as u32);
+    let updated_text = first_half.concat(&js_sys::JsString::from_str(replace_with.as_str()).unwrap()).concat(&second_half);
     let updated_block = from_block.update_text(updated_text)?;
     block_map.update_block(Block::InlineBlock(updated_block))?;
 
@@ -104,19 +108,19 @@ pub fn update_from_inline_block_text(
     offset: usize,
     replace_with: String
 ) -> Result<BlockMap, StepError> {
-    let updated_text = format!("{}{}", &from_block.text()?.clone()[..offset], replace_with);
+    let updated_text = from_block.text()?.substring(0, offset as u32).concat(&js_sys::JsString::from_str(replace_with.as_str()).unwrap());
     return update_inline_block_with_new_text_in_block(from_block, block_map, updated_text)
 }
 
 pub fn update_to_inline_block_text(to_block: InlineBlock, block_map: BlockMap, offset: usize) -> Result<BlockMap, StepError> {
-    let updated_text = format!("{}", &to_block.text()?.clone()[offset..]);
-    return update_inline_block_with_new_text_in_block(to_block, block_map, updated_text)
+    let updated_text = &to_block.text()?.substring(offset as u32, to_block.text()?.length());
+    return update_inline_block_with_new_text_in_block(to_block, block_map, updated_text.to_owned())
 }
 
 fn update_inline_block_with_new_text_in_block(
     inline_block: InlineBlock,
     mut block_map: BlockMap,
-    updated_text: String
+    updated_text: JsString
 ) -> Result<BlockMap, StepError> {
     let updated_inline_block = inline_block.update_text(updated_text)?;
     block_map.update_block(Block::InlineBlock(updated_inline_block))?;

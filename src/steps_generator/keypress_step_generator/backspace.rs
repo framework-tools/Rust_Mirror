@@ -18,7 +18,7 @@ pub fn generate_steps_for_backspace(
                         let previous_inline_block = from_block.previous_block(block_map)?;
                         from = SubSelection {
                             block_id: previous_inline_block.id(),
-                            offset: previous_inline_block.text()?.len() - 1,
+                            offset: previous_inline_block.text()?.length() as usize - 1,
                             subselection: None
                         };
                         to = from.clone();

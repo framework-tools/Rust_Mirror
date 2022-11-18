@@ -32,9 +32,9 @@ fn execute_mark_step_on_inline_block(
         //add mark to middle block
         //replace in parent block with new blocks
         let text = from_block.text()?.clone();
-        let before_text = text[0..mark_step.from.offset].to_string();
-        let middle_text = text[mark_step.from.offset..mark_step.to.offset].to_string();
-        let after_text = text[mark_step.to.offset..].to_string();
+        let before_text = text.substring(0, mark_step.from.offset as u32);
+        let middle_text = text.substring(mark_step.from.offset as u32, mark_step.to.offset as u32);
+        let after_text = text.substring(mark_step.to.offset as u32, text.length());
         let before_block = from_block.clone().update_text(before_text)?;
         let mut middle_block = from_block.clone().to_new_block(new_ids)?.update_text(middle_text)?;
         let after_block = from_block.to_new_block(new_ids)?.update_text(after_text)?;
@@ -50,7 +50,7 @@ fn execute_mark_step_on_inline_block(
 
         let new_selection = Selection {
             anchor: SubSelection { block_id: middle_block.id(), offset: 0, subselection: None },
-            head: SubSelection { block_id: middle_block.id(), offset: middle_block.text()?.len(), subselection: None },
+            head: SubSelection { block_id: middle_block.id(), offset: middle_block.text()?.length() as usize, subselection: None },
         };
         block_map.update_block(Block::StandardBlock(updated_parent_block.clone()))?;
         block_map.update_block(Block::InlineBlock(before_block))?;
@@ -72,10 +72,10 @@ fn execute_mark_step_on_inline_block(
         let to_block = block_map.get_inline_block(&mark_step.to.block_id)?;
         let from_text = from_block.text()?.clone();
         let to_text = to_block.text()?.clone();
-        let before_from_text = from_text[0..mark_step.from.offset].to_string();
-        let after_from_text = from_text[mark_step.from.offset..].to_string();
-        let before_to_text = to_text[0..mark_step.to.offset].to_string();
-        let after_to_text = to_text[mark_step.to.offset..].to_string();
+        let before_from_text = from_text.substring(0, mark_step.from.offset as u32);
+        let after_from_text = from_text.substring(mark_step.from.offset as u32, from_text.length());
+        let before_to_text = to_text.substring(0, mark_step.to.offset as u32);
+        let after_to_text = to_text.substring(mark_step.to.offset as u32, to_text.length());
         let before_from_block = from_block.clone().update_text(before_from_text)?;
         let before_from_block_id = before_from_block.id();
         block_map.update_block(Block::InlineBlock(before_from_block))?;
@@ -88,7 +88,7 @@ fn execute_mark_step_on_inline_block(
         let before_to_block = before_to_block.apply_mark(mark_step.mark.clone(), add_mark);
         let before_to_block_id = before_to_block.id();
         new_subselection.head.block_id = before_to_block.id();
-        new_subselection.head.offset = before_to_block.text()?.len();
+        new_subselection.head.offset = before_to_block.text()?.length() as usize;
         block_map.update_block(Block::InlineBlock(before_to_block))?;
         let after_to_block = to_block.update_text(after_to_text)?;
         let after_to_block_id = after_to_block.id();

@@ -7,7 +7,8 @@ use super::StepError;
 
 pub enum Event {
     KeyPress(KeyPress),
-    FormatBar(FormatBarEvent)
+    FormatBar(FormatBarEvent),
+    SlashScrim(SlashScrimEvent),
 }
 
 impl Event {
@@ -133,7 +134,8 @@ impl FormatBarEvent {
             }
         }
     }
-
-
 }
 
+pub struct SlashScrimEvent {
+    block_type: String
+}

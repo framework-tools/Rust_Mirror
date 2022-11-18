@@ -98,7 +98,7 @@ pub fn remove_empty_inline_blocks(
     let mut i = 0;
     for id in &content_block.inline_blocks {
         let inline_block = block_map.get_inline_block(&id)?;
-        if inline_block.text()?.is_empty() {
+        if inline_block.text()?.length() == 0 {
             let mut content_block = content_block.clone();
             content_block.inline_blocks.remove(i);
             let standard_block = standard_block.clone().update_block_content(content_block)?;

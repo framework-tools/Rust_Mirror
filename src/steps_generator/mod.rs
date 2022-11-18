@@ -24,6 +24,7 @@ pub fn generate_steps(event: &Event, block_map: &BlockMap, selection: Selection)
             FormatBarEvent::ForeColor(color) => generate_mark_steps(Mark::ForeColor(color.clone()), from, to, block_map),
             FormatBarEvent::BackColor(color) => generate_mark_steps(Mark::BackColor(color.clone()), from, to, block_map),
         },
+        Event::SlashScrim(slash_scrim_event) => unimplemented!()
     }
 }
 
