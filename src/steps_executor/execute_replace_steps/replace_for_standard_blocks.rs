@@ -22,21 +22,25 @@ pub fn replace_selected_across_standard_blocks(
         return Err(StepError("Expected from_block and to_block to have the same parent".to_string()))
     }
 
-    let number_of_from_layers = replace_step.from.count_layers();
-    let number_of_to_layers = replace_step.to.count_layers();
-
     let mut parent_block = block_map.get_block(&from_block.parent)?;
     let mut to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
     parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
     block_map.update_block(parent_block)?;
 
-    //if number_of_from_layers != number_of_to_layers {
-    //if number_of_from_layers != number_of_to_layers {
     replace_step.from = replace_step.from.get_two_deepest_layers()?;
     from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
     replace_step.to = replace_step.to.get_two_deepest_layers()?;
     to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
-    // }
+
+    if !to_block.parent_is_root(&block_map) {
+        let siblings_after_to_block = to_block.get_siblings_after(&block_map)?;
+        let mut from_parent = from_block.get_parent(&block_map)?;
+        let mut from_siblings = from_parent.children()?.clone();
+        from_siblings.splice(from_block.index(&block_map)? + 1.., siblings_after_to_block);
+        from_parent.set_children(from_siblings)?;
+        from_parent.set_new_parent_of_children(&mut block_map)?;
+        block_map.update_block(from_parent)?;
+    }
 
     match &replace_step.from.subselection {
         Some(from_inner_subselection) => {

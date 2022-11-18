@@ -188,6 +188,12 @@ impl StandardBlock {
             false => return Ok(self)
         }
     }
+
+    pub fn get_siblings_after(&self, block_map: &BlockMap) -> Result<Vec<String>, StepError> {
+        let parent = self.get_parent(block_map)?;
+        let children_after = &parent.children()?[self.index(block_map)? + 1 ..];
+        return Ok(children_after.to_vec())
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

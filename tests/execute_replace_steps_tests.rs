@@ -773,7 +773,7 @@ mod tests {
         assert_eq!(updated_inline_block_1.text().unwrap(), &"Hello bye World".to_string());
 
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
-//        assert_eq!(updated_root_block.children, vec![std_block_id1.clone(), std_block_id8.clone()]);
+        assert_eq!(updated_root_block.children, vec![std_block_id1.clone(), std_block_id8.clone()]);
 
         let updated_block1 = updated_state.block_map.get_standard_block(&std_block_id1).unwrap();
         assert_eq!(updated_block1.children, vec![std_block_id7.clone()]);

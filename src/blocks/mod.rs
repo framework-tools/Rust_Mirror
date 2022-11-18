@@ -293,6 +293,21 @@ impl Block {
         };
         return Ok(())
     }
+
+    pub fn set_new_parent_of_children(&self, block_map: &mut BlockMap) -> Result<(), StepError> {
+        match self {
+            Self::StandardBlock(std_block) => return std_block.set_new_parent_of_children(block_map),
+            Self::Root(root) => {
+                for id in &root.children {
+                    let mut block = block_map.get_standard_block(id)?;
+                    block.parent = self.id();
+                    block_map.update_block(Block::StandardBlock(block))?;
+                }
+            },
+            Self::InlineBlock(_) => return Err(StepError("Inline blocks do not contain children".to_string()))
+        };
+        return Ok(())
+    }
 }
 
 pub fn id_from_js_block(obj: &JsValue) -> Result<String, StepError> {
