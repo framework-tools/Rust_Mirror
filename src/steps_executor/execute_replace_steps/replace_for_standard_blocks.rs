@@ -26,15 +26,16 @@ pub fn replace_selected_across_standard_blocks(
     let number_of_to_layers = replace_step.to.count_layers();
 
     let mut parent_block = block_map.get_block(&from_block.parent)?;
-    let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
+    let mut to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
     parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
     block_map.update_block(parent_block)?;
 
     //if number_of_from_layers != number_of_to_layers {
     //if number_of_from_layers != number_of_to_layers {
-        replace_step.from = replace_step.from.get_two_deepest_layers()?;
-        from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
-        replace_step.to = replace_step.to.get_two_deepest_layers()?;
+    replace_step.from = replace_step.from.get_two_deepest_layers()?;
+    from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
+    replace_step.to = replace_step.to.get_two_deepest_layers()?;
+    to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
     // }
 
     match &replace_step.from.subselection {
