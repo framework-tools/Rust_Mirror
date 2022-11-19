@@ -17,6 +17,7 @@ impl Event {
         return match _type.as_str() {
             "keypress" => Ok(Event::KeyPress(KeyPress::from_js_obj(obj)?)),
             "formatbar" => Ok(Event::FormatBar(FormatBarEvent::from_js_obj(obj)?)),
+            "slash_scrim" => Ok(Event::SlashScrim(SlashScrimEvent::from_js_obj(obj)?)),
             _type => Err(StepError(format!("Expected event _type to be either 'keypress' or 'formatbar'. Got: {}", _type)))
         }
     }
@@ -137,5 +138,13 @@ impl FormatBarEvent {
 }
 
 pub struct SlashScrimEvent {
-    pub block_type: String
+    pub block_type: String,
+}
+
+impl SlashScrimEvent {
+    pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
+        return Ok(SlashScrimEvent {
+            block_type: get_js_field_as_string(&obj, "value")?
+        })
+    }
 }
