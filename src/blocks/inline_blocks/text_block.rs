@@ -39,3 +39,11 @@ impl StringUTF16 {
         return Self(vec![self.0, add.0].concat())
     }
 }
+
+#[test]
+fn testing_length_of_special_characters() {
+    let c = "®";
+    let utf16 = StringUTF16::from_str(c);
+    assert_eq!(c.len(), 2);
+    assert_eq!(utf16.len(), 1);
+}

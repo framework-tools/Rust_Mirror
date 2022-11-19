@@ -1,6 +1,6 @@
 
 use crate::{
-    blocks::{standard_blocks::StandardBlock, Block, BlockMap},
+    blocks::{standard_blocks::StandardBlock, Block, BlockMap, inline_blocks::text_block::StringUTF16},
     step::{ReplaceSlice, ReplaceStep}, frontend_interface::{get_js_field, get_js_field_as_string, get_js_field_as_f64},
 };
 
@@ -77,7 +77,7 @@ impl Selection {
                     replace_step.from.get_deepest_subselection().clone();
                 let subselection = SubSelection {
                     block_id: deepest_from_subselection.block_id,
-                    offset: deepest_from_subselection.offset + replace_slice.len(),
+                    offset: deepest_from_subselection.offset + StringUTF16::from_str(replace_slice.as_str()).len(),
                     subselection: None,
                 };
                 return Selection {
