@@ -59,7 +59,7 @@ mod tests {
         let inline_blocks = &new_std_block.content_block().unwrap().inline_blocks;
         assert_eq!(inline_blocks.len(), 1);
         let new_inline_block = updated_state.block_map.get_inline_block(&inline_blocks[0]).unwrap();
-        assert_eq!(new_inline_block.text().unwrap(), &"".to_string());
+        assert_eq!(new_inline_block.text().unwrap().clone().to_string().as_str(), &"".to_string());
         assert_eq!(new_inline_block.parent, new_std_block.id());
     }
 
@@ -129,12 +129,12 @@ mod tests {
         let inline_blocks = &new_std_block.content_block().unwrap().inline_blocks;
         assert_eq!(inline_blocks.len(), 2);
         let new_inline_block = updated_state.block_map.get_inline_block(&inline_blocks[0]).unwrap();
-        assert_eq!(new_inline_block.text().unwrap(), &"lo ".to_string());
+        assert_eq!(new_inline_block.text().unwrap().clone().to_string().as_str(), &"lo ".to_string());
         assert_eq!(new_inline_block.parent, new_std_block.id());
         assert_eq!(new_inline_block.marks, vec![Mark::Bold]);
         assert_eq!(inline_blocks[1], inline_block_id2);
         let inline_block_2 = updated_state.block_map.get_inline_block(&inline_block_id2).unwrap();
-        assert_eq!(inline_block_2.text().unwrap(), "World!");
+        assert_eq!(inline_block_2.text().unwrap().clone().to_string().as_str(), "World!");
 
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children[1], new_std_block.id());
@@ -231,7 +231,7 @@ mod tests {
 
         assert_eq!(inline_blocks.len(), 2);
         let new_inline_block = updated_state.block_map.get_inline_block(&inline_blocks[0]).unwrap();
-        assert_eq!(new_inline_block.text().unwrap(), &"rave new ".to_string());
+        assert_eq!(new_inline_block.text().unwrap().clone().to_string().as_str(), &"rave new ".to_string());
         assert_eq!(new_inline_block.parent, new_std_block.id());
         assert_eq!(new_inline_block.marks, vec![Mark::Italic]);
         assert_eq!(inline_blocks[1], inline_block_id3);

@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use js_sys::JsString;
 
-use crate::{blocks::{inline_blocks::InlineBlock, BlockMap, Block, standard_blocks::{content_block::ContentBlock, StandardBlock}},
+use crate::{blocks::{inline_blocks::{InlineBlock, text_block::StringUTF16}, BlockMap, Block, standard_blocks::{content_block::ContentBlock, StandardBlock}},
 step::{ReplaceStep, ReplaceSlice}, steps_generator::{StepError, selection::Selection},
 steps_executor::{UpdatedState, clean_block_after_transform}};
 
@@ -39,12 +39,10 @@ fn replace_across_single_inline_block(
     replace_step: ReplaceStep,
     replace_with: String
 ) -> Result<UpdatedState, StepError> {
-    let text = from_block.text()?.clone();
+    let mut text = from_block.text()?.clone();
+    text.splice(replace_step.from.offset..replace_step.from.offset, StringUTF16::from_str(replace_with.as_str()));
     // create new block with text from replace_with inserted
-    let first_half = text.substring(0, replace_step.from.offset as u32);
-    let second_half = text.substring(0, replace_step.to.offset as u32);
-    let updated_text = first_half.concat(&js_sys::JsString::from_str(replace_with.as_str()).unwrap()).concat(&second_half);
-    let updated_block = from_block.update_text(updated_text)?;
+    let updated_block = from_block.update_text(text)?;
     block_map.update_block(Block::InlineBlock(updated_block))?;
 
     return Ok(UpdatedState {
@@ -108,19 +106,21 @@ pub fn update_from_inline_block_text(
     offset: usize,
     replace_with: String
 ) -> Result<BlockMap, StepError> {
-    let updated_text = from_block.text()?.substring(0, offset as u32).concat(&js_sys::JsString::from_str(replace_with.as_str()).unwrap());
-    return update_inline_block_with_new_text_in_block(from_block, block_map, updated_text)
+    let mut text = from_block.text()?.clone();
+    text.splice(offset..offset, StringUTF16::from_str(replace_with.as_str()));
+    return update_inline_block_with_new_text_in_block(from_block, block_map, text.clone())
 }
 
 pub fn update_to_inline_block_text(to_block: InlineBlock, block_map: BlockMap, offset: usize) -> Result<BlockMap, StepError> {
-    let updated_text = &to_block.text()?.substring(offset as u32, to_block.text()?.length());
-    return update_inline_block_with_new_text_in_block(to_block, block_map, updated_text.to_owned())
+    let mut text = to_block.text()?.clone();
+    text.splice(offset..text.len(), StringUTF16::new());
+    return update_inline_block_with_new_text_in_block(to_block, block_map, text.clone())
 }
 
 fn update_inline_block_with_new_text_in_block(
     inline_block: InlineBlock,
     mut block_map: BlockMap,
-    updated_text: JsString
+    updated_text: StringUTF16
 ) -> Result<BlockMap, StepError> {
     let updated_inline_block = inline_block.update_text(updated_text)?;
     block_map.update_block(Block::InlineBlock(updated_inline_block))?;

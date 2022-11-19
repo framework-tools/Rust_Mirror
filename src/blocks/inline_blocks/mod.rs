@@ -1,14 +1,12 @@
 
 
 use std::str::FromStr;
-
-use js_sys::JsString;
 use serde_json::json;
 use wasm_bindgen::JsValue;
 
 use crate::{mark::Mark, steps_generator::StepError, new_ids::{self, NewIds}, frontend_interface::{get_js_field_as_string, get_js_field}};
 
-use self::text_block::TextBlock;
+use self::text_block::{TextBlock, StringUTF16};
 
 use super::{BlockMap, standard_blocks::StandardBlock};
 
@@ -23,10 +21,10 @@ pub struct InlineBlock {
 }
 
 impl InlineBlock {
-    pub fn new_text_block(text: String, marks: Vec<Mark>, parent: String, new_ids: &mut NewIds) -> Result<Self, StepError> {
+    pub fn new_text_block(text: &str, marks: Vec<Mark>, parent: String, new_ids: &mut NewIds) -> Result<Self, StepError> {
         Ok(InlineBlock {
             _id: new_ids.get_id()?,
-            content: InlineBlockType::TextBlock(TextBlock { text: JsString::from_str(text.as_str()).unwrap() }),
+            content: InlineBlockType::TextBlock(TextBlock(StringUTF16::from_str(text)) ),
             marks,
             parent
         })
@@ -36,14 +34,14 @@ impl InlineBlock {
         return self._id.clone()
     }
 
-    pub fn text(&self) -> Result<&JsString, StepError> {
+    pub fn text(&self) -> Result<&StringUTF16, StepError> {
         match &self.content {
-            InlineBlockType::TextBlock(block) => Ok(&block.text),
+            InlineBlockType::TextBlock(block) => Ok(&block.0),
             _ => Err(StepError("Block does not have text".to_string()))
         }
     }
 
-    pub fn update_text(self, text: JsString) -> Result<Self, StepError> {
+    pub fn update_text(self, text: StringUTF16) -> Result<Self, StepError> {
         Ok(InlineBlock {
             _id: self._id,
             content: self.content.update_text(text),
@@ -67,7 +65,7 @@ impl InlineBlock {
     }
 
     pub fn merge(self, merge_with: Self) -> Result<Self, StepError> {
-        let text = self.text()?.to_string().concat(&merge_with.text()?.to_string());
+        let text = self.text()?.clone().concat(merge_with.text()?.clone());
         Ok(InlineBlock {
             _id: self.id(),
             content: self.content.update_text(text),
@@ -118,11 +116,10 @@ impl InlineBlock {
 
     pub fn split(mut self, offset: usize, new_ids: &mut NewIds) -> Result<(Self, Self), StepError> {
         let text = self.text()?;
-        if offset > text.length() as usize {
-            return Err(StepError(format!("Offset is larger than text size. Offset: {}, text: {}", offset, text)))
+        if offset > text.len() as usize {
+            return Err(StepError(format!("Offset is larger than text size. Offset: {}, text: {:?}", offset, text)))
         }
-        let first_half = text.substring(0, offset as u32);
-        let second_half = text.substring(offset as u32, text.length());
+        let (first_half, second_half) = text.split(offset);
         self = self.update_text(first_half)?;
         let new_block = self.clone().to_new_block(new_ids)?.update_text(second_half)?;
         return Ok((self, new_block))
@@ -141,9 +138,7 @@ impl InlineBlockType {
 
         match _type.as_str() {
             "text" => {
-                return Ok(InlineBlockType::TextBlock(TextBlock {
-                    text: JsString::from(get_js_field(&content, "text")?)
-                }))
+                return Ok(InlineBlockType::TextBlock(TextBlock(StringUTF16::from_str(get_js_field_as_string(&content, "text")?.as_str()))))
             },
             _ => Err(StepError(format!("Block _type {} not found", _type)))
         }
@@ -154,35 +149,33 @@ impl InlineBlockType {
         match _type {
             "text" => {
                 let text_block = json.get("content").ok_or(StepError("Block does not have block field".to_string()))?;
-                return Ok(InlineBlockType::TextBlock(TextBlock {
-                    text: JsString::from_str(
+                return Ok(InlineBlockType::TextBlock(TextBlock(StringUTF16::from_str(
                         text_block.get("text").ok_or(StepError("Block does not have text field".to_string()))?
                         .as_str().ok_or(StepError("Block text field is not a string".to_string()))?
-                    ).unwrap()
-                }))
+                    ))))
             },
             _ => Err(StepError(format!("Block kind {} not found", _type)))
         }
     }
 
-    pub fn text(&self) -> Result<&JsString, StepError> {
+    pub fn text(&self) -> Result<&StringUTF16, StepError> {
         match self {
-            InlineBlockType::TextBlock(block) => Ok(&block.text),
+            InlineBlockType::TextBlock(block) => Ok(&block.0),
         }
     }
 
-    pub fn update_text(self, text: JsString) -> Self {
+    pub fn update_text(self, text: StringUTF16) -> Self {
         match self {
-            InlineBlockType::TextBlock(_) => InlineBlockType::TextBlock(TextBlock { text })
+            InlineBlockType::TextBlock(_) => InlineBlockType::TextBlock(TextBlock(text))
         }
     }
 
     pub fn to_json(&self) -> serde_json::Value {
         match self {
-            InlineBlockType::TextBlock(block) => json!({
+            InlineBlockType::TextBlock(TextBlock(text)) => json!({
                 "_type": "text",
                 "content": {
-                    "text": block.text.as_string().unwrap()
+                    "text": text.clone().to_string()
                 }
             })
         }
@@ -193,11 +186,12 @@ impl InlineBlockType {
             InlineBlockType::TextBlock(_) => return Ok("text".to_string()),
         }
     }
+
     pub fn to_js_content(&self) -> Result<JsValue, StepError> {
         let obj = js_sys::Object::new();
         match self {
-            InlineBlockType::TextBlock(TextBlock { text }) => {
-                js_sys::Reflect::set(&obj, &JsValue::from_str("text"), &JsValue::from(text)).unwrap();
+            InlineBlockType::TextBlock(TextBlock(text)) => {
+                js_sys::Reflect::set(&obj, &JsValue::from_str("text"), &JsValue::from(text.clone().to_string())).unwrap();
             },
         }
         return Ok(JsValue::from(obj))

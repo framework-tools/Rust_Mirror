@@ -2,7 +2,9 @@
 mod tests {
     use serde_json::json;
 
-    use rust_mirror::{steps_generator::{StepError, event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps}, new_ids::NewIds, blocks::{RootBlock, BlockMap, Block}, steps_executor::execute_steps, mark::Mark, step::{Step, ReplaceStep}};
+    use rust_mirror::{steps_generator::{StepError, event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps},
+    new_ids::NewIds, blocks::{RootBlock, BlockMap, Block}, steps_executor::execute_steps,
+    mark::Mark};
 
     #[test]
     fn can_execute_steps_for_standard_keypress() -> Result<(), StepError> {
@@ -43,7 +45,7 @@ mod tests {
         let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id)?;
-        assert_eq!(updated_inline_block.text()?, "a");
+        assert_eq!(updated_inline_block.text()?.clone().to_string().as_str(), "a");
         let expected_subselection = SubSelection { block_id: inline_block_id, offset: 1, subselection: None };
         assert_eq!(updated_state.selection, Some(Selection { anchor: expected_subselection.clone(), head: expected_subselection }));
         Ok(())
@@ -151,7 +153,7 @@ mod tests {
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id).unwrap();
-        assert_eq!(updated_inline_block.text().unwrap(), "sok text");
+        assert_eq!(updated_inline_block.text().unwrap().clone().to_string().as_str(), "sok text");
         assert_eq!(updated_inline_block.marks, vec![Mark::Bold]);
     }
 
@@ -222,7 +224,7 @@ mod tests {
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
-        assert_eq!(updated_inline_block.text().unwrap(), "He orld");
+        assert_eq!(updated_inline_block.text().unwrap().clone().to_string().as_str(), "He orld");
         let updated_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let updated_content_block = updated_paragraph_block.content_block().unwrap();
         assert_eq!(updated_content_block.inline_blocks.len(), 1);
@@ -379,9 +381,9 @@ mod tests {
         );
 
         let updated_inline_block1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
-        assert_eq!(updated_inline_block1.text().unwrap(), "H ");
+        assert_eq!(updated_inline_block1.text().unwrap().clone().to_string().as_str(), "H ");
         let updated_inline_block3 = updated_state.block_map.get_inline_block(&inline_block_id3).unwrap();
-        assert_eq!(updated_inline_block3.text().unwrap(), "ld!");
+        assert_eq!(updated_inline_block3.text().unwrap().clone().to_string().as_str(), "ld!");
         assert_eq!(updated_inline_block3.parent, updated_std_block1.id());
 
         let updated_paragraph_block2 = updated_state.block_map.get_standard_block(&std_block_id2).unwrap();
@@ -569,7 +571,7 @@ mod tests {
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_inline_block_2 = updated_state.block_map.get_inline_block(&inline_block_id2).unwrap();
-        assert_eq!(updated_inline_block_2.text().unwrap(), &"a b cGoodbye World".to_string());
+        assert_eq!(updated_inline_block_2.text().unwrap().clone().to_string().as_str(), &"a b cGoodbye World".to_string());
 
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children, vec![std_block_id1.clone()]);
@@ -770,7 +772,7 @@ mod tests {
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_inline_block_1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
-        assert_eq!(updated_inline_block_1.text().unwrap(), &"Hello bye World".to_string());
+        assert_eq!(updated_inline_block_1.text().unwrap().clone().to_string().as_str(), &"Hello bye World".to_string());
 
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children, vec![std_block_id1.clone(), std_block_id8.clone()]);
@@ -1101,7 +1103,7 @@ mod tests {
         assert_eq!(updated_paragraph_block.content_block().unwrap().inline_blocks, vec![inline_block_id1.clone()]);
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
-        assert_eq!(updated_inline_block.text().unwrap(), &"".to_string());
+        assert_eq!(updated_inline_block.text().unwrap().clone().to_string().as_str(), &"".to_string());
 
         assert_eq!(updated_state.selection, Some(Selection {
             anchor: SubSelection { block_id: inline_block_id1.clone(), offset: 0, subselection: None },

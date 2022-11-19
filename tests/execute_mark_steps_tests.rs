@@ -48,16 +48,16 @@ mod tests {
         assert_eq!(content_block.inline_blocks.len(), 3);
 
         let inline_block1 = updated_state.block_map.get_inline_block(&content_block.inline_blocks[0]).unwrap();
-        assert_eq!(inline_block1.text().unwrap(), "H");
+        assert_eq!(inline_block1.text().unwrap().clone().to_string().as_str(), "H");
         assert_eq!(inline_block1.marks.len(), 0);
 
         let inline_block2 = updated_state.block_map.get_inline_block(&content_block.inline_blocks[1]).unwrap();
-        assert_eq!(inline_block2.text().unwrap(), "ello");
+        assert_eq!(inline_block2.text().unwrap().clone().to_string().as_str(), "ello");
         assert_eq!(inline_block2.marks.len(), 1);
         assert_eq!(inline_block2.marks[0], Mark::Bold);
 
         let inline_block3 = updated_state.block_map.get_inline_block(&content_block.inline_blocks[2]).unwrap();
-        assert_eq!(inline_block3.text().unwrap(), " World");
+        assert_eq!(inline_block3.text().unwrap().clone().to_string().as_str(), " World");
         assert_eq!(inline_block3.marks.len(), 0);
 
         let expected_selection = Selection {
@@ -135,18 +135,18 @@ mod tests {
         for id in content_block.inline_blocks.iter() {
             let inline_block = updated_state.block_map.get_inline_block(id).unwrap();
             if i == 0 {
-                assert_eq!(inline_block.text().unwrap(), "He");
+                assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "He");
                 assert_eq!(inline_block.marks.len(), 1);
                 assert_eq!(inline_block.marks[0], Mark::Italic);
             } else if i == 1 {
-                assert_eq!(inline_block.text().unwrap(), "llo ");
+                assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "llo ");
                 assert_eq!(inline_block.marks.len(), 0);
             } else if i == 2 {
-                assert_eq!(inline_block.text().unwrap(), "Wor");
+                assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "Wor");
                 assert_eq!(inline_block.marks.len(), 1);
                 assert_eq!(inline_block.marks[0], Mark::Bold);
             } else if i == 3 {
-                assert_eq!(inline_block.text().unwrap(), "ld");
+                assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "ld");
                 assert_eq!(inline_block.marks.len(), 2);
                 assert_eq!(inline_block.marks.contains(&Mark::Bold), true);
                 assert_eq!(inline_block.marks.contains(&Mark::Italic), true);
@@ -235,11 +235,11 @@ mod tests {
         for id in content_block.inline_blocks.iter() {
             let inline_block = updated_state.block_map.get_inline_block(id).unwrap();
             if i == 0 {
-                assert_eq!(inline_block.text().unwrap(), "Hello brave new Wor");
+                assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "Hello brave new Wor");
                 assert_eq!(inline_block.marks.len(), 1);
                 assert_eq!(inline_block.marks[0], Mark::Bold);
             } else if i == 1 {
-                assert_eq!(inline_block.text().unwrap(), "ld!");
+                assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "ld!");
                 assert_eq!(inline_block.marks.len(), 0);
             }
             i += 1;
