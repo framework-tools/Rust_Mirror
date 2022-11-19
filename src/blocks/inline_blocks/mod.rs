@@ -21,6 +21,15 @@ pub struct InlineBlock {
 }
 
 impl InlineBlock {
+    pub fn new(new_ids: &mut NewIds, parent: String) -> Result<Self, StepError> {
+        return Ok(Self {
+            _id: new_ids.get_id()?,
+            content: InlineBlockType::TextBlock(TextBlock(StringUTF16::new())),
+            marks: vec![],
+            parent
+        })
+    }
+
     pub fn new_text_block(text: &str, marks: Vec<Mark>, parent: String, new_ids: &mut NewIds) -> Result<Self, StepError> {
         Ok(InlineBlock {
             _id: new_ids.get_id()?,
