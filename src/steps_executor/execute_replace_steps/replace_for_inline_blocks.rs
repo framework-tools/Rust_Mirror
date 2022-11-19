@@ -107,13 +107,13 @@ pub fn update_from_inline_block_text(
     replace_with: String
 ) -> Result<BlockMap, StepError> {
     let mut text = from_block.text()?.clone();
-    text.splice(offset..offset, StringUTF16::from_str(replace_with.as_str()));
+    text.splice(offset..text.len(), StringUTF16::from_str(replace_with.as_str()));
     return update_inline_block_with_new_text_in_block(from_block, block_map, text.clone())
 }
 
 pub fn update_to_inline_block_text(to_block: InlineBlock, block_map: BlockMap, offset: usize) -> Result<BlockMap, StepError> {
     let mut text = to_block.text()?.clone();
-    text.splice(offset..text.len(), StringUTF16::new());
+    text.splice(0..offset, StringUTF16::new());
     return update_inline_block_with_new_text_in_block(to_block, block_map, text.clone())
 }
 
