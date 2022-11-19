@@ -137,5 +137,5 @@ impl FormatBarEvent {
 }
 
 pub struct SlashScrimEvent {
-    block_type: String
+    pub block_type: String
 }

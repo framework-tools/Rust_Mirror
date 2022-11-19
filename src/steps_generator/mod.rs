@@ -1,13 +1,14 @@
 
+use crate::{blocks::{BlockMap}, step::Step, mark::Mark};
 
-use crate::{blocks::{BlockMap}, step::Step, mark::Mark, new_ids::NewIds};
+use self::{event::{Event, FormatBarEvent}, keypress_step_generator::{generate_keyboard_event_steps}, selection::Selection, mark_steps::generate_mark_steps, slash_scrim::generate_slash_scrim_steps};
 
-use self::{event::{Event, FormatBarEvent}, keypress_step_generator::{generate_keyboard_event_steps}, selection::Selection, mark_steps::generate_mark_steps};
 pub mod keypress_step_generator;
 pub mod selection;
 pub mod event;
 pub mod generate_replace_selected_steps;
 pub mod mark_steps;
+pub mod slash_scrim;
 
 #[derive(Debug, PartialEq)]
 pub struct StepError (pub String);
@@ -24,9 +25,6 @@ pub fn generate_steps(event: &Event, block_map: &BlockMap, selection: Selection)
             FormatBarEvent::ForeColor(color) => generate_mark_steps(Mark::ForeColor(color.clone()), from, to, block_map),
             FormatBarEvent::BackColor(color) => generate_mark_steps(Mark::BackColor(color.clone()), from, to, block_map),
         },
-        Event::SlashScrim(slash_scrim_event) => unimplemented!()
+        Event::SlashScrim(slash_scrim_event) => generate_slash_scrim_steps(slash_scrim_event, from, to, block_map)
     }
 }
-
-
-
