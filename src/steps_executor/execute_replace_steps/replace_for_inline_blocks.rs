@@ -40,7 +40,7 @@ fn replace_across_single_inline_block(
     replace_with: String
 ) -> Result<UpdatedState, StepError> {
     let mut text = from_block.text()?.clone();
-    text.splice(replace_step.from.offset..replace_step.from.offset, StringUTF16::from_str(replace_with.as_str()));
+    text.splice(replace_step.from.offset..replace_step.to.offset, StringUTF16::from_str(replace_with.as_str()));
     // create new block with text from replace_with inserted
     let updated_block = from_block.update_text(text)?;
     block_map.update_block(Block::InlineBlock(updated_block))?;
