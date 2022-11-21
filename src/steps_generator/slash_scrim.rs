@@ -35,9 +35,9 @@ pub fn generate_slash_scrim_steps(
 
     let new_block_type = match slash_scrim_event.block_type.as_str() {
         "paragraph" => StandardBlockType::Paragraph(ContentBlock::new(vec![])),
-        "h1" => StandardBlockType::H1(ContentBlock::new(vec![])),
-        "h2" => StandardBlockType::H2(ContentBlock::new(vec![])),
-        "h3" => StandardBlockType::H3(ContentBlock::new(vec![])),
+        "heading 1" => StandardBlockType::H1(ContentBlock::new(vec![])),
+        "heading 2" => StandardBlockType::H2(ContentBlock::new(vec![])),
+        "heading 3" => StandardBlockType::H3(ContentBlock::new(vec![])),
         block_type => return Err(StepError(format!("There is no valid block type: {}", block_type)))
     };
 
