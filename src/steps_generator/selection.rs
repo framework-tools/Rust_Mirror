@@ -243,6 +243,52 @@ impl SubSelection {
         }
     }
 
+    /// Gives the selection based on the raw length of all inline blocks text combined
+    /// up to the current deepest subselection
+    pub fn to_raw_selection(&self, block_map: &BlockMap) -> Result<Self, StepError> {
+        match self.subselection {
+            Some(_) => unimplemented!(),
+            None => {
+                let inline_block = block_map.get_inline_block(&self.block_id)?;
+                let parent = &inline_block.get_parent(block_map)?;
+                let inline_blocks = &parent.content_block()?.inline_blocks;
+                let mut i = 0;
+                let mut raw_offset = 0;
+                while i < inline_block.index(block_map)? {
+                    let inline_block = block_map.get_inline_block(&inline_blocks[i])?;
+                    raw_offset += inline_block.text()?.len();
+
+                    i += 1;
+                }
+                raw_offset += self.offset;
+                return Ok(SubSelection {
+                    block_id: parent.id(),
+                    offset: raw_offset,
+                    subselection: None
+                })
+            }
+        }
+    }
+    pub fn real_selection_from_raw(self, block_map: &BlockMap) -> Result<Self, StepError> {
+        let std_block = &block_map.get_standard_block(&self.block_id)?;
+        let inline_blocks = &std_block.content_block()?.inline_blocks;
+        let mut current_count = 0;
+        for id in inline_blocks {
+            let inline_block = block_map.get_inline_block(&id)?;
+            if inline_block.text()?.len() + current_count >= self.offset {
+                return Ok(Self {
+                    block_id: id.clone(),
+                    offset: self.offset - current_count,
+                    subselection: None
+                })
+            } else {
+                current_count += inline_block.text()?.len();
+            }
+        }
+
+        return Err(StepError("Raw offset is greater than total text length of this standard block!".to_string()))
+    }
+
     pub fn to_js_obj(self) -> Result<JsValue, StepError> {
         let obj = js_sys::Object::new();
         js_sys::Reflect::set(&obj, &JsValue::from_str("block_id"), &JsValue::from_str(self.block_id.as_str()))

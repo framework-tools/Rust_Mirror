@@ -1,20 +1,36 @@
 
-use crate::{step::{MarkStep}, blocks::{BlockMap, Block, inline_blocks::{InlineBlock, text_block::StringUTF16}, standard_blocks::StandardBlock}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
+use crate::{step::{MarkStep}, blocks::{BlockMap, Block, inline_blocks::{InlineBlock}, standard_blocks::StandardBlock}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
 
 use super::{clean_block_after_transform, UpdatedState};
 
 
-pub fn execute_mark_step(mark_step: MarkStep, mut block_map: BlockMap, add_mark: bool, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
+pub fn execute_mark_step(
+    mark_step: MarkStep,
+    mut block_map: BlockMap,
+    add_mark: bool,
+    new_ids: &mut NewIds
+) -> Result<UpdatedState, StepError> {
+    let from_raw_selection = mark_step.from.to_raw_selection(&block_map)?;
+    let to_raw_selection = mark_step.to.to_raw_selection(&block_map)?;
+
     let block = block_map.get_block(&mark_step.from.block_id)?;
     match block {
         Block::InlineBlock(from_block) => {
-            return execute_mark_step_on_inline_blocks(mark_step, from_block, block_map, add_mark, new_ids)
+            let updated_state = execute_mark_step_on_inline_blocks(mark_step, from_block, block_map, add_mark, new_ids)?;
+            block_map = updated_state.block_map;
         },
         Block::StandardBlock(from_block) => {
-            return execute_mark_step_on_standard_blocks(mark_step, from_block, block_map, add_mark, new_ids)
+            let updated_state = execute_mark_step_on_standard_blocks(mark_step, from_block, block_map, add_mark, new_ids)?;
+            block_map = updated_state.block_map;
         },
-        Block::Root(root_block) => return Err(StepError("Cannot mark root block".to_string()))
+        Block::Root(_) => return Err(StepError("Cannot mark root block".to_string()))
     };
+
+    let selection = Some(Selection {
+        anchor: from_raw_selection.real_selection_from_raw(&block_map)?,
+        head: to_raw_selection.real_selection_from_raw(&block_map)?
+    });
+    return Ok(UpdatedState { block_map, selection })
 }
 
 fn execute_mark_step_on_inline_blocks(
@@ -162,7 +178,7 @@ fn execute_mark_step_on_standard_blocks(
         mark: mark_step.mark.clone(),
     };
     let inline_block = block_map.get_inline_block(&to_block.content_block()?.inline_blocks[0])?;
-    println!("got here");
+
     let updated_state = execute_mark_step_on_inline_blocks(to_mark_step, inline_block, block_map, add_mark, new_ids)?;
     block_map = updated_state.block_map;
 

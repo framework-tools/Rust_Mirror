@@ -232,18 +232,27 @@ mod tests {
         let content_block = updated_standard_block.content_block().unwrap();
         assert_eq!(content_block.inline_blocks.len(), 2);
         let mut i = 0;
+        let mut first_inline_block_id_after_update = "".to_string();
         for id in content_block.inline_blocks.iter() {
             let inline_block = updated_state.block_map.get_inline_block(id).unwrap();
             if i == 0 {
                 assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "Hello brave new Wor");
                 assert_eq!(inline_block.marks.len(), 1);
                 assert_eq!(inline_block.marks[0], Mark::Bold);
+                first_inline_block_id_after_update = inline_block.id();
+
             } else if i == 1 {
                 assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "ld!");
                 assert_eq!(inline_block.marks.len(), 0);
             }
             i += 1;
         }
+
+        let expected_selection = Selection {
+            anchor: SubSelection { block_id: first_inline_block_id_after_update.clone(), offset: 0, subselection: None },
+            head: SubSelection { block_id: first_inline_block_id_after_update.clone(), offset: 19, subselection: None }
+        };
+        assert_eq!(updated_state.selection, Some(expected_selection));
     }
 
     #[test]
