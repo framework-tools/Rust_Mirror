@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}}, steps_generator::{event::{Event, SlashScrimEvent}, selection::{SubSelection, Selection}, generate_steps}, step::{Step, ReplaceSlice}, steps_executor::execute_steps};
+    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}},
+    steps_generator::{event::{Event, SlashScrimEvent}, selection::{SubSelection, Selection}, generate_steps}, step::{Step, ReplaceSlice}, steps_executor::execute_steps};
     use serde_json::json;
-
 
     #[test]
     fn can_handle_slash_scrim_add_block() {
@@ -74,7 +74,7 @@ mod tests {
             "kind": "inline",
             "_type": "text",
             "content": {
-                "text": "Hello world /para fdsafds"
+                "text": "Hello world /headi fdsafds"
             },
             "marks": [],
             "parent": paragraph_block_id.clone()
@@ -93,7 +93,7 @@ mod tests {
         let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]).to_string();
 
         let block_map = BlockMap::from(vec![inline_block, block, root_block]).unwrap();
-        let event = Event::SlashScrim(SlashScrimEvent { block_type: "paragraph".to_string() });
+        let event = Event::SlashScrim(SlashScrimEvent { block_type: "heading 1".to_string() });
         let sub_selection = SubSelection::from(inline_block_id.clone().clone(), 17, None);
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
@@ -105,7 +105,7 @@ mod tests {
 
         let new_block = updated_state.block_map.get_standard_block(&updated_root_block.children[1]).unwrap();
         match new_block.content {
-            StandardBlockType::Paragraph(ContentBlock { inline_blocks }) => {
+            StandardBlockType::H1(ContentBlock { inline_blocks }) => {
                 assert_eq!(inline_blocks.len(), 1);
                 let new_inline_block = updated_state.block_map.get_inline_block(&inline_blocks[0]).unwrap();
 

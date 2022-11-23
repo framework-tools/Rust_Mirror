@@ -31,6 +31,10 @@ impl StringUTF16 {
         return (self.slice(0..index), self.slice(index..self.len()))
     }
 
+    pub fn split_before_middle_after(&self, before_tail: usize, after_head: usize) -> (Self, Self, Self) {
+        return (self.slice(0..before_tail), self.slice(before_tail..after_head), self.slice(after_head..self.len()))
+    }
+
     pub fn len(&self) -> usize {
         return self.0.len()
     }
@@ -38,6 +42,8 @@ impl StringUTF16 {
     pub fn concat(self, add: Self) -> Self {
         return Self(vec![self.0, add.0].concat())
     }
+
+
 }
 
 #[test]

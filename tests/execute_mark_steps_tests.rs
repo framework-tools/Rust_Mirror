@@ -142,9 +142,9 @@ mod tests {
                 assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "llo ");
                 assert_eq!(inline_block.marks.len(), 0);
             } else if i == 2 {
+                assert_eq!(inline_block.marks[0], Mark::Bold);
                 assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "Wor");
                 assert_eq!(inline_block.marks.len(), 1);
-                assert_eq!(inline_block.marks[0], Mark::Bold);
             } else if i == 3 {
                 assert_eq!(inline_block.text().unwrap().clone().to_string().as_str(), "ld");
                 assert_eq!(inline_block.marks.len(), 2);
