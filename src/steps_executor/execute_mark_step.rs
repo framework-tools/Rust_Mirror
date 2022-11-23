@@ -1,5 +1,5 @@
 
-use crate::{step::{MarkStep}, blocks::{BlockMap, Block, inline_blocks::{InlineBlock, text_block::StringUTF16}}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
+use crate::{step::{MarkStep}, blocks::{BlockMap, Block, inline_blocks::{InlineBlock, text_block::StringUTF16}, standard_blocks::StandardBlock}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
 
 use super::{clean_block_after_transform, UpdatedState};
 
@@ -7,20 +7,17 @@ use super::{clean_block_after_transform, UpdatedState};
 pub fn execute_mark_step(mark_step: MarkStep, mut block_map: BlockMap, add_mark: bool, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
     let block = block_map.get_block(&mark_step.from.block_id)?;
     match block {
-        Block::InlineBlock(inline_block) => {
-            return execute_mark_step_on_inline_block(mark_step, inline_block, block_map, add_mark, new_ids)
+        Block::InlineBlock(from_block) => {
+            return execute_mark_step_on_inline_blocks(mark_step, from_block, block_map, add_mark, new_ids)
         },
-        Block::StandardBlock(standard_block) => {
-            unimplemented!()
-            // match mark_step.from.subselection {
-
-            // }
+        Block::StandardBlock(from_block) => {
+            return execute_mark_step_on_standard_blocks(mark_step, from_block, block_map, add_mark, new_ids)
         },
         Block::Root(root_block) => return Err(StepError("Cannot mark root block".to_string()))
     };
 }
 
-fn execute_mark_step_on_inline_block(
+fn execute_mark_step_on_inline_blocks(
     mark_step: MarkStep,
     from_block: InlineBlock,
     mut block_map: BlockMap,
@@ -73,10 +70,10 @@ fn execute_mark_step_on_inline_block(
         block_map.update_blocks(vec![
             Block::InlineBlock(first_half_of_from_block), Block::InlineBlock(second_half_of_from_block),
             Block::InlineBlock(first_half_of_to_block), Block::InlineBlock(second_half_of_to_block)
-            ])?;
+        ])?;
 
         let mut content_block = from_parent_block.content_block()?.clone();
-
+        // for_each_block_between_from_and_to_apply_mark
         let mut i = content_block.index_of(&first_half_of_from_block_id)? + 1;
         let j = content_block.index_of(&first_half_of_to_block_id)?;
         while i < j {
@@ -85,13 +82,14 @@ fn execute_mark_step_on_inline_block(
             block_map.update_block(Block::InlineBlock(block))?;
             i += 1;
         }
-        //one splice for "from" block
-        //one splice for "to" block
+
+        // splice for "from" block
         content_block.inline_blocks.splice(
             content_block.index_of(&first_half_of_from_block_id)?..content_block.index_of(&first_half_of_from_block_id)?+1,
             vec![first_half_of_from_block_id, second_half_of_from_block_id]
         );
 
+        //splice for "to" block
         content_block.inline_blocks.splice(
             content_block.index_of(&first_half_of_to_block_id)?..content_block.index_of(&first_half_of_to_block_id)?+1,
             vec![first_half_of_to_block_id, second_half_of_to_block_id]
@@ -132,3 +130,62 @@ fn updated_selection_after_apply_mark(
     })
 }
 
+
+/// -> apply mark for "from" std block -> from "inner from" to end of inline blocks
+/// -> apply mark for "to" std block -> from start of inline blocks to "inner to"
+/// -> for each standard block between "from" & "to" -> assign mark to each of their inline blocks
+fn execute_mark_step_on_standard_blocks(
+    mark_step: MarkStep,
+    from_block: StandardBlock,
+    mut block_map: BlockMap,
+    add_mark: bool,
+    new_ids: &mut NewIds
+) -> Result<UpdatedState, StepError> {
+    let deepest_from_subselection = mark_step.from.get_deepest_subselection();
+    let deepest_from_subselection_block_id = deepest_from_subselection.block_id.clone();
+    let from_mark_step = MarkStep {
+        block_id: from_block.id(),
+        from: deepest_from_subselection.clone(),
+        to: SubSelection::at_end_of_block(&from_block._id, &block_map)?,
+        mark: mark_step.mark.clone(),
+    };
+    let inline_block = block_map.get_inline_block(&deepest_from_subselection_block_id)?;
+    let updated_state = execute_mark_step_on_inline_blocks(from_mark_step, inline_block, block_map, add_mark, new_ids)?;
+    block_map = updated_state.block_map;
+
+    let to_block = block_map.get_standard_block(&mark_step.to.block_id)?;
+    let deepest_to_subselection = mark_step.to.get_deepest_subselection();
+    let to_mark_step = MarkStep {
+        block_id: to_block.id(),
+        from: SubSelection { block_id: to_block.content_block()?.inline_blocks[0].clone(), offset: 0, subselection: None },
+        to: deepest_to_subselection.clone(),
+        mark: mark_step.mark.clone(),
+    };
+    let inline_block = block_map.get_inline_block(&to_block.content_block()?.inline_blocks[0])?;
+    println!("got here");
+    let updated_state = execute_mark_step_on_inline_blocks(to_mark_step, inline_block, block_map, add_mark, new_ids)?;
+    block_map = updated_state.block_map;
+
+    let parent = from_block.get_parent(&block_map)?;
+    let parents_children = parent.children()?;
+    let mut i = from_block.index(&block_map)? + 1;
+    let j = to_block.index(&block_map)?;
+    while i < j {
+        let block = block_map.get_standard_block(&parents_children[i])?;
+        let deepest_from_subselection = SubSelection { block_id: block.content_block()?.inline_blocks[0].clone(), offset: 0, subselection: None };
+        let inline_block = block_map.get_inline_block(&deepest_from_subselection.block_id)?;
+        let inner_mark_step = MarkStep {
+            block_id: to_block.id(),
+            from: deepest_from_subselection,
+            to: SubSelection::at_end_of_block(&block._id, &block_map)?,
+            mark: mark_step.mark.clone(),
+        };
+        let updated_state = execute_mark_step_on_inline_blocks(inner_mark_step, inline_block, block_map, add_mark, new_ids)?;
+        block_map = updated_state.block_map;
+
+        i += 1;
+    }
+
+    return Ok(UpdatedState { block_map, selection: None })
+
+}

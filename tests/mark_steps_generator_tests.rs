@@ -219,7 +219,7 @@ mod tests {
                 "text": "World"
             },
             "marks": ["underline"],
-            "parent": paragraph_block_id2.clone()
+            "parent": paragraph_block_id1.clone()
         });
         let inline_block3 = json!({
             "_id": inline_block_id3.to_string(),
@@ -239,7 +239,7 @@ mod tests {
                 "text": "Goodbye World"
             },
             "marks": [],
-            "parent": paragraph_block_id2.clone()
+            "parent": paragraph_block_id3.clone()
         });
         let paragraph_block1 = json!({
             "_id": paragraph_block_id1.clone(),

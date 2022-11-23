@@ -245,4 +245,149 @@ mod tests {
             i += 1;
         }
     }
+
+    #[test]
+    fn can_execute_apply_mark_with_selection_across_standard_blocks() -> Result<(), StepError> {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block_id2 = new_ids.get_id()?;
+        let inline_block_id3 = new_ids.get_id()?;
+        let inline_block_id4 = new_ids.get_id()?;
+        let paragraph_block_id1 = new_ids.get_id()?;
+        let paragraph_block_id2 = new_ids.get_id()?;
+        let paragraph_block_id3 = new_ids.get_id()?;
+        let root_block_id = new_ids.get_id()?;
+
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello "
+            },
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "World"
+            },
+            "marks": ["underline"],
+            "parent": paragraph_block_id1.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_block_id3.to_string(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Goodbye World"
+            },
+            "marks": [],
+            "parent": paragraph_block_id2.clone()
+        });
+        let inline_block4 = json!({
+            "_id": inline_block_id4.to_string(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello again!"
+            },
+            "marks": [],
+            "parent": paragraph_block_id3.clone()
+        });
+        let paragraph_block1 = json!({
+            "_id": paragraph_block_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone(), inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.to_string()
+        });
+        let paragraph_block2 = json!({
+            "_id": paragraph_block_id2.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id3.to_string()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.to_string()
+        });
+        let paragraph_block3 = json!({
+            "_id": paragraph_block_id3.to_string(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id4.to_string()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.to_string()
+        });
+        let root_block = RootBlock::json_from(
+            root_block_id.clone(),
+        vec![paragraph_block_id1.clone(), paragraph_block_id2.clone(), paragraph_block_id3.clone()
+        ]);
+
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), inline_block4.to_string(),
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), root_block.to_string()
+        ]).unwrap();
+
+        let event = Event::FormatBar(FormatBarEvent::Underline);
+        let sub_selection_from = SubSelection::from(paragraph_block_id1.clone(), 0, Some(Box::new(
+            SubSelection::from(
+            inline_block_id1,
+            2,
+            None
+        ))));
+        let sub_selection_to = SubSelection::from(paragraph_block_id3.clone(), 0, Some(Box::new(
+            SubSelection::from(
+            inline_block_id4,
+            1,
+            None
+        ))));
+        let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
+
+        let steps = generate_steps(&event, &block_map, selection)?;
+        let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
+
+        let updated_paragraph_block_1 = updated_state.block_map.get_standard_block(&paragraph_block_id1)?;
+        assert_eq!(updated_paragraph_block_1.content_block()?.inline_blocks.len(), 2);
+
+        let updated_first_inline_block = updated_state.block_map.get_inline_block(&updated_paragraph_block_1.content_block()?.inline_blocks[0])?;
+        assert_eq!(updated_first_inline_block.text()?.clone().to_string(), "He".to_string());
+        assert_eq!(updated_first_inline_block.marks, vec![]);
+        let updated_second_inline_block = updated_state.block_map.get_inline_block(&updated_paragraph_block_1.content_block()?.inline_blocks[1])?;
+        assert_eq!(updated_second_inline_block.text()?.clone().to_string(), "llo World".to_string());
+        assert_eq!(updated_second_inline_block.marks, vec![Mark::Underline]);
+
+        let updated_paragraph_block_2 = updated_state.block_map.get_standard_block(&paragraph_block_id2)?;
+        assert_eq!(updated_paragraph_block_2.content_block()?.inline_blocks.len(), 1);
+
+        let updated_third_inline_block = updated_state.block_map.get_inline_block(&updated_paragraph_block_2.content_block()?.inline_blocks[0])?;
+        assert_eq!(updated_third_inline_block.text()?.clone().to_string(), "Goodbye World".to_string());
+        assert_eq!(updated_third_inline_block.marks, vec![Mark::Underline]);
+
+        let updated_paragraph_block_3 = updated_state.block_map.get_standard_block(&paragraph_block_id3)?;
+        assert_eq!(updated_paragraph_block_3.content_block()?.inline_blocks.len(), 2);
+
+        let updated_fourth_inline_block = updated_state.block_map.get_inline_block(&updated_paragraph_block_3.content_block()?.inline_blocks[0])?;
+        assert_eq!(updated_fourth_inline_block.text()?.clone().to_string(), "H".to_string());
+        assert_eq!(updated_fourth_inline_block.marks, vec![Mark::Underline]);
+        let updated_fifth_inline_block = updated_state.block_map.get_inline_block(&updated_paragraph_block_3.content_block()?.inline_blocks[1])?;
+        assert_eq!(updated_fifth_inline_block.text()?.clone().to_string(), "ello again!".to_string());
+        assert_eq!(updated_fifth_inline_block.marks, vec![]);
+
+
+        return Ok(())
+    }
 }
