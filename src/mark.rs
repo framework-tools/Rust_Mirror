@@ -55,6 +55,7 @@ impl Mark {
         }
     }
 
+
     pub fn is_same_type(&self, other_mark: &Mark) -> bool {
         match self {
             Mark::ForeColor(_) => match other_mark {

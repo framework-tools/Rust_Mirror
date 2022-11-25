@@ -136,6 +136,23 @@ impl StandardBlock {
         return Ok(true)
     }
 
+    pub fn all_inline_blocks_have_identical_mark(
+        &self,
+        mark: &Mark,
+        block_map: &BlockMap
+    ) -> Result<bool, StepError> {
+        let inline_blocks = self.content_block()?.inline_blocks.clone();
+        let mut i = 0;
+        while i < inline_blocks.len() {
+            let inline_block = block_map.get_inline_block(&inline_blocks[i])?;
+            if !inline_block.marks.contains(mark) {
+                return Ok(false)
+            }
+            i += 1;
+        }
+        return Ok(true)
+    }
+
     pub fn get_last_inline_block(&self, block_map: &BlockMap) -> Result<InlineBlock, StepError> {
         let inline_blocks = &self.content_block()?.inline_blocks;
         let last_block_id = inline_blocks[inline_blocks.len() - 1].clone();

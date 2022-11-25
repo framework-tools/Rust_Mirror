@@ -308,6 +308,13 @@ impl Block {
         };
         return Ok(())
     }
+
+    pub fn is_root(&self) -> bool {
+        match self {
+            Self::Root(_) => true,
+            _ => false
+        }
+    }
 }
 
 pub fn id_from_js_block(obj: &JsValue) -> Result<String, StepError> {
