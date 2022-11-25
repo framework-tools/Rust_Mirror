@@ -12,7 +12,7 @@ pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, blo
                 let parent_block = block_map.get_standard_block(&from_block.parent)?;
                 let from_block_index = parent_block.index_of(&from.block_id)?;
                 let to_block_index = parent_block.index_of(&to.block_id)?;
-                if parent_block.all_blocks_have_identical_mark(&mark, from_block_index, to_block_index, block_map)? {
+                if parent_block.all_inline_blocks_in_range_have_identical_mark(&mark, from_block_index, to_block_index, block_map)? {
                     return Ok(vec![Step::RemoveMarkStep(MarkStep {
                         block_id: parent_block.id(),
                         from,
@@ -48,25 +48,25 @@ pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, blo
             },
             Block::Root(_) => return Err(StepError("Cannot generate mark steps for a root block".to_string()))
         }
-        // let from_block = block_map.get_standard_block(&from.block_id)?;
-        // if all_blocks_in_selection_have_identical_marks(&mark, &from, &to, block_map)? {
-        //     return Ok(vec![Step::RemoveMarkStep(MarkStep {
-        //         block_id: from_block.parent,
-        //         from,
-        //         to,
-        //         mark
-        //     })])
-        // } else {
-        //     return Ok(vec![Step::AddMarkStep(MarkStep {
-        //         block_id: from_block.parent,
-        //         from,
-        //         to,
-        //         mark
-        //     })])
-        // }
 }
 
-fn all_standard_blocks_have_identical_mark(parent: &Block, mark: &Mark, block_map: &BlockMap, from: usize, to: usize) -> Result<bool, StepError> {
+/// For "from" and "to":
+/// -> start at 2nd deepest layer (standard block before inline block with subselection)
+/// -> for "from"
+///     => check all inline blocks from "from" to end
+///     => check all descendants inline blocks
+/// -> for "to"
+///     => check all inline blocks from start to "to"
+///     => check all ancestors & older siblings
+/// For each block between from & to (top level siblings)
+///     => check each block & all descendants
+fn all_standard_blocks_have_identical_mark(
+    parent: &Block,
+    mark: &Mark,
+    block_map: &BlockMap,
+    from: &SubSelection,
+    to: &SubSelection
+) -> Result<bool, StepError> {
     let children = parent.children()?;
     let mut i = from;
     while i < to + 1 {
@@ -82,40 +82,3 @@ fn all_standard_blocks_have_identical_mark(parent: &Block, mark: &Mark, block_ma
     }
     Ok(true)
 }
-
-// fn all_blocks_in_selection_have_identical_mark(
-//     mark: &Mark,
-//     from: &SubSelection,
-//     to: &SubSelection,
-//     block_map: &BlockMap
-// ) -> Result<bool, StepError> {
-//     let from_block = block_map.get_standard_block(&from.block_id)?;
-//     let from_subselection = match &from.subselection {
-//         Some(subselection) => *subselection.clone(),
-//         None => return Err(StepError("Subselection not found".to_string()))
-//     };
-//     let index_of_subselection = from_block.index_of(from_subselection.block_id)?;
-//     if !from_block.all_blocks_have_identical_mark(&mark, index_of_subselection, from_block.inline_blocks_length()? - 1, block_map)? {
-//         return Ok(false)
-//     }
-//     let to_block = block_map.get_standard_block(&to.block_id)?;
-//     let to_subselection = match &to.subselection {
-//         Some(subselection) => *subselection.clone(),
-//         None => return Err(StepError("Subselection not found".to_string()))
-//     };
-//     let index_of_subselection = to_block.index_of(to_subselection.block_id)?;
-//     if !to_block.all_blocks_have_identical_mark(&mark, index_of_subselection, to_block.inline_blocks_length()? - 1, block_map)? {
-//         return Ok(false)
-//     }
-//     let parent_block = block_map.get_block(&from_block.parent)?;
-//     let mut i = parent_block.index_of_child(from_block.id())?;
-//     while i < parent_block.index_of_child(to_block.id())? {
-//         let block = block_map.get_standard_block(&parent_block.get_child_from_index(i)?)?;
-//         if !block.all_blocks_have_identical_mark(&mark, 0, block.inline_blocks_length()? - 1, block_map)? {
-//             return Ok(false)
-//         }
-//         i += 1;
-//     }
-//     return Ok(true)
-// }
-

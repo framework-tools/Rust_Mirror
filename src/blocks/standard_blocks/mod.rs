@@ -117,7 +117,13 @@ impl StandardBlock {
         return self.update_block_content(ContentBlock { inline_blocks: new_inline_blocks })
     }
 
-    pub fn all_blocks_have_identical_mark(&self, mark: &Mark, from: usize, to: usize, block_map: &BlockMap) -> Result<bool, StepError> {
+    pub fn all_inline_blocks_in_range_have_identical_mark(
+        &self,
+        mark: &Mark,
+        from: usize,
+        to: usize,
+        block_map: &BlockMap
+    ) -> Result<bool, StepError> {
         let inline_blocks = self.content_block()?.inline_blocks.clone();
         let mut i = from;
         while i < to + 1 && i < inline_blocks.len() {
