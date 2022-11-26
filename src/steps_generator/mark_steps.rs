@@ -155,7 +155,7 @@ fn all_lower_relatives_have_identical_mark(
             return Ok(false)
         }
         i += 1;
-    }
+    }//
 
 
     if all_lower_relatives_have_identical_mark(&parent, mark, block_map)? == false {
