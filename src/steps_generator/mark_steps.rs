@@ -6,48 +6,33 @@ use super::{selection::SubSelection, StepError};
 /// -> if all the blocks have an identical mark with same values -> remove mark
 /// -> else -> add mark
 pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, block_map: &BlockMap) -> Result<Vec<Step>, StepError> {
-        let from_block = block_map.get_block(&from.block_id)?;
-        match from_block {
-            Block::InlineBlock(from_block) => {
-                let parent_block = block_map.get_standard_block(&from_block.parent)?;
-                let from_block_index = parent_block.index_of(&from.block_id)?;
-                let to_block_index = parent_block.index_of(&to.block_id)?;
-                if parent_block.all_inline_blocks_in_range_have_identical_mark(&mark, from_block_index, to_block_index, block_map)? {
-                    return Ok(vec![Step::RemoveMarkStep(MarkStep {
-                        block_id: parent_block.id(),
-                        from,
-                        to,
-                        mark
-                    })])
-                } else {
-                    return Ok(vec![Step::AddMarkStep(MarkStep {
-                        block_id: parent_block.id(),
-                        from,
-                        to,
-                        mark
-                    })])
-                }
-            },
-            Block::StandardBlock(from_block) => {
-                let parent = block_map.get_block(&from_block.parent)?;
-                if all_standard_blocks_have_identical_mark(&parent, &mark, block_map, from.clone(), to.clone())? {
-                    return Ok(vec![Step::RemoveMarkStep(MarkStep {
-                        block_id: parent.id(),
-                        from,
-                        to,
-                        mark
-                    })])
-                } else {
-                    return Ok(vec![Step::AddMarkStep(MarkStep {
-                        block_id: parent.id(),
-                        from,
-                        to,
-                        mark
-                    })])
-                }
-            },
-            Block::Root(_) => return Err(StepError("Cannot generate mark steps for a root block".to_string()))
-        }
+    let from_block = block_map.get_block(&from.block_id)?;
+    let parent_block_id = from_block.parent()?;
+    let mut should_add_mark = false;
+    match from_block {
+        Block::InlineBlock(from_block) => {
+            let parent_block = block_map.get_standard_block(&from_block.parent)?;
+            let from_block_index = parent_block.index_of(&from.block_id)?;
+            let to_block_index = parent_block.index_of(&to.block_id)?;
+            if parent_block.all_inline_blocks_in_range_have_identical_mark(&mark, from_block_index, to_block_index, block_map)? == false {
+                should_add_mark = true;
+            }
+        },
+        Block::StandardBlock(from_block) => {
+            let parent = block_map.get_block(&from_block.parent)?;
+            if all_standard_blocks_have_identical_mark(&parent, &mark, block_map, from.clone(), to.clone())? == false {
+                should_add_mark = true;
+            }
+        },
+        Block::Root(_) => return Err(StepError("Cannot generate mark steps for a root block".to_string()))
+    };
+
+    let mark_step = MarkStep { block_id: parent_block_id, from, to, mark };
+    if should_add_mark {
+        return Ok(vec![Step::AddMarkStep(mark_step)])
+    } else {
+        return Ok(vec![Step::RemoveMarkStep(mark_step)])
+    }
 }
 
 /// NEED TO ADD SAME DESCENDANT CASE AFTER FINISHED HANDLING THESE CASES
@@ -73,14 +58,14 @@ fn all_standard_blocks_have_identical_mark(
     let from_deepest_layer = from.get_deepest_subselection();
     let from_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
     if from_block.all_inline_blocks_in_range_have_identical_mark(
-        mark, 
+        mark,
         from_block.index_of(&from_deepest_layer.block_id)?, 
         from_block.content_block()?.inline_blocks.len() - 1,
         block_map
     )? == false {
         return Ok(false)
     }
-    if all_descendants_inline_blocks_have_identical_mark(&from_block, mark, block_map, None)? == false
+    if descendants_inline_blocks_have_identical_mark(&from_block, mark, block_map, None)? == false
     || all_lower_relatives_have_identical_mark(&from_block, mark, block_map)? == false {
         return Ok(false)
     }
@@ -96,17 +81,21 @@ fn all_standard_blocks_have_identical_mark(
     )? == false {
         return Ok(false)
     }
-    if all_blocks_above_have_identical_marks(&to_block, mark, block_map)? == false {
+    
+    let to_block_highest = block_map.get_standard_block(&to.block_id)?;
+    if to_block_highest.all_inline_blocks_in_range_have_identical_mark(mark, 0, to_block_highest.content_block()?.inline_blocks.len() - 1, block_map)? == false
+    || descendants_inline_blocks_have_identical_mark(&to_block_highest, mark, block_map, Some(&to_block._id))? == false {
         return Ok(false)
     }
 
     let from_block_index = highest_level_parent.index_of_child(&from.block_id)?;
     let to_block_index = highest_level_parent.index_of_child(&to.block_id)?;
 
-    for block_index in  from_block_index..=to_block_index {
-        let block = highest_level_parent.child(block_index)?;
+    let highest_parent_children = highest_level_parent.children()?;
+    for id in highest_parent_children[from_block_index + 1..to_block_index].iter() {
+        let block = block_map.get_standard_block(id)?;
         if block.all_inline_blocks_have_identical_mark(mark, block_map)? == false
-        || all_descendants_inline_blocks_have_identical_mark(&block, mark, block_map, None)? == false {
+        || descendants_inline_blocks_have_identical_mark(&block, mark, block_map, None)? == false {
             return Ok(false)
         }
     }
@@ -114,22 +103,28 @@ fn all_standard_blocks_have_identical_mark(
     return Ok(true)
 }
 
-fn all_descendants_inline_blocks_have_identical_mark(
+/// This function is recursive
+fn descendants_inline_blocks_have_identical_mark(
     block: &StandardBlock, 
     mark: &Mark, 
     block_map: &BlockMap,
     stop_at_id: Option<&String> // block id
 ) -> Result<bool, StepError> {
     for id in &block.children {
+        if stop_at_id.is_some() {
+            println!("id: {}", id);
+        }
         let child = block_map.get_standard_block(id)?;
         if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false {
             return Ok(false)
         }
-        for id in &child.children {
-            let grandchild = block_map.get_standard_block(id)?;
-            if all_descendants_inline_blocks_have_identical_mark(&grandchild, mark, block_map, stop_at_id)? == false {
-                return Ok(false)
+        if let Some(stop_at_id) = stop_at_id {
+            if id == stop_at_id {
+                return Ok(true)
             }
+        }
+        if descendants_inline_blocks_have_identical_mark(&child, mark, block_map, stop_at_id)? == false {
+            return Ok(false)
         }
     }
 
@@ -151,42 +146,14 @@ fn all_lower_relatives_have_identical_mark(
     let mut i = block.index(block_map)? + 1;
     while i < parent.children.len() {
         let younger_sibling = block_map.get_standard_block(&parent.children[i])?;
-        if all_descendants_inline_blocks_have_identical_mark(&younger_sibling, mark, block_map, None)? == false {
+        if descendants_inline_blocks_have_identical_mark(&younger_sibling, mark, block_map, None)? == false {
             return Ok(false)
         }
         i += 1;
-    }//
+    }
 
 
     if all_lower_relatives_have_identical_mark(&parent, mark, block_map)? == false {
-        return Ok(false)
-    } else {
-        return Ok(true)
-    }
-}
-
-fn all_blocks_above_have_identical_marks(
-    block: &StandardBlock,
-    mark: &Mark,
-    block_map: &BlockMap
-) -> Result<bool, StepError> {
-    let parent_as_block = block.get_parent(block_map)?;
-    let parent;
-    if parent_as_block.is_root() {
-        return Ok(true)
-    } else {
-        parent = block_map.get_standard_block(&parent_as_block.id())?;
-    }
-    let mut i = 0;
-    while i < block.index(block_map)? {
-        let older_sibling = block_map.get_standard_block(&parent.children[i])?;
-        if all_descendants_inline_blocks_have_identical_mark(&older_sibling, mark, block_map, None)? == false {
-            return Ok(false)
-        }
-        i += 1;
-    }
-
-    if all_blocks_above_have_identical_marks(&parent, mark, block_map)? == false {
         return Ok(false)
     } else {
         return Ok(true)

@@ -312,7 +312,7 @@ mod tests {
         return Ok(())
     }
 
-    /// ALL BOLD => SHOULD ADD BOLD
+    /// NOT ALL BOLD => SHOULD ADD BOLD
     /// <1>A</1> *start of selection*
     ///     <2>B</2>
     ///         <3>C</3>
@@ -328,16 +328,16 @@ mod tests {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id()?;
-        let p_id1 = new_ids.get_id()?;
-        let p_id2 = new_ids.get_id()?;
-        let p_id3 = new_ids.get_id()?;
-        let p_id4 = new_ids.get_id()?;
-        let p_id5 = new_ids.get_id()?;
-        let p_id6 = new_ids.get_id()?;
-        let p_id7 = new_ids.get_id()?;
-        let p_id8 = new_ids.get_id()?;
-        let p_id9 = new_ids.get_id()?;
-        let p_id10 = new_ids.get_id()?;
+        let p_id1 = "1".to_string();
+        let p_id2 = "2".to_string();
+        let p_id3 = "3".to_string();
+        let p_id4 = "4".to_string();
+        let p_id5 = "5".to_string();
+        let p_id6 = "6".to_string();
+        let p_id7 = "7".to_string();
+        let p_id8 = "8".to_string();
+        let p_id9 = "9".to_string();
+        let p_id10 = "10".to_string();
         let inline_block_id1 = new_ids.get_id()?;
         let inline_block_id2 = new_ids.get_id()?;
         let inline_block_id3 = new_ids.get_id()?;
@@ -460,7 +460,7 @@ mod tests {
             "content": {
                 "inline_blocks": [inline_block_id6.clone()]
             },
-            "children": [p_id7.clone()],
+            "children": [p_id7.clone(), p_id9.clone()],
             "marks": [],
             "parent": root_block_id.to_string()
         });
@@ -513,7 +513,7 @@ mod tests {
             "content": {
                 "text": "H"
             },
-            "marks": [],
+            "marks": ["bold"],
             "parent": p_id8.clone()
         });
         let p9 = json!({
@@ -542,9 +542,9 @@ mod tests {
             "kind": "standard",
             "_type": "paragraph",
             "content": {
-                "inline_blocks": []
+                "inline_blocks": [inline_block_id10.clone()]
             },
-            "children": [p_id10.clone()],
+            "children": [],
             "marks": [],
             "parent": p_id9.clone()
         });
@@ -564,19 +564,6 @@ mod tests {
             vec![p_id1.clone(), p_id5.clone(), p_id6.clone()]
         );
 
-        let block_map = BlockMap::from(vec![
-            root_block.to_string(),
-            inline_block1.to_string(), p1.to_string(),
-            inline_block2.to_string(), p2.to_string(),
-            inline_block3.to_string(), p3.to_string(),
-            inline_block4.to_string(), p4.to_string(),
-            inline_block5.to_string(), p5.to_string(),
-            inline_block6.to_string(), p6.to_string(),
-            inline_block7.to_string(), p7.to_string(),
-            inline_block8.to_string(), p8.to_string(),
-            inline_block9.to_string(), p9.to_string(),
-            inline_block10.to_string(), p10.to_string(),
-        ]).unwrap();
         let event = Event::FormatBar(FormatBarEvent::Bold);
         let sub_selection_from = SubSelection {
             block_id: p_id1.clone(),
@@ -593,24 +580,61 @@ mod tests {
                     block_id: p_id9.clone(),
                     offset: 0,
                     subselection: Some(Box::new(SubSelection {
-                        block_id: p_id9.clone(),
+                        block_id: p_id10.clone(),
                         offset: 0,
                         subselection: Some(Box::new(SubSelection::from(inline_block_id10, 1, None)))
         }))}))}))};
 
         let selection = Selection::from(sub_selection_to.clone(), sub_selection_from.clone());
 
-        let steps = generate_steps(&event, &block_map, selection).unwrap();
-        assert_eq!(steps.len(), 1);
-        match &steps[0] {
-            Step::AddMarkStep(add_mark_step) => {
-                assert_eq!(add_mark_step.block_id, root_block_id);
-                assert_eq!(add_mark_step.from, sub_selection_from);
-                assert_eq!(add_mark_step.to, sub_selection_to);
-                assert_eq!(add_mark_step.mark, Mark::Bold);
-            },
-            step => return Err(StepError(format!("Expected AddMarkStep. Got: {:?}", step)))
-        };
+        let mut inline_blocks = vec![
+            inline_block1,
+            inline_block2,
+            inline_block3,
+            inline_block4,
+            inline_block5,
+            inline_block6,
+            inline_block7,
+            inline_block8,
+            inline_block9,
+            inline_block10,
+        ];
+
+        // testing every case
+        let mut i = 0;
+        while i < 10 {
+            inline_blocks[i]["marks"] = json!([]);
+            if i != 0 {
+                inline_blocks[i - 1]["marks"] = json!(["bold"]);
+            }
+            let block_map = BlockMap::from(vec![
+                root_block.to_string(),
+                inline_blocks[0].to_string(), p1.to_string(),
+                inline_blocks[1].to_string(), p2.to_string(),
+                inline_blocks[2].to_string(), p3.to_string(),
+                inline_blocks[3].to_string(), p4.to_string(),
+                inline_blocks[4].to_string(), p5.to_string(),
+                inline_blocks[5].to_string(), p6.to_string(),
+                inline_blocks[6].to_string(), p7.to_string(),
+                inline_blocks[7].to_string(), p8.to_string(),
+                inline_blocks[8].to_string(), p9.to_string(),
+                inline_blocks[9].to_string(), p10.to_string(),
+            ]).unwrap();
+            
+            let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
+            assert_eq!(steps.len(), 1);
+            match &steps[0] {
+                Step::AddMarkStep(add_mark_step) => {
+                    assert_eq!(add_mark_step.block_id, root_block_id);
+                    assert_eq!(add_mark_step.from, sub_selection_from);
+                    assert_eq!(add_mark_step.to, sub_selection_to);
+                    assert_eq!(add_mark_step.mark, Mark::Bold);
+                },
+                step => return Err(StepError(format!("Expected AddMarkStep. Got: {:?}", step)))
+            };
+
+            i += 1;
+        }
         return Ok(())
     }
 

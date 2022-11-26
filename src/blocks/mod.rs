@@ -57,6 +57,14 @@ impl Block {
         }
     }
 
+    pub fn parent(&self) -> Result<String, StepError> {
+        match self {
+            Block::StandardBlock(block) => Ok(block.parent.clone()),
+            Block::InlineBlock(block) => Ok(block.parent.clone()),
+            Block::Root(_) => Err(StepError("Root block does not have a parent".to_string()))
+        }
+    }
+
 
     pub fn from_js_obj(obj: &JsValue) -> Result<Self, StepError> {
         let kind = get_js_field_as_string(obj, "kind")?;
