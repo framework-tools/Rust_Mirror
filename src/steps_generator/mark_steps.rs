@@ -53,50 +53,95 @@ fn all_standard_blocks_have_identical_mark(
     from: SubSelection,
     to: SubSelection
 ) -> Result<bool, StepError> {
-    // for "from"
-    let from_second_deepest_layer = from.clone().get_two_deepest_layers()?;
-    let from_deepest_layer = from.get_deepest_subselection();
-    let from_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
-    if from_block.all_inline_blocks_in_range_have_identical_mark(
-        mark,
-        from_block.index_of(&from_deepest_layer.block_id)?, 
-        from_block.content_block()?.inline_blocks.len() - 1,
-        block_map
-    )? == false {
-        return Ok(false)
-    }
-    if descendants_inline_blocks_have_identical_mark(&from_block, mark, block_map, None)? == false
-    || all_lower_relatives_have_identical_mark(&from_block, mark, block_map)? == false {
-        return Ok(false)
-    }
-
-    let to_second_deepest_layer = to.clone().get_two_deepest_layers()?;
-    let to_deepest_layer = to.get_deepest_subselection();
-    let to_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
-    if to_block.all_inline_blocks_in_range_have_identical_mark(
-        mark, 
-        0, 
-        to_block.index_of(&to_deepest_layer.block_id)?,
-        block_map
-    )? == false {
-        return Ok(false)
-    }
-    
-    let to_block_highest = block_map.get_standard_block(&to.block_id)?;
-    if to_block_highest.all_inline_blocks_in_range_have_identical_mark(mark, 0, to_block_highest.content_block()?.inline_blocks.len() - 1, block_map)? == false
-    || descendants_inline_blocks_have_identical_mark(&to_block_highest, mark, block_map, Some(&to_block._id))? == false {
-        return Ok(false)
-    }
-
-    let from_block_index = highest_level_parent.index_of_child(&from.block_id)?;
-    let to_block_index = highest_level_parent.index_of_child(&to.block_id)?;
-
-    let highest_parent_children = highest_level_parent.children()?;
-    for id in highest_parent_children[from_block_index + 1..to_block_index].iter() {
-        let block = block_map.get_standard_block(id)?;
-        if block.all_inline_blocks_have_identical_mark(mark, block_map)? == false
-        || descendants_inline_blocks_have_identical_mark(&block, mark, block_map, None)? == false {
+    let top_from_block = block_map.get_standard_block(&from.block_id)?;
+    if !top_from_block.parent_is_root(block_map) {
+        let parent_block = block_map.get_standard_block(&top_from_block.parent)?;
+        let from_index = parent_block.index_of_child(&from.block_id)?;
+        let to_index = parent_block.index_of_child(&to.block_id)?;
+        let from_second_deepest_layer = from.clone().get_two_deepest_layers()?;
+        let from_deepest_layer = from.get_deepest_subselection();
+        let from_deepest_std_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
+        let to_second_deepest_layer = to.clone().get_two_deepest_layers()?;
+        let to_deepest_layer = to.get_deepest_subselection();
+        let to_deepest_std_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
+        if  from_deepest_std_block.all_inline_blocks_in_range_have_identical_mark(
+            mark, 
+            from_deepest_std_block.index_of(&from_deepest_layer.block_id)?, 
+            from_deepest_std_block.content_block()?.inline_blocks.len() - 1, 
+            block_map
+        )? == false
+        || descendants_inline_blocks_have_identical_mark(
+            &from_deepest_std_block, 
+            mark,
+            block_map, 
+            Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?))
+        )? == false {
             return Ok(false)
+        }
+
+        for block_id in parent_block.children[from_index + 1..=to_index].iter() {
+            let child = block_map.get_standard_block(block_id)?;
+            if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false 
+            || descendants_inline_blocks_have_identical_mark(
+                &child, 
+                mark, 
+                block_map, 
+                Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?))
+            )? == false {
+                return Ok(false)
+            }
+        }
+    } else {
+        // for "from"
+        let from_second_deepest_layer = from.clone().get_two_deepest_layers()?;
+        let from_deepest_layer = from.get_deepest_subselection();
+        let from_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
+        if from_block.all_inline_blocks_in_range_have_identical_mark(
+            mark,
+            from_block.index_of(&from_deepest_layer.block_id)?, 
+            from_block.content_block()?.inline_blocks.len() - 1,
+            block_map
+        )? == false {
+            return Ok(false)
+        }
+        if descendants_inline_blocks_have_identical_mark(&from_block, mark, block_map, None)? == false
+        || all_lower_relatives_have_identical_mark(&from_block, mark, block_map)? == false {
+            return Ok(false)
+        }
+    
+        let to_second_deepest_layer = to.clone().get_two_deepest_layers()?;
+        let to_deepest_layer = to.get_deepest_subselection();
+        let to_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
+        if to_block.all_inline_blocks_in_range_have_identical_mark(
+            mark, 
+            0, 
+            to_block.index_of(&to_deepest_layer.block_id)?,
+            block_map
+        )? == false {
+            return Ok(false)
+        }
+        
+        let to_block_highest = block_map.get_standard_block(&to.block_id)?;
+        if to_block_highest.all_inline_blocks_in_range_have_identical_mark(mark, 0, to_block_highest.content_block()?.inline_blocks.len() - 1, block_map)? == false
+        || descendants_inline_blocks_have_identical_mark(
+            &to_block_highest, 
+            mark, 
+            block_map, 
+            Some((&to_block._id, to_block.index_of(&to_deepest_layer.block_id)?))
+        )? == false {
+            return Ok(false)
+        }
+    
+        let from_block_index = highest_level_parent.index_of_child(&from.block_id)?;
+        let to_block_index = highest_level_parent.index_of_child(&to.block_id)?;
+    
+        let highest_parent_children = highest_level_parent.children()?;
+        for id in highest_parent_children[from_block_index + 1..to_block_index].iter() {
+            let block = block_map.get_standard_block(id)?;
+            if block.all_inline_blocks_have_identical_mark(mark, block_map)? == false
+            || descendants_inline_blocks_have_identical_mark(&block, mark, block_map, None)? == false {
+                return Ok(false)
+            }
         }
     }
 
@@ -105,27 +150,31 @@ fn all_standard_blocks_have_identical_mark(
 
 /// This function is recursive
 fn descendants_inline_blocks_have_identical_mark(
-    block: &StandardBlock, 
+    block: &StandardBlock,
     mark: &Mark, 
     block_map: &BlockMap,
-    stop_at_id: Option<&String> // block id
+    to_block_to_stop_at: Option<(&String, usize)> // (block id, end of to selection index (of inline block))
 ) -> Result<bool, StepError> {
     for id in &block.children {
-        if stop_at_id.is_some() {
-            println!("id: {}", id);
-        }
         let child = block_map.get_standard_block(id)?;
-        if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false {
-            return Ok(false)
-        }
-        if let Some(stop_at_id) = stop_at_id {
-            if id == stop_at_id {
-                return Ok(true)
-            }
-        }
-        if descendants_inline_blocks_have_identical_mark(&child, mark, block_map, stop_at_id)? == false {
-            return Ok(false)
-        }
+
+        match to_block_to_stop_at {
+            Some(to_block_to_stop_at) => {
+                if id == to_block_to_stop_at.0 {
+                    if child.all_inline_blocks_in_range_have_identical_mark(mark, 0, to_block_to_stop_at.1, block_map)? == false {
+                        return Ok(false)
+                    } else {
+                        return Ok(true)
+                    }
+                } else if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false 
+                || descendants_inline_blocks_have_identical_mark(&child, mark, block_map, Some(to_block_to_stop_at))? == false {
+                    return Ok(false)
+                }
+            },
+            None if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false 
+            || descendants_inline_blocks_have_identical_mark(&child, mark, block_map, to_block_to_stop_at)? == false => return Ok(false),
+            _ => {}
+        };
     }
 
     return Ok(true)

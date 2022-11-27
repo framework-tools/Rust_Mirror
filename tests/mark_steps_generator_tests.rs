@@ -320,7 +320,7 @@ mod tests {
     /// <5>E</5>
     /// <6>F</6>
     ///     <7>G</7>
-    ///         <8>H</8> *Not bold*
+    ///         <8>H</8>
     ///     <9>I</9>
     ///         <10>J</10> *end of selection*
     #[test]
@@ -638,4 +638,263 @@ mod tests {
         return Ok(())
     }
 
+    /// <1>
+    ///     <2> *selection starts here*
+    ///         <3>
+    ///     <4>
+    ///         <5>
+    ///             <6> *selection ends here*
+    ///                 <7>
+    #[test]
+    fn can_add_mark_within_same_root_std_block_selection_in_different_layers() -> Result<(), StepError> {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id()?;
+        let p_id1 = "1".to_string();
+        let p_id2 = "2".to_string();
+        let p_id3 = "3".to_string();
+        let p_id4 = "4".to_string();
+        let p_id5 = "5".to_string();
+        let p_id6 = "6".to_string();
+        let p_id7 = "7".to_string();
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block_id2 = new_ids.get_id()?;
+        let inline_block_id3 = new_ids.get_id()?;
+        let inline_block_id4 = new_ids.get_id()?;
+        let inline_block_id5 = new_ids.get_id()?;
+        let inline_block_id6 = new_ids.get_id()?;
+        let inline_block_id7 = new_ids.get_id()?;
+        let p1 = json!({
+            "_id": p_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [p_id2.clone(), p_id4.clone()],
+            "marks": [],
+            "parent": root_block_id.to_string()
+        });
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "A"
+            },
+            "marks": [],
+            "parent": p_id1.clone()
+        });
+        let p2 = json!({
+            "_id": p_id2.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [p_id3.clone()],
+            "marks": [],
+            "parent": p_id1.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "B"
+            },
+            "marks": [],
+            "parent": p_id2.clone()
+        });
+        let p3 = json!({
+            "_id": p_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id3.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": p_id2.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "C"
+            },
+            "marks": [],
+            "parent": p_id3.clone()
+        });
+        let p4 = json!({
+            "_id": p_id4.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id4.clone()]
+            },
+            "children": [p_id5.clone()],
+            "marks": [],
+            "parent": p_id1.clone()
+        });
+        let inline_block4 = json!({
+            "_id": inline_block_id4.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "D"
+            },
+            "marks": [],
+            "parent": p_id4.clone()
+        });
+        let p5 = json!({
+            "_id": p_id5.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id5.clone()]
+            },
+            "children": [p_id6.clone()],
+            "marks": [],
+            "parent": p_id4.clone()
+        });
+        let inline_block5 = json!({
+            "_id": inline_block_id5.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "E"
+            },
+            "marks": [],
+            "parent": p_id5.clone()
+        });
+        let p6 = json!({
+            "_id": p_id6.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id6.clone()]
+            },
+            "children": [p_id7.clone()],
+            "marks": [],
+            "parent": p_id5.clone()
+        });
+        let inline_block6 = json!({
+            "_id": inline_block_id6.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "F"
+            },
+            "marks": [],
+            "parent": p_id6.clone()
+        });
+        let p7 = json!({
+            "_id": p_id7.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id7.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": p_id6.clone()
+        });
+        let inline_block7 = json!({
+            "_id": inline_block_id7.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "G"
+            },
+            "marks": [],
+            "parent": p_id7.clone()
+        });
+
+        let root_block = RootBlock::json_from(
+            root_block_id.clone(),
+            vec![p_id1.clone()]
+        );
+
+        let event = Event::FormatBar(FormatBarEvent::Bold);
+        let sub_selection_from = SubSelection {
+                block_id: p_id2.clone(),
+                offset: 0,
+                subselection: Some(Box::new(
+                    SubSelection {
+                        block_id: inline_block_id2.clone(),
+                        offset: 0,
+                        subselection: None
+                    }
+                ))
+        };
+        let sub_selection_to = SubSelection {
+            block_id: p_id4.clone(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection {
+                block_id: p_id5.clone(),
+                offset: 0,
+                subselection: Some(Box::new(
+                    SubSelection {
+                        block_id: p_id6.clone(),
+                        offset: 0,
+                        subselection: Some(Box::new(
+                            SubSelection {
+                                block_id: inline_block_id6.clone(),
+                                offset: 1,
+                                subselection: None
+                            }
+                        ))
+                    }
+                ))
+            }))
+        };
+
+        let selection = Selection::from(sub_selection_to.clone(), sub_selection_from.clone());
+
+        let mut inline_blocks = vec![
+            inline_block1,
+            inline_block2,
+            inline_block3,
+            inline_block4,
+            inline_block5,
+            inline_block6,
+            inline_block7,
+        ];
+
+        // testing every case
+        let mut i = 0;
+        while i < 7 {
+            inline_blocks[i]["marks"] = json!([]);
+            if i != 0 {
+                inline_blocks[i - 1]["marks"] = json!(["bold"]);
+            }
+            let block_map = BlockMap::from(vec![
+                root_block.to_string(),
+                inline_blocks[0].to_string(), p1.to_string(),
+                inline_blocks[1].to_string(), p2.to_string(),
+                inline_blocks[2].to_string(), p3.to_string(),
+                inline_blocks[3].to_string(), p4.to_string(),
+                inline_blocks[4].to_string(), p5.to_string(),
+                inline_blocks[5].to_string(), p6.to_string(),
+                inline_blocks[6].to_string(), p7.to_string(),
+            ]).unwrap();
+            
+            let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
+            assert_eq!(steps.len(), 1);
+            match &steps[0] {
+                Step::AddMarkStep(add_mark_step) => {
+                    assert_eq!(add_mark_step.block_id, p_id1);
+                    assert_eq!(add_mark_step.from, sub_selection_from);
+                    assert_eq!(add_mark_step.to, sub_selection_to);
+                    assert_eq!(add_mark_step.mark, Mark::Bold);
+                },
+                step => return Err(StepError(format!("Expected AddMarkStep. Got: {:?}", step)))
+            };
+
+            i += 1;
+        }
+        return Ok(())
+    }
 }
