@@ -64,9 +64,9 @@ fn all_standard_blocks_have_identical_mark(
         let to_second_deepest_layer = to.clone().get_two_deepest_layers()?;
         let to_deepest_layer = to.get_deepest_subselection();
         let to_deepest_std_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
-        if  from_deepest_std_block.all_inline_blocks_in_range_have_identical_mark(
+        if from_deepest_std_block.all_inline_blocks_in_range_have_identical_mark(
             mark, 
-            from_deepest_std_block.index_of(&from_deepest_layer.block_id)?, 
+            from_deepest_std_block.index_of(&from_deepest_layer.block_id)?,
             from_deepest_std_block.content_block()?.inline_blocks.len() - 1, 
             block_map
         )? == false
@@ -108,7 +108,7 @@ fn all_standard_blocks_have_identical_mark(
         || all_lower_relatives_have_identical_mark(&from_block, mark, block_map)? == false {
             return Ok(false)
         }
-    
+        
         let to_second_deepest_layer = to.clone().get_two_deepest_layers()?;
         let to_deepest_layer = to.get_deepest_subselection();
         let to_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
@@ -121,21 +121,24 @@ fn all_standard_blocks_have_identical_mark(
             return Ok(false)
         }
         
-        let to_block_highest = block_map.get_standard_block(&to.block_id)?;
-        if to_block_highest.all_inline_blocks_in_range_have_identical_mark(mark, 0, to_block_highest.content_block()?.inline_blocks.len() - 1, block_map)? == false
-        || descendants_inline_blocks_have_identical_mark(
-            &to_block_highest, 
-            mark, 
-            block_map, 
-            Some((&to_block._id, to_block.index_of(&to_deepest_layer.block_id)?))
-        )? == false {
-            return Ok(false)
+        if &to_block._id != &to.block_id {
+            let to_block_highest = block_map.get_standard_block(&to.block_id)?;
+            if to_block_highest.all_inline_blocks_in_range_have_identical_mark(mark, 0, to_block_highest.content_block()?.inline_blocks.len() - 1, block_map)? == false
+            || descendants_inline_blocks_have_identical_mark(
+                &to_block_highest, 
+                mark, 
+                block_map, 
+                Some((&to_block._id, to_block.index_of(&to_deepest_layer.block_id)?))
+            )? == false {
+                return Ok(false)
+            }
         }
-    
-        let from_block_index = highest_level_parent.index_of_child(&from.block_id)?;
+        
         let to_block_index = highest_level_parent.index_of_child(&to.block_id)?;
-    
+        
+        let from_block_index = highest_level_parent.index_of_child(&from.block_id)?;
         let highest_parent_children = highest_level_parent.children()?;
+        
         for id in highest_parent_children[from_block_index + 1..to_block_index].iter() {
             let block = block_map.get_standard_block(id)?;
             if block.all_inline_blocks_have_identical_mark(mark, block_map)? == false
@@ -143,6 +146,7 @@ fn all_standard_blocks_have_identical_mark(
                 return Ok(false)
             }
         }
+        
     }
 
     return Ok(true)
