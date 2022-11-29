@@ -36,11 +36,11 @@ pub fn execute_mark_step_on_standard_blocks(
             &mut block_map,
             add_mark,
         )?;
-        
+
         apply_mark_to_descendants_inline_blocks(
-            &from_deepest_std_block, 
+            &from_deepest_std_block,
             &mark_step.mark,
-            &mut block_map, 
+            &mut block_map,
             Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?)),
             add_mark
         )?;
@@ -74,13 +74,13 @@ pub fn execute_mark_step_on_standard_blocks(
         let from_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
 
         from_block.apply_mark_to_all_inline_blocks_in_range(
-            mark_step.mark.clone(), 
+            mark_step.mark.clone(),
             from_block.index_of(&from_deepest_layer.block_id)? + 1,
             from_block.content_block()?.inline_blocks.len() - 1,
             &mut block_map,
             add_mark,
         )?;
-        
+
         apply_mark_to_descendants_inline_blocks(
             &from_block,
             &mark_step.mark,
@@ -93,37 +93,39 @@ pub fn execute_mark_step_on_standard_blocks(
         let to_deepest_layer = mark_step.to.get_deepest_subselection();
         let to_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
         to_block.apply_mark_to_all_inline_blocks_in_range(
-            mark_step.mark.clone(), 
-            0, 
+            mark_step.mark.clone(),
+            0,
             to_block.index_of(&to_deepest_layer.block_id)?,
             &mut block_map,
             add_mark
         )?;
-        
+
         if &to_block._id != &mark_step.to.block_id {
             let to_block_highest = block_map.get_standard_block(&mark_step.to.block_id)?;
             to_block_highest.apply_mark_to_all_inline_blocks_in_range(mark_step.mark.clone(), 0, to_block_highest.content_block()?.inline_blocks.len() - 1, &mut block_map, add_mark)?;
             apply_mark_to_descendants_inline_blocks(
-                &to_block_highest, 
+                &to_block_highest,
                 &mark_step.mark.clone(),
-                &mut block_map, 
+                &mut block_map,
                 Some((&to_block._id, to_block.index_of(&to_deepest_layer.block_id)?)),
                 add_mark
             )?;
         }
-        
+
         let highest_level_parent = block_map.get_block(&mark_step.block_id)?;
         let to_block_index = highest_level_parent.index_of_child(&mark_step.to.block_id)?;
-        
+
         let from_block_index = highest_level_parent.index_of_child(&mark_step.from.block_id)?;
         let highest_parent_children = highest_level_parent.children()?;
-        
-        for id in highest_parent_children[from_block_index + 1..to_block_index].iter() {
-            let block = block_map.get_standard_block(id)?;
-            block.apply_mark_to_all_inline_blocks(mark_step.mark.clone(), &mut block_map, add_mark)?;
-            apply_mark_to_descendants_inline_blocks(&block, &mark_step.mark, &mut block_map, None, add_mark)?;
+
+        if from_block_index != to_block_index {
+            for id in highest_parent_children[from_block_index + 1..to_block_index].iter() {
+                let block = block_map.get_standard_block(id)?;
+                block.apply_mark_to_all_inline_blocks(mark_step.mark.clone(), &mut block_map, add_mark)?;
+                apply_mark_to_descendants_inline_blocks(&block, &mark_step.mark, &mut block_map, None, add_mark)?;
+            }
         }
-        
+
     }
     let from_second_deepest_layer = mark_step.from.clone().get_two_deepest_layers()?;
     let from_deepest_std_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;

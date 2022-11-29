@@ -691,7 +691,7 @@ mod tests {
 
         let steps = generate_steps(&event, &block_map, selection)?;
         let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
-        
+
         let mut i = 1 as usize;
         while i < 11 {
             let updated_p = updated_state.block_map.get_standard_block(&i.to_string())?;
@@ -1273,7 +1273,7 @@ mod tests {
 
             i += 1;
         }
-        
+
         return Ok(());
     }
 
@@ -1508,7 +1508,7 @@ mod tests {
             offset: 0,
             subselection: Some(Box::new(SubSelection::from(inline_block_id4.clone(), 4, None)))
         };
-        
+
         let selection = Selection {
             anchor: sub_selection_from.clone(),
             head: sub_selection_to.clone()
@@ -1527,7 +1527,128 @@ mod tests {
 
             i += 1;
         }
-        
+
         return Ok(());
+    }
+
+    /// <1> *selection starts here*
+    ///     <2> *selection ends here*
+    /// <3>
+    #[test]
+    fn can_add_mark_with_selection_across_inline_blocks_in_different_standard_blocks_2() -> Result<(), StepError> {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id()?;
+        let p_id1 = "1".to_string();
+        let p_id2 = "2".to_string();
+        let p_id3 = "3".to_string();
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block_id2 = new_ids.get_id()?;
+        let inline_block_id3 = new_ids.get_id()?;
+        let p1 = json!({
+            "_id": p_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [p_id2.clone()],
+            "marks": [],
+            "parent": root_block_id.to_string()
+        });
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "A"
+            },
+            "marks": [],
+            "parent": p_id1.clone()
+        });
+        let p2 = json!({
+            "_id": p_id2.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": p_id1.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "B"
+            },
+            "marks": [],
+            "parent": p_id2.clone()
+        });
+        let p3 = json!({
+            "_id": p_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id3.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "C"
+            },
+            "marks": [],
+            "parent": p_id3.clone()
+        });
+
+        let root_block = RootBlock::json_from(
+            root_block_id.clone(),
+            vec![p_id1.clone(), p_id3.clone()]
+        );
+
+        let block_map = BlockMap::from(
+            vec![
+                root_block.to_string(),
+                p1.to_string(), inline_block1.to_string(),
+                p2.to_string(), inline_block2.to_string(),
+                p3.to_string(), inline_block3.to_string(),
+            ]
+        ).unwrap();
+
+        let event = Event::FormatBar(FormatBarEvent::Bold);
+        let sub_selection_from = SubSelection {
+            block_id: p_id1.clone(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection::from(inline_block_id1.clone(), 0, None)))
+        };
+        let sub_selection_to = SubSelection {
+            block_id: p_id1.clone(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection {
+                block_id: p_id2.clone(),
+                offset: 0,
+                subselection: Some(Box::new(SubSelection::from(inline_block_id2.clone(), 1, None)))}))
+        };
+
+        let selection = Selection {
+            anchor: sub_selection_from.clone(),
+            head: sub_selection_to.clone()
+        };
+        let steps = generate_steps(&event, &block_map, selection)?;
+        let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
+
+        let updated_p1 = updated_state.block_map.get_standard_block(&p_id1)?;
+        assert_eq!(updated_state.block_map.get_inline_block(&updated_p1.content_block()?.inline_blocks[0])?.marks, vec![Mark::Bold]);
+        let updated_p2 = updated_state.block_map.get_standard_block(&p_id2)?;
+        assert_eq!(updated_state.block_map.get_inline_block(&updated_p2.content_block()?.inline_blocks[0])?.marks, vec![Mark::Bold]);
+        return Ok(())
     }
 }
