@@ -247,7 +247,7 @@ impl SubSelection {
     /// up to the current deepest subselection
     pub fn to_raw_selection(&self, block_map: &BlockMap) -> Result<Self, StepError> {
         match self.subselection {
-            Some(_) => unimplemented!(),
+            Some(_) => self.get_deepest_subselection().to_raw_selection(block_map),
             None => {
                 let inline_block = block_map.get_inline_block(&self.block_id)?;
                 let parent = &inline_block.get_parent(block_map)?;

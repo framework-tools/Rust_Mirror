@@ -1464,13 +1464,13 @@ mod tests {
 
         assert_eq!(steps.len(), 1);
         match &steps[0] {
-            Step::AddMarkStep(add_mark_step) => {
+            Step::RemoveMarkStep(add_mark_step) => {
                 assert_eq!(add_mark_step.block_id, p_id1);
                 assert_eq!(add_mark_step.from, sub_selection_from);
                 assert_eq!(add_mark_step.to, sub_selection_to);
                 assert_eq!(add_mark_step.mark, Mark::Bold);
             },
-            step => return Err(StepError(format!("Expected AddMarkStep. Got: {:?}", step)))
+            step => return Err(StepError(format!("Expected RemoveMarkStep. Got: {:?}", step)))
         };
         return Ok(())
     }

@@ -6,7 +6,7 @@ use crate::mark::Mark;
 use crate::new_ids::NewIds;
 use crate::steps_generator::selection::{Selection};
 use crate::{step::Step, blocks::BlockMap, steps_generator::StepError};
-use crate::steps_executor::execute_mark_step::execute_mark_step;
+use crate::steps_executor::execute_mark_steps::execute_mark_step;
 
 use self::execute_add_block::execute_add_block;
 use self::execute_child_steps::execute_child_steps;
@@ -15,7 +15,7 @@ use self::execute_split_step::execute_split_step;
 use crate::steps_executor::execute_parent_steps::execute_parent_steps;
 
 pub mod execute_replace_steps;
-pub mod execute_mark_step;
+pub mod execute_mark_steps;
 pub mod execute_split_step;
 pub mod execute_child_steps;
 pub mod execute_parent_steps;

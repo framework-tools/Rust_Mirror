@@ -217,6 +217,44 @@ impl StandardBlock {
         let children_after = &parent.children()?[self.index(block_map)? + 1 ..];
         return Ok(children_after.to_vec())
     }
+
+    pub fn apply_mark_to_all_inline_blocks_in_range(
+        &self,
+        mark: Mark,
+        from: usize,
+        to: usize,
+        block_map: &mut BlockMap,
+        add_mark: bool
+    ) -> Result<(), StepError> {
+        let mut new_block = self.clone();
+        let inline_blocks = &self.content_block()?.inline_blocks;
+        let mut i = from;
+        while i < to + 1 && i < inline_blocks.len() {
+            let mut inline_block = block_map.get_inline_block(&inline_blocks[i])?;
+            inline_block = inline_block.apply_mark(mark.clone(), add_mark);
+            block_map.update_block(Block::InlineBlock(inline_block))?;
+            i += 1;
+        }
+        return Ok(())
+    }
+
+    pub fn apply_mark_to_all_inline_blocks(
+        &self,
+        mark: Mark,
+        block_map: &mut BlockMap,
+        add_mark: bool
+    ) -> Result<(), StepError> {
+        let mut new_block = self.clone();
+        let inline_blocks = &self.content_block()?.inline_blocks;
+        let mut i = 0;
+        while i < inline_blocks.len() {
+            let mut inline_block = block_map.get_inline_block(&inline_blocks[i])?;
+            inline_block = inline_block.apply_mark(mark.clone(), add_mark);
+            block_map.update_block(Block::InlineBlock(inline_block))?;
+            i += 1;
+        }
+        return Ok(())
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

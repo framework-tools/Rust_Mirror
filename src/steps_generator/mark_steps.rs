@@ -78,19 +78,32 @@ fn all_standard_blocks_have_identical_mark(
         )? == false {
             return Ok(false)
         }
-
+        
         for block_id in parent_block.children[from_index + 1..=to_index].iter() {
             let child = block_map.get_standard_block(block_id)?;
-            if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false 
-            || descendants_inline_blocks_have_identical_mark(
-                &child, 
-                mark, 
-                block_map, 
-                Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?))
-            )? == false {
-                return Ok(false)
+            if child.id() == to_deepest_std_block.id() {
+                if child.all_inline_blocks_in_range_have_identical_mark(
+                    mark, 
+                    0,
+                    to_deepest_std_block.index_of(&to_deepest_layer.block_id)?,
+                    block_map
+                )? == false {
+                    return Ok(false)
+                };
+                break;
+            } else {
+                if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false 
+                || descendants_inline_blocks_have_identical_mark(
+                    &child, 
+                    mark, 
+                    block_map, 
+                    Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?))
+                )? == false {
+                    return Ok(false)
+                }
             }
         }
+        
     } else {
         // for "from"
         let from_second_deepest_layer = from.clone().get_two_deepest_layers()?;

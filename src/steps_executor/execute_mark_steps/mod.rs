@@ -1,8 +1,11 @@
 
-use crate::{step::{MarkStep}, blocks::{BlockMap, Block, inline_blocks::{InlineBlock}, standard_blocks::StandardBlock}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
+use crate::{step::{MarkStep}, blocks::{BlockMap, Block, inline_blocks::{InlineBlock}}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
+
+use self::execute_across_std_blocks::execute_mark_step_on_standard_blocks;
 
 use super::{clean_block_after_transform, UpdatedState};
 
+pub mod execute_across_std_blocks;
 
 pub fn execute_mark_step(
     mark_step: MarkStep,
@@ -19,8 +22,8 @@ pub fn execute_mark_step(
             let updated_state = execute_mark_step_on_inline_blocks(mark_step, from_block, block_map, add_mark, new_ids)?;
             block_map = updated_state.block_map;
         },
-        Block::StandardBlock(from_block) => {
-            let updated_state = execute_mark_step_on_standard_blocks(mark_step, from_block, block_map, add_mark, new_ids)?;
+        Block::StandardBlock(_) => {
+            let updated_state = execute_mark_step_on_standard_blocks(mark_step, block_map, add_mark)?;
             block_map = updated_state.block_map;
         },
         Block::Root(_) => return Err(StepError("Cannot mark root block".to_string()))
@@ -118,7 +121,7 @@ fn execute_mark_step_on_inline_blocks(
     }
 }
 
-fn create_before_middle_after_blocks_with_new_text_and_mark(
+pub fn create_before_middle_after_blocks_with_new_text_and_mark(
     from_block: InlineBlock,
     new_ids: &mut NewIds,
     mark_step: MarkStep,
@@ -135,8 +138,7 @@ fn create_before_middle_after_blocks_with_new_text_and_mark(
     return Ok((before_block, middle_block, after_block))
 }
 
-/// HAS BUGS DUE TO CLEANING SYSTEM -> NEEDS TO MAP
-fn updated_selection_after_apply_mark(
+pub fn updated_selection_after_apply_mark(
     second_half_of_from_block_id: String,
     first_half_of_to_block: &InlineBlock,
 ) -> Result<Selection, StepError> {
@@ -144,64 +146,4 @@ fn updated_selection_after_apply_mark(
         anchor: SubSelection { block_id: second_half_of_from_block_id, offset: 0, subselection: None },
         head: SubSelection { block_id: first_half_of_to_block.id(), offset: first_half_of_to_block.text()?.len(), subselection: None },
     })
-}
-
-
-/// -> apply mark for "from" std block -> from "inner from" to end of inline blocks
-/// -> apply mark for "to" std block -> from start of inline blocks to "inner to"
-/// -> for each standard block between "from" & "to" -> assign mark to each of their inline blocks
-fn execute_mark_step_on_standard_blocks(
-    mark_step: MarkStep,
-    from_block: StandardBlock,
-    mut block_map: BlockMap,
-    add_mark: bool,
-    new_ids: &mut NewIds
-) -> Result<UpdatedState, StepError> {
-    let deepest_from_subselection = mark_step.from.get_deepest_subselection();
-    let deepest_from_subselection_block_id = deepest_from_subselection.block_id.clone();
-    let from_mark_step = MarkStep {
-        block_id: from_block.id(),
-        from: deepest_from_subselection.clone(),
-        to: SubSelection::at_end_of_block(&from_block._id, &block_map)?,
-        mark: mark_step.mark.clone(),
-    };
-    let inline_block = block_map.get_inline_block(&deepest_from_subselection_block_id)?;
-    let updated_state = execute_mark_step_on_inline_blocks(from_mark_step, inline_block, block_map, add_mark, new_ids)?;
-    block_map = updated_state.block_map;
-
-    let to_block = block_map.get_standard_block(&mark_step.to.block_id)?;
-    let deepest_to_subselection = mark_step.to.get_deepest_subselection();
-    let to_mark_step = MarkStep {
-        block_id: to_block.id(),
-        from: SubSelection { block_id: to_block.content_block()?.inline_blocks[0].clone(), offset: 0, subselection: None },
-        to: deepest_to_subselection.clone(),
-        mark: mark_step.mark.clone(),
-    };
-    let inline_block = block_map.get_inline_block(&to_block.content_block()?.inline_blocks[0])?;
-
-    let updated_state = execute_mark_step_on_inline_blocks(to_mark_step, inline_block, block_map, add_mark, new_ids)?;
-    block_map = updated_state.block_map;
-
-    let parent = from_block.get_parent(&block_map)?;
-    let parents_children = parent.children()?;
-    let mut i = from_block.index(&block_map)? + 1;
-    let j = to_block.index(&block_map)?;
-    while i < j {
-        let block = block_map.get_standard_block(&parents_children[i])?;
-        let deepest_from_subselection = SubSelection { block_id: block.content_block()?.inline_blocks[0].clone(), offset: 0, subselection: None };
-        let inline_block = block_map.get_inline_block(&deepest_from_subselection.block_id)?;
-        let inner_mark_step = MarkStep {
-            block_id: to_block.id(),
-            from: deepest_from_subselection,
-            to: SubSelection::at_end_of_block(&block._id, &block_map)?,
-            mark: mark_step.mark.clone(),
-        };
-        let updated_state = execute_mark_step_on_inline_blocks(inner_mark_step, inline_block, block_map, add_mark, new_ids)?;
-        block_map = updated_state.block_map;
-
-        i += 1;
-    }
-
-    return Ok(UpdatedState { block_map, selection: None })
-
 }
