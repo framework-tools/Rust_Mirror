@@ -723,10 +723,12 @@ mod tests {
         let p_id7 = "7".to_string();
         let inline_block_id1 = new_ids.get_id()?;
         let inline_block_id2 = new_ids.get_id()?;
+        let inline_block_id2b = new_ids.get_id()?;
         let inline_block_id3 = new_ids.get_id()?;
         let inline_block_id4 = new_ids.get_id()?;
         let inline_block_id5 = new_ids.get_id()?;
         let inline_block_id6 = new_ids.get_id()?;
+        let inline_block_id6b = new_ids.get_id()?;
         let inline_block_id7 = new_ids.get_id()?;
         let p1 = json!({
             "_id": p_id1.clone(),
@@ -754,7 +756,7 @@ mod tests {
             "kind": "standard",
             "_type": "paragraph",
             "content": {
-                "inline_blocks": [inline_block_id2.clone()]
+                "inline_blocks": [inline_block_id2.clone(), inline_block_id2b.clone()]
             },
             "children": [p_id3.clone()],
             "marks": [],
@@ -766,6 +768,16 @@ mod tests {
             "_type": "text",
             "content": {
                 "text": "B"
+            },
+            "marks": [],
+            "parent": p_id2.clone()
+        });
+        let inline_block2b = json!({
+            "_id": inline_block_id2b.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Bvdsdsdsvsdvdsvdv"
             },
             "marks": ["bold"],
             "parent": p_id2.clone()
@@ -838,7 +850,7 @@ mod tests {
             "kind": "standard",
             "_type": "paragraph",
             "content": {
-                "inline_blocks": [inline_block_id6.clone()]
+                "inline_blocks": [inline_block_id6.clone(), inline_block_id6b.clone()]
             },
             "children": [p_id7.clone()],
             "marks": [],
@@ -849,9 +861,19 @@ mod tests {
             "kind": "inline",
             "_type": "text",
             "content": {
-                "text": "F"
+                "text": "Fdsfdsdsdsds"
             },
             "marks": ["bold"],
+            "parent": p_id6.clone()
+        });
+        let inline_block6b = json!({
+            "_id": inline_block_id6b.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "F"
+            },
+            "marks": [],
             "parent": p_id6.clone()
         });
         let p7 = json!({
@@ -887,8 +909,8 @@ mod tests {
                 offset: 0,
                 subselection: Some(Box::new(
                     SubSelection {
-                        block_id: inline_block_id2.clone(),
-                        offset: 0,
+                        block_id: inline_block_id2b.clone(),
+                        offset: 3,
                         subselection: None
                     }
                 ))
@@ -906,7 +928,7 @@ mod tests {
                         subselection: Some(Box::new(
                             SubSelection {
                                 block_id: inline_block_id6.clone(),
-                                offset: 1,
+                                offset: 3,
                                 subselection: None
                             }
                         ))
@@ -919,11 +941,11 @@ mod tests {
         let block_map = BlockMap::from(vec![
             root_block.to_string(),
             p1.to_string(), inline_block1.to_string(),
-            p2.to_string(), inline_block2.to_string(),
+            p2.to_string(), inline_block2.to_string(), inline_block2b.to_string(),
             p3.to_string(), inline_block3.to_string(),
             p4.to_string(), inline_block4.to_string(),
             p5.to_string(), inline_block5.to_string(),
-            p6.to_string(), inline_block6.to_string(),
+            p6.to_string(), inline_block6.to_string(), inline_block6b.to_string(),
             p7.to_string(), inline_block7.to_string()
         ])?;
         let steps = generate_steps(&event, &block_map, selection)?;
@@ -933,7 +955,16 @@ mod tests {
         while i < 8 {
             let updated_p = updated_state.block_map.get_standard_block(&i.to_string())?;
             let updated_inline_block = updated_state.block_map.get_inline_block(&updated_p.content_block()?.inline_blocks[0])?;
-            if i != 7 {
+            println!("i: {}", i);
+            if i == 2 {
+                assert_eq!(updated_inline_block.marks, vec![]);
+                let updated_inline_block_b = updated_state.block_map.get_inline_block(&updated_p.content_block()?.inline_blocks[1])?;
+                assert_eq!(updated_inline_block_b.marks, vec![Mark::Bold]);
+            } else if i == 6 {
+                assert_eq!(updated_inline_block.marks, vec![Mark::Bold]);
+                let updated_inline_block_b = updated_state.block_map.get_inline_block(&updated_p.content_block()?.inline_blocks[1])?;
+                assert_eq!(updated_inline_block_b.marks, vec![]);
+            } else if i != 7 {
                 assert_eq!(updated_inline_block.marks, vec![Mark::Bold]);
             } else {
                 assert_eq!(updated_inline_block.marks, vec![]);
