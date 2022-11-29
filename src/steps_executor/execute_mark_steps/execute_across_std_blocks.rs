@@ -1,4 +1,4 @@
-use crate::{step::MarkStep, blocks::{standard_blocks::StandardBlock, BlockMap}, steps_executor::UpdatedState, steps_generator::StepError, mark::Mark};
+use crate::{step::MarkStep, blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, Block}, steps_executor::{UpdatedState, clean_block_after_transform}, steps_generator::{StepError, selection::SubSelection}, mark::Mark, new_ids::NewIds};
 
 
 
@@ -8,24 +8,30 @@ use crate::{step::MarkStep, blocks::{standard_blocks::StandardBlock, BlockMap}, 
 pub fn execute_mark_step_on_standard_blocks(
     mark_step: MarkStep,
     mut block_map: BlockMap,
-    add_mark: bool
+    add_mark: bool,
+    new_ids: &mut NewIds
 ) -> Result<UpdatedState, StepError> {
-    println!("add_mark: {}", add_mark);
 
     let top_from_block = block_map.get_standard_block(&mark_step.from.block_id)?;
+
+    let parent_block = block_map.get_block(&top_from_block.parent)?;
+    let from_index = parent_block.index_of_child(&mark_step.from.block_id)?;
+    let to_index = parent_block.index_of_child(&mark_step.to.block_id)?;
+    let from_second_deepest_layer = mark_step.from.clone().get_two_deepest_layers()?;
+    let from_deepest_layer = mark_step.from.get_deepest_subselection();
+    let from_deepest_std_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
+    let to_second_deepest_layer = mark_step.to.clone().get_two_deepest_layers()?;
+    let to_deepest_layer = mark_step.to.get_deepest_subselection();
+    let to_deepest_std_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
+    split_edge_inline_blocks(&mut block_map, new_ids, from_deepest_layer, from_deepest_std_block)?;
+    split_edge_inline_blocks(&mut block_map, new_ids, to_deepest_layer, to_deepest_std_block)?;
+    let from_deepest_std_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
+    let to_deepest_std_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
     if !top_from_block.parent_is_root(&block_map) {
         let parent_block = block_map.get_standard_block(&top_from_block.parent)?;
-        let from_index = parent_block.index_of_child(&mark_step.from.block_id)?;
-        let to_index = parent_block.index_of_child(&mark_step.to.block_id)?;
-        let from_second_deepest_layer = mark_step.from.clone().get_two_deepest_layers()?;
-        let from_deepest_layer = mark_step.from.get_deepest_subselection();
-        let from_deepest_std_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
-        let to_second_deepest_layer = mark_step.to.clone().get_two_deepest_layers()?;
-        let to_deepest_layer = mark_step.to.get_deepest_subselection();
-        let to_deepest_std_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
         from_deepest_std_block.apply_mark_to_all_inline_blocks_in_range(
             mark_step.mark.clone(),
-            from_deepest_std_block.index_of(&from_deepest_layer.block_id)?,
+            from_deepest_std_block.index_of(&from_deepest_layer.block_id)? + 1,
             from_deepest_std_block.content_block()?.inline_blocks.len() - 1,
             &mut block_map,
             add_mark,
@@ -66,9 +72,10 @@ pub fn execute_mark_step_on_standard_blocks(
         let from_second_deepest_layer = mark_step.from.clone().get_two_deepest_layers()?;
         let from_deepest_layer = mark_step.from.get_deepest_subselection();
         let from_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
+
         from_block.apply_mark_to_all_inline_blocks_in_range(
             mark_step.mark.clone(), 
-            from_block.index_of(&from_deepest_layer.block_id)?,
+            from_block.index_of(&from_deepest_layer.block_id)? + 1,
             from_block.content_block()?.inline_blocks.len() - 1,
             &mut block_map,
             add_mark,
@@ -118,6 +125,12 @@ pub fn execute_mark_step_on_standard_blocks(
         }
         
     }
+    let from_second_deepest_layer = mark_step.from.clone().get_two_deepest_layers()?;
+    let from_deepest_std_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
+    let to_second_deepest_layer = mark_step.to.clone().get_two_deepest_layers()?;
+    let to_deepest_std_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
+    block_map = clean_block_after_transform(from_deepest_std_block, block_map)?;
+    block_map = clean_block_after_transform(to_deepest_std_block, block_map)?;
 
     return Ok(UpdatedState { block_map, selection: None })
 }
@@ -174,5 +187,20 @@ fn apply_mark_to_all_lower_relatives(
     }
 
     apply_mark_to_all_lower_relatives(&parent, mark, block_map, add_mark)?;
+    return Ok(())
+}
+
+fn split_edge_inline_blocks(
+    block_map: &mut BlockMap,
+    new_ids: &mut NewIds,
+    deepest_layer: &SubSelection,
+    deepest_std_block: StandardBlock,
+) -> Result<(), StepError> {
+    let from_inline_block = block_map.get_inline_block(&deepest_layer.block_id)?;
+    let (first_half, second_half) = from_inline_block.split(deepest_layer.offset, new_ids)?;
+    let mut inline_blocks = deepest_std_block.content_block()?.clone().inline_blocks;
+    inline_blocks.insert(first_half.index(&block_map)? + 1, second_half.id());
+    let deepest_std_block = deepest_std_block.update_block_content(ContentBlock { inline_blocks })?;
+    block_map.update_blocks(vec![Block::InlineBlock(first_half), Block::InlineBlock(second_half), Block::StandardBlock(deepest_std_block)])?;
     return Ok(())
 }

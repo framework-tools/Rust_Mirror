@@ -1255,14 +1255,21 @@ mod tests {
 
         let mut i = 3 as usize;
         while i < 7 {
+            let p = updated_state.block_map.get_standard_block(&i.to_string()).unwrap();
             let updated_inline_block = match i {
-                3 => updated_state.block_map.get_inline_block(&inline_block_id3b.clone())?,
+                3 => updated_state.block_map.get_inline_block(&p.content_block()?.inline_blocks[2])?,
                 4 => updated_state.block_map.get_inline_block(&inline_block_id4.clone())?,
                 5 => updated_state.block_map.get_inline_block(&inline_block_id5.clone())?,
-                6 => updated_state.block_map.get_inline_block(&inline_block_id6.clone())?,
+                6 => updated_state.block_map.get_inline_block(&p.content_block()?.inline_blocks[0])?,
                 _ => panic!("Should not happen")
             };
             assert_eq!(updated_inline_block.marks, vec![]);
+            if i == 3 {
+                assert_eq!(updated_inline_block.text()?.clone().to_string(), "sfdfsdfds");
+            }
+            if i == 6 {
+                assert_eq!(updated_inline_block.text()?.clone().to_string(), "Fafd");
+            }
 
             i += 1;
         }

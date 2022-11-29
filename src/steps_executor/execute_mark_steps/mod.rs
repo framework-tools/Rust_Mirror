@@ -23,7 +23,7 @@ pub fn execute_mark_step(
             block_map = updated_state.block_map;
         },
         Block::StandardBlock(_) => {
-            let updated_state = execute_mark_step_on_standard_blocks(mark_step, block_map, add_mark)?;
+            let updated_state = execute_mark_step_on_standard_blocks(mark_step, block_map, add_mark, new_ids)?;
             block_map = updated_state.block_map;
         },
         Block::Root(_) => return Err(StepError("Cannot mark root block".to_string()))
