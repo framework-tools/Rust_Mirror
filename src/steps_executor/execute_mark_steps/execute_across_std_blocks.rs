@@ -41,7 +41,7 @@ pub fn execute_mark_step_on_standard_blocks(
             &from_deepest_std_block,
             &mark_step.mark,
             &mut block_map,
-            Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?)),
+            Some((&to_deepest_std_block._id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?)),
             add_mark
         )?;
 
@@ -62,7 +62,7 @@ pub fn execute_mark_step_on_standard_blocks(
                     &child,
                     &mark_step.mark,
                     &mut block_map,
-                    Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?)),
+                    Some((&to_deepest_std_block._id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?)),
                     add_mark
                 )?;
             }
@@ -154,7 +154,7 @@ fn apply_mark_to_descendants_inline_blocks(
                     return child.apply_mark_to_all_inline_blocks_in_range(mark.clone(), 0, to_block_to_stop_at.1, block_map, add_mark)
                 } else {
                     child.apply_mark_to_all_inline_blocks(mark.clone(), block_map, add_mark)?;
-                    apply_mark_to_descendants_inline_blocks(&child, mark, block_map, None, add_mark)?;
+                    apply_mark_to_descendants_inline_blocks(&child, mark, block_map, Some(to_block_to_stop_at), add_mark)?;
                 }
             },
             None => {

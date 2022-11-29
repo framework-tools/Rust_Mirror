@@ -872,7 +872,7 @@ mod tests {
             "content": {
                 "text": "G"
             },
-            "marks": ["bold"],
+            "marks": [],
             "parent": p_id7.clone()
         });
 
@@ -930,10 +930,14 @@ mod tests {
         let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
 
         let mut i = 2 as usize;
-        while i < 7 {
+        while i < 8 {
             let updated_p = updated_state.block_map.get_standard_block(&i.to_string())?;
             let updated_inline_block = updated_state.block_map.get_inline_block(&updated_p.content_block()?.inline_blocks[0])?;
-            assert_eq!(updated_inline_block.marks, vec![Mark::Bold]);
+            if i != 7 {
+                assert_eq!(updated_inline_block.marks, vec![Mark::Bold]);
+            } else {
+                assert_eq!(updated_inline_block.marks, vec![]);
+            }
             i += 1;
         }
         return Ok(())
