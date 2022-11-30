@@ -11,7 +11,6 @@ pub fn execute_mark_step_on_standard_blocks(
     add_mark: bool,
     new_ids: &mut NewIds
 ) -> Result<UpdatedState, StepError> {
-
     let top_from_block = block_map.get_standard_block(&mark_step.from.block_id)?;
 
     let parent_block = block_map.get_block(&top_from_block.parent)?;
@@ -198,8 +197,8 @@ fn split_edge_inline_blocks(
     deepest_layer: &SubSelection,
     deepest_std_block: StandardBlock,
 ) -> Result<(), StepError> {
-    let from_inline_block = block_map.get_inline_block(&deepest_layer.block_id)?;
-    let (first_half, second_half) = from_inline_block.split(deepest_layer.offset, new_ids)?;
+    let inline_block = block_map.get_inline_block(&deepest_layer.block_id)?;
+    let (first_half, second_half) = inline_block.split(deepest_layer.offset, new_ids)?;
     let mut inline_blocks = deepest_std_block.content_block()?.clone().inline_blocks;
     inline_blocks.insert(first_half.index(&block_map)? + 1, second_half.id());
     let deepest_std_block = deepest_std_block.update_block_content(ContentBlock { inline_blocks })?;

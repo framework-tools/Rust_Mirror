@@ -769,7 +769,7 @@ mod tests {
             "content": {
                 "text": "B"
             },
-            "marks": [],
+            "marks": ["bold"],
             "parent": p_id2.clone()
         });
         let inline_block2b = json!({
@@ -779,7 +779,7 @@ mod tests {
             "content": {
                 "text": "Bvdsdsdsvsdvdsvdv"
             },
-            "marks": ["bold"],
+            "marks": [],
             "parent": p_id2.clone()
         });
         let p3 = json!({
@@ -863,7 +863,7 @@ mod tests {
             "content": {
                 "text": "Fdsfdsdsdsds"
             },
-            "marks": ["bold"],
+            "marks": [],
             "parent": p_id6.clone()
         });
         let inline_block6b = json!({
@@ -873,7 +873,7 @@ mod tests {
             "content": {
                 "text": "F"
             },
-            "marks": [],
+            "marks": ["underline"],
             "parent": p_id6.clone()
         });
         let p7 = json!({
@@ -955,13 +955,16 @@ mod tests {
         while i < 8 {
             let updated_p = updated_state.block_map.get_standard_block(&i.to_string())?;
             let updated_inline_block = updated_state.block_map.get_inline_block(&updated_p.content_block()?.inline_blocks[0])?;
-            println!("i: {}", i);
             if i == 2 {
-                assert_eq!(updated_inline_block.marks, vec![]);
                 let updated_inline_block_b = updated_state.block_map.get_inline_block(&updated_p.content_block()?.inline_blocks[1])?;
-                assert_eq!(updated_inline_block_b.marks, vec![Mark::Bold]);
+                assert_eq!(updated_inline_block_b.text()?.clone().to_string(), "Bvd".to_string());
+                assert_eq!(updated_inline_block_b.marks, vec![]);
+                let updated_inline_block_c = updated_state.block_map.get_inline_block(&updated_p.content_block()?.inline_blocks[2])?;
+                assert_eq!(updated_inline_block_c.marks, vec![Mark::Bold]);
+                assert_eq!(updated_inline_block_c.text()?.clone().to_string(), "sdsdsvsdvdsvdv".to_string());
             } else if i == 6 {
                 assert_eq!(updated_inline_block.marks, vec![Mark::Bold]);
+                assert_eq!(updated_inline_block.text()?.clone().to_string(), "Fds".to_string());
                 let updated_inline_block_b = updated_state.block_map.get_inline_block(&updated_p.content_block()?.inline_blocks[1])?;
                 assert_eq!(updated_inline_block_b.marks, vec![]);
             } else if i != 7 {

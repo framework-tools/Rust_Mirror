@@ -226,7 +226,6 @@ impl StandardBlock {
         block_map: &mut BlockMap,
         add_mark: bool
     ) -> Result<(), StepError> {
-        let mut new_block = self.clone();
         let inline_blocks = &self.content_block()?.inline_blocks;
         let mut i = from;
         while i < to + 1 && i < inline_blocks.len() {
@@ -244,7 +243,6 @@ impl StandardBlock {
         block_map: &mut BlockMap,
         add_mark: bool
     ) -> Result<(), StepError> {
-        let mut new_block = self.clone();
         let inline_blocks = &self.content_block()?.inline_blocks;
         let mut i = 0;
         while i < inline_blocks.len() {
