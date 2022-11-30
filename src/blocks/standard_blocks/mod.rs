@@ -140,14 +140,14 @@ impl StandardBlock {
             let inline_block = block_map.get_inline_block(&inline_blocks[i])?;
             if i == to {
                 match _for {
-                    ForSelection::To(0) | ForSelection::Both(_, 0) => {
+                    ForSelection::To(0) => {
                         return Ok(true)
                     },
                     _ => {}
                 };
-                return Ok(true)
             }
-            else if !inline_block.marks.contains(mark) {
+
+            if !inline_block.marks.contains(mark) {
                 return Ok(false)
             }
             i += 1;

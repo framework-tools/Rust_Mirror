@@ -41,6 +41,7 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
+        println!("steps: {:#?}", steps);
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_standard_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
