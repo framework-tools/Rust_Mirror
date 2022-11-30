@@ -2,7 +2,7 @@
 use serde_json::json;
 use wasm_bindgen::JsValue;
 
-use crate::{mark::Mark, steps_generator::StepError, new_ids::NewIds, frontend_interface::get_js_field_as_string};
+use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string};
 
 use self::content_block::ContentBlock;
 
@@ -122,13 +122,32 @@ impl StandardBlock {
         mark: &Mark,
         from: usize,
         to: usize,
+        _for: ForSelection,
         block_map: &BlockMap
     ) -> Result<bool, StepError> {
         let inline_blocks = self.content_block()?.inline_blocks.clone();
         let mut i = from;
+        match _for {
+            ForSelection::Both(offset, _) | ForSelection::From(offset) => {
+                let from_block = block_map.get_inline_block(&inline_blocks[i])?;
+                if offset == from_block.text()?.len() {
+                    i += 1;
+                }
+            },
+            _ => {}
+        };
         while i < to + 1 && i < inline_blocks.len() {
             let inline_block = block_map.get_inline_block(&inline_blocks[i])?;
-            if !inline_block.marks.contains(mark) {
+            if i == to {
+                match _for {
+                    ForSelection::To(0) | ForSelection::Both(_, 0) => {
+                        return Ok(true)
+                    },
+                    _ => {}
+                };
+                return Ok(true)
+            }
+            else if !inline_block.marks.contains(mark) {
                 return Ok(false)
             }
             i += 1;

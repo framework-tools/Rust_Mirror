@@ -122,6 +122,11 @@ impl InlineBlock {
         let previous_block_id = parent_block.content_block()?.inline_blocks[parent_block.index_of(&self._id)? - 1].clone();
         return block_map.get_inline_block(&previous_block_id)
     }
+    pub fn next_block(&self, block_map: &BlockMap) -> Result<InlineBlock, StepError> {
+        let parent_block = self.get_parent(block_map)?;
+        let previous_block_id = parent_block.content_block()?.inline_blocks[parent_block.index_of(&self._id)? + 1].clone();
+        return block_map.get_inline_block(&previous_block_id)
+    }
 
     pub fn split(mut self, offset: usize, new_ids: &mut NewIds) -> Result<(Self, Self), StepError> {
         let text = self.text()?;

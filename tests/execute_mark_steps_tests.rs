@@ -748,7 +748,7 @@ mod tests {
             "content": {
                 "text": "A"
             },
-            "marks": ["bold"],
+            "marks": [],
             "parent": p_id1.clone()
         });
         let p2 = json!({
@@ -967,6 +967,8 @@ mod tests {
                 assert_eq!(updated_inline_block.text()?.clone().to_string(), "Fds".to_string());
                 let updated_inline_block_b = updated_state.block_map.get_inline_block(&updated_p.content_block()?.inline_blocks[1])?;
                 assert_eq!(updated_inline_block_b.marks, vec![]);
+            } else if i == 1 {
+                assert_eq!(updated_inline_block.marks, vec![]);
             } else if i != 7 {
                 assert_eq!(updated_inline_block.marks, vec![Mark::Bold]);
             } else {
@@ -1401,9 +1403,9 @@ mod tests {
             "kind": "inline",
             "_type": "text",
             "content": {
-                "text": "C"
+                "text": "Ccc"
             },
-            "marks": [],
+            "marks": ["italic"],
             "parent": p_id3.clone()
         });
         let inline_block3b = json!({
@@ -1537,7 +1539,7 @@ mod tests {
                     SubSelection {
                         block_id: p_id3.clone(),
                         offset: 0,
-                        subselection: Some(Box::new(SubSelection::from(inline_block_id3b.clone(), 4, None)))
+                        subselection: Some(Box::new(SubSelection::from(inline_block_id3.clone(), 3, None)))
                     }
                 ))
         };
@@ -1556,6 +1558,10 @@ mod tests {
 
         let mut i = 3 as usize;
         while i < 5 {
+            if i == 3 {
+                let first_inline_block = updated_state.block_map.get_inline_block(&inline_block_id3.clone())?;
+                assert_eq!(first_inline_block.marks, vec![Mark::Italic]);
+            }
             let updated_inline_block = match i {
                 3 => updated_state.block_map.get_inline_block(&inline_block_id3b.clone())?,
                 4 => updated_state.block_map.get_inline_block(&inline_block_id4.clone())?,

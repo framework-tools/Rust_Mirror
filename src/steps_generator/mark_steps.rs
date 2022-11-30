@@ -2,19 +2,30 @@ use crate::{mark::Mark, step::{Step, MarkStep}, blocks::{BlockMap, Block, standa
 
 use super::{selection::SubSelection, StepError};
 
+#[derive(PartialEq)]
+pub enum ForSelection {
+    From(usize),
+    To(usize),
+    Both(usize, usize)
+}
+
 /// If inline block / blocks
 /// -> if all the blocks have an identical mark with same values -> remove mark
 /// -> else -> add mark
-pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, block_map: &BlockMap) -> Result<Vec<Step>, StepError> {
+pub fn generate_mark_steps(mark: Mark, mut from: SubSelection, mut to: SubSelection, block_map: &BlockMap) -> Result<Vec<Step>, StepError> {
     let from_block = block_map.get_block(&from.block_id)?;
     let parent_block_id = from_block.parent()?;
     let mut should_add_mark = false;
     match from_block {
         Block::InlineBlock(from_block) => {
             let parent_block = block_map.get_standard_block(&from_block.parent)?;
-            let from_block_index = parent_block.index_of(&from.block_id)?;
-            let to_block_index = parent_block.index_of(&to.block_id)?;
-            if parent_block.all_inline_blocks_in_range_have_identical_mark(&mark, from_block_index, to_block_index, block_map)? == false {
+            if parent_block.all_inline_blocks_in_range_have_identical_mark(
+                &mark,
+                parent_block.index_of(&from.block_id)?,
+                parent_block.index_of(&to.block_id)?,
+                ForSelection::Both(from.offset, to.offset),
+                block_map
+            )? == false {
                 should_add_mark = true;
             }
         },
@@ -26,6 +37,9 @@ pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, blo
         },
         Block::Root(_) => return Err(StepError("Cannot generate mark steps for a root block".to_string()))
     };
+
+    // from.adjust_deepest_subselection_for_marks(true, block_map)?;
+    // to.adjust_deepest_subselection_for_marks(false, block_map)?;
 
     let mark_step = MarkStep { block_id: parent_block_id, from, to, mark };
     if should_add_mark {
@@ -65,45 +79,47 @@ fn all_standard_blocks_have_identical_mark(
         let to_deepest_layer = to.get_deepest_subselection();
         let to_deepest_std_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
         if from_deepest_std_block.all_inline_blocks_in_range_have_identical_mark(
-            mark, 
+            mark,
             from_deepest_std_block.index_of(&from_deepest_layer.block_id)?,
-            from_deepest_std_block.content_block()?.inline_blocks.len() - 1, 
+            from_deepest_std_block.content_block()?.inline_blocks.len() - 1,
+            ForSelection::From(from_deepest_layer.offset),
             block_map
         )? == false
         || descendants_inline_blocks_have_identical_mark(
-            &from_deepest_std_block, 
+            &from_deepest_std_block,
             mark,
-            block_map, 
-            Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?))
+            block_map,
+            Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?, to_deepest_layer.offset))
         )? == false {
             return Ok(false)
         }
-        
+
         for block_id in parent_block.children[from_index + 1..=to_index].iter() {
             let child = block_map.get_standard_block(block_id)?;
             if child.id() == to_deepest_std_block.id() {
                 if child.all_inline_blocks_in_range_have_identical_mark(
-                    mark, 
+                    mark,
                     0,
                     to_deepest_std_block.index_of(&to_deepest_layer.block_id)?,
+                    ForSelection::To(to_deepest_layer.offset),
                     block_map
                 )? == false {
                     return Ok(false)
                 };
                 break;
             } else {
-                if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false 
+                if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false
                 || descendants_inline_blocks_have_identical_mark(
-                    &child, 
-                    mark, 
-                    block_map, 
-                    Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?))
+                    &child,
+                    mark,
+                    block_map,
+                    Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?, to_deepest_layer.offset))
                 )? == false {
                     return Ok(false)
                 }
             }
         }
-        
+
     } else {
         // for "from"
         let from_second_deepest_layer = from.clone().get_two_deepest_layers()?;
@@ -111,8 +127,9 @@ fn all_standard_blocks_have_identical_mark(
         let from_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
         if from_block.all_inline_blocks_in_range_have_identical_mark(
             mark,
-            from_block.index_of(&from_deepest_layer.block_id)?, 
+            from_block.index_of(&from_deepest_layer.block_id)?,
             from_block.content_block()?.inline_blocks.len() - 1,
+            ForSelection::From(from_deepest_layer.offset),
             block_map
         )? == false {
             return Ok(false)
@@ -121,37 +138,38 @@ fn all_standard_blocks_have_identical_mark(
         || all_lower_relatives_have_identical_mark(&from_block, mark, block_map)? == false {
             return Ok(false)
         }
-        
+
         let to_second_deepest_layer = to.clone().get_two_deepest_layers()?;
         let to_deepest_layer = to.get_deepest_subselection();
         let to_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
         if to_block.all_inline_blocks_in_range_have_identical_mark(
-            mark, 
-            0, 
+            mark,
+            0,
             to_block.index_of(&to_deepest_layer.block_id)?,
+            ForSelection::To(to_deepest_layer.offset),
             block_map
         )? == false {
             return Ok(false)
         }
-        
+
         if &to_block._id != &to.block_id {
             let to_block_highest = block_map.get_standard_block(&to.block_id)?;
-            if to_block_highest.all_inline_blocks_in_range_have_identical_mark(mark, 0, to_block_highest.content_block()?.inline_blocks.len() - 1, block_map)? == false
+            if to_block_highest.all_inline_blocks_have_identical_mark(mark, block_map)? == false
             || descendants_inline_blocks_have_identical_mark(
-                &to_block_highest, 
-                mark, 
-                block_map, 
-                Some((&to_block._id, to_block.index_of(&to_deepest_layer.block_id)?))
+                &to_block_highest,
+                mark,
+                block_map,
+                Some((&to_block._id, to_block.index_of(&to_deepest_layer.block_id)?, to_deepest_layer.offset))
             )? == false {
                 return Ok(false)
             }
         }
-        
+
         let to_block_index = highest_level_parent.index_of_child(&to.block_id)?;
-        
+
         let from_block_index = highest_level_parent.index_of_child(&from.block_id)?;
         let highest_parent_children = highest_level_parent.children()?;
-        
+
         for id in highest_parent_children[from_block_index + 1..to_block_index].iter() {
             let block = block_map.get_standard_block(id)?;
             if block.all_inline_blocks_have_identical_mark(mark, block_map)? == false
@@ -159,7 +177,7 @@ fn all_standard_blocks_have_identical_mark(
                 return Ok(false)
             }
         }
-        
+
     }
 
     return Ok(true)
@@ -168,9 +186,9 @@ fn all_standard_blocks_have_identical_mark(
 /// This function is recursive
 fn descendants_inline_blocks_have_identical_mark(
     block: &StandardBlock,
-    mark: &Mark, 
+    mark: &Mark,
     block_map: &BlockMap,
-    to_block_to_stop_at: Option<(&String, usize)> // (block id, end of to selection index (of inline block))
+    to_block_to_stop_at: Option<(&String, usize, usize)> // (block id, end of to selection index (of inline block), offset)
 ) -> Result<bool, StepError> {
     for id in &block.children {
         let child = block_map.get_standard_block(id)?;
@@ -178,17 +196,23 @@ fn descendants_inline_blocks_have_identical_mark(
         match to_block_to_stop_at {
             Some(to_block_to_stop_at) => {
                 if id == to_block_to_stop_at.0 {
-                    if child.all_inline_blocks_in_range_have_identical_mark(mark, 0, to_block_to_stop_at.1, block_map)? == false {
+                    if child.all_inline_blocks_in_range_have_identical_mark(
+                        mark,
+                        0,
+                        to_block_to_stop_at.1,
+                        ForSelection::To(to_block_to_stop_at.2),
+                        block_map
+                    )? == false {
                         return Ok(false)
                     } else {
                         return Ok(true)
                     }
-                } else if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false 
+                } else if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false
                 || descendants_inline_blocks_have_identical_mark(&child, mark, block_map, Some(to_block_to_stop_at))? == false {
                     return Ok(false)
                 }
             },
-            None if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false 
+            None if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false
             || descendants_inline_blocks_have_identical_mark(&child, mark, block_map, to_block_to_stop_at)? == false => return Ok(false),
             _ => {}
         };
@@ -199,7 +223,7 @@ fn descendants_inline_blocks_have_identical_mark(
 
 fn all_lower_relatives_have_identical_mark(
     block: &StandardBlock,
-    mark: &Mark, 
+    mark: &Mark,
     block_map: &BlockMap
 ) -> Result<bool, StepError> {
     let parent_as_block = block.get_parent(block_map)?;
