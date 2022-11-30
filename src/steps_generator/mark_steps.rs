@@ -12,7 +12,7 @@ pub enum ForSelection {
 /// If inline block / blocks
 /// -> if all the blocks have an identical mark with same values -> remove mark
 /// -> else -> add mark
-pub fn generate_mark_steps(mark: Mark, mut from: SubSelection, mut to: SubSelection, block_map: &BlockMap) -> Result<Vec<Step>, StepError> {
+pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, block_map: &BlockMap) -> Result<Vec<Step>, StepError> {
     let from_block = block_map.get_block(&from.block_id)?;
     let parent_block_id = from_block.parent()?;
     let mut should_add_mark = false;
@@ -68,7 +68,7 @@ fn all_standard_blocks_have_identical_mark(
     to: SubSelection
 ) -> Result<bool, StepError> {
     let top_from_block = block_map.get_standard_block(&from.block_id)?;
-    if !top_from_block.parent_is_root(block_map) {
+    if !top_from_block.parent_is_root(block_map) || from.block_id == to.block_id {
         let parent_block = block_map.get_standard_block(&top_from_block.parent)?;
         let from_index = parent_block.index_of_child(&from.block_id)?;
         let to_index = parent_block.index_of_child(&to.block_id)?;
