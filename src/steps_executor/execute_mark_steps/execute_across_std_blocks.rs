@@ -26,8 +26,8 @@ pub fn execute_mark_step_on_standard_blocks(
     split_edge_inline_blocks(&mut block_map, new_ids, to_deepest_layer, to_deepest_std_block)?;
     let from_deepest_std_block = block_map.get_standard_block(&from_second_deepest_layer.block_id)?;
     let to_deepest_std_block = block_map.get_standard_block(&to_second_deepest_layer.block_id)?;
-    if !top_from_block.parent_is_root(&block_map) {
-        let parent_block = block_map.get_standard_block(&top_from_block.parent)?;
+    if !top_from_block.parent_is_root(&block_map) || mark_step.from.block_id == mark_step.to.block_id {
+
         from_deepest_std_block.apply_mark_to_all_inline_blocks_in_range(
             mark_step.mark.clone(),
             from_deepest_std_block.index_of(&from_deepest_layer.block_id)? + 1,
@@ -44,26 +44,29 @@ pub fn execute_mark_step_on_standard_blocks(
             add_mark
         )?;
 
-        for block_id in parent_block.children[from_index + 1..=to_index].iter() {
-            let child = block_map.get_standard_block(block_id)?;
-            if child.id() == to_deepest_std_block.id() {
-                child.apply_mark_to_all_inline_blocks_in_range(
-                    mark_step.mark.clone(),
-                    0,
-                    to_deepest_std_block.index_of(&to_deepest_layer.block_id)?,
-                    &mut block_map,
-                    add_mark,
-                )?;
-                break;
-            } else {
-                child.apply_mark_to_all_inline_blocks(mark_step.mark.clone(), &mut block_map, add_mark)?;
-                apply_mark_to_descendants_inline_blocks(
-                    &child,
-                    &mark_step.mark,
-                    &mut block_map,
-                    Some((&to_deepest_std_block._id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?)),
-                    add_mark
-                )?;
+        if !top_from_block.parent_is_root(&block_map) {
+            let parent_block = block_map.get_standard_block(&top_from_block.parent)?;
+            for block_id in parent_block.children[from_index + 1..=to_index].iter() {
+                let child = block_map.get_standard_block(block_id)?;
+                if child.id() == to_deepest_std_block.id() {
+                    child.apply_mark_to_all_inline_blocks_in_range(
+                        mark_step.mark.clone(),
+                        0,
+                        to_deepest_std_block.index_of(&to_deepest_layer.block_id)?,
+                        &mut block_map,
+                        add_mark,
+                    )?;
+                    break;
+                } else {
+                    child.apply_mark_to_all_inline_blocks(mark_step.mark.clone(), &mut block_map, add_mark)?;
+                    apply_mark_to_descendants_inline_blocks(
+                        &child,
+                        &mark_step.mark,
+                        &mut block_map,
+                        Some((&to_deepest_std_block._id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?)),
+                        add_mark
+                    )?;
+                }
             }
         }
     } else {

@@ -866,8 +866,9 @@ mod tests {
         // testing every case
         let mut i = 1;
         while i < 6 {
+            println!("i: {}", i);
             inline_blocks[i]["marks"] = json!([]);
-            if i != 0 {
+            if i != 1 {
                 inline_blocks[i - 1]["marks"] = json!(["bold"]);
             }
             let block_map = BlockMap::from(vec![

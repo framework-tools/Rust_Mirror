@@ -91,33 +91,31 @@ fn all_standard_blocks_have_identical_mark(
             return Ok(false)
         }
 
-        if top_from_block.parent_is_root(block_map) {
-            let parent_block = block_map.get_standard_block(&top_from_block.parent)?;
-            let from_index = parent_block.index_of_child(&from.block_id)?;
-            let to_index = parent_block.index_of_child(&to.block_id)?;
-            for block_id in parent_block.children[from_index + 1..=to_index].iter() {
-                let child = block_map.get_standard_block(block_id)?;
-                if child.id() == to_deepest_std_block.id() {
-                    if child.all_inline_blocks_in_range_have_identical_mark(
-                        mark,
-                        0,
-                        to_deepest_std_block.index_of(&to_deepest_layer.block_id)?,
-                        ForSelection::To(to_deepest_layer.offset),
-                        block_map
-                    )? == false {
-                        return Ok(false)
-                    };
-                    break;
-                } else {
-                    if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false
-                    || descendants_inline_blocks_have_identical_mark(
-                        &child,
-                        mark,
-                        block_map,
-                        Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?, to_deepest_layer.offset))
-                    )? == false {
-                        return Ok(false)
-                    }
+        let parent_block = block_map.get_standard_block(&top_from_block.parent)?;
+        let from_index = parent_block.index_of_child(&from.block_id)?;
+        let to_index = parent_block.index_of_child(&to.block_id)?;
+        for block_id in parent_block.children[from_index + 1..=to_index].iter() {
+            let child = block_map.get_standard_block(block_id)?;
+            if child.id() == to_deepest_std_block.id() {
+                if child.all_inline_blocks_in_range_have_identical_mark(
+                    mark,
+                    0,
+                    to_deepest_std_block.index_of(&to_deepest_layer.block_id)?,
+                    ForSelection::To(to_deepest_layer.offset),
+                    block_map
+                )? == false {
+                    return Ok(false)
+                };
+                break;
+            } else {
+                if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false
+                || descendants_inline_blocks_have_identical_mark(
+                    &child,
+                    mark,
+                    block_map,
+                    Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?, to_deepest_layer.offset))
+                )? == false {
+                    return Ok(false)
                 }
             }
         }

@@ -41,7 +41,6 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        println!("steps: {:#?}", steps);
         let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_standard_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
@@ -63,8 +62,8 @@ mod tests {
 
         let expected_selection = Selection {
             anchor: SubSelection {
-                block_id: inline_block2.id(),
-                offset: 0,
+                block_id: inline_block1.id(),
+                offset: 1,
                 subselection: None
             },
             head: SubSelection {
@@ -73,7 +72,8 @@ mod tests {
                 subselection: None
             },
         };
-
+        println!("expected: {:#?}", expected_selection);
+        println!("actual: {:#?}", updated_state.selection);
         assert_eq!(updated_state.selection, Some(expected_selection));
         return Ok(())
     }
@@ -1606,7 +1606,7 @@ mod tests {
             "kind": "inline",
             "_type": "text",
             "content": {
-                "text": "A"
+                "text": "Abcd"
             },
             "marks": [],
             "parent": p_id1.clone()
@@ -1627,7 +1627,7 @@ mod tests {
             "kind": "inline",
             "_type": "text",
             "content": {
-                "text": "B"
+                "text": "efgh"
             },
             "marks": [],
             "parent": p_id2.clone()
@@ -1672,7 +1672,7 @@ mod tests {
         let sub_selection_from = SubSelection {
             block_id: p_id1.clone(),
             offset: 0,
-            subselection: Some(Box::new(SubSelection::from(inline_block_id1.clone(), 0, None)))
+            subselection: Some(Box::new(SubSelection::from(inline_block_id1.clone(), 2, None)))
         };
         let sub_selection_to = SubSelection {
             block_id: p_id1.clone(),
@@ -1680,7 +1680,7 @@ mod tests {
             subselection: Some(Box::new(SubSelection {
                 block_id: p_id2.clone(),
                 offset: 0,
-                subselection: Some(Box::new(SubSelection::from(inline_block_id2.clone(), 1, None)))}))
+                subselection: Some(Box::new(SubSelection::from(inline_block_id2.clone(), 2, None)))}))
         };
 
         let selection = Selection {
@@ -1691,9 +1691,16 @@ mod tests {
         let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
 
         let updated_p1 = updated_state.block_map.get_standard_block(&p_id1)?;
-        assert_eq!(updated_state.block_map.get_inline_block(&updated_p1.content_block()?.inline_blocks[0])?.marks, vec![Mark::Bold]);
+        assert_eq!(updated_state.block_map.get_inline_block(&updated_p1.content_block()?.inline_blocks[0])?.marks, vec![]);
+        assert_eq!(updated_state.block_map.get_inline_block(&updated_p1.content_block()?.inline_blocks[1])?.marks, vec![Mark::Bold]);
+        assert_eq!(updated_state.block_map.get_inline_block(
+            &updated_p1.content_block()?.inline_blocks[1])?.text()?.clone().to_string(), "cd".to_string()
+        );
         let updated_p2 = updated_state.block_map.get_standard_block(&p_id2)?;
         assert_eq!(updated_state.block_map.get_inline_block(&updated_p2.content_block()?.inline_blocks[0])?.marks, vec![Mark::Bold]);
+        assert_eq!(updated_state.block_map.get_inline_block(&updated_p2.content_block()?.inline_blocks[0])?
+        .text()?.clone().to_string(), "ef".to_string());
+        assert_eq!(updated_state.block_map.get_inline_block(&updated_p2.content_block()?.inline_blocks[1])?.marks, vec![]);
         return Ok(())
     }
 }

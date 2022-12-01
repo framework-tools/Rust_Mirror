@@ -14,7 +14,9 @@ pub fn execute_mark_step(
     new_ids: &mut NewIds
 ) -> Result<UpdatedState, StepError> {
     let from_raw_selection = mark_step.from.to_raw_selection(&block_map)?;
+    println!("from_raw_selection: {:#?}", from_raw_selection);
     let to_raw_selection = mark_step.to.to_raw_selection(&block_map)?;
+    println!("from_raw_selection: {:#?}", to_raw_selection);
 
     let block = block_map.get_block(&mark_step.from.block_id)?;
     match block {
