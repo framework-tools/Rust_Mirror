@@ -87,7 +87,7 @@ fn all_standard_blocks_have_identical_mark(
             mark,
             block_map,
             Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?, to_deepest_layer.offset))
-        )? == false {
+        )?.has_identical_mark == false {
             return Ok(false)
         }
 
@@ -114,7 +114,7 @@ fn all_standard_blocks_have_identical_mark(
                     mark,
                     block_map,
                     Some((&to_deepest_layer.block_id, to_deepest_std_block.index_of(&to_deepest_layer.block_id)?, to_deepest_layer.offset))
-                )? == false {
+                )?.has_identical_mark == false {
                     return Ok(false)
                 }
             }
@@ -134,7 +134,7 @@ fn all_standard_blocks_have_identical_mark(
         )? == false {
             return Ok(false)
         }
-        if descendants_inline_blocks_have_identical_mark(&from_block, mark, block_map, None)? == false
+        if descendants_inline_blocks_have_identical_mark(&from_block, mark, block_map, None)?.has_identical_mark == false
         || all_lower_relatives_have_identical_mark(&from_block, mark, block_map)? == false {
             return Ok(false)
         }
@@ -160,7 +160,7 @@ fn all_standard_blocks_have_identical_mark(
                 mark,
                 block_map,
                 Some((&to_block._id, to_block.index_of(&to_deepest_layer.block_id)?, to_deepest_layer.offset))
-            )? == false {
+            )?.has_identical_mark == false {
                 return Ok(false)
             }
         }
@@ -173,7 +173,7 @@ fn all_standard_blocks_have_identical_mark(
         for id in highest_parent_children[from_block_index + 1..to_block_index].iter() {
             let block = block_map.get_standard_block(id)?;
             if block.all_inline_blocks_have_identical_mark(mark, block_map)? == false
-            || descendants_inline_blocks_have_identical_mark(&block, mark, block_map, None)? == false {
+            || descendants_inline_blocks_have_identical_mark(&block, mark, block_map, None)?.has_identical_mark == false {
                 return Ok(false)
             }
         }
@@ -183,13 +183,17 @@ fn all_standard_blocks_have_identical_mark(
     return Ok(true)
 }
 
+pub struct DescendantsReturn {
+    has_identical_mark: bool,
+    has_found_block_to_stop_at: bool
+}
 /// This function is recursive
 fn descendants_inline_blocks_have_identical_mark(
     block: &StandardBlock,
     mark: &Mark,
     block_map: &BlockMap,
     to_block_to_stop_at: Option<(&String, usize, usize)> // (block id, end of to selection index (of inline block), offset)
-) -> Result<bool, StepError> {
+) -> Result<DescendantsReturn, StepError> {
     for id in &block.children {
         let child = block_map.get_standard_block(id)?;
 
@@ -203,22 +207,28 @@ fn descendants_inline_blocks_have_identical_mark(
                         ForSelection::To(to_block_to_stop_at.2),
                         block_map
                     )? == false {
-                        return Ok(false)
+                        return Ok(DescendantsReturn { has_identical_mark: false, has_found_block_to_stop_at: true })
                     } else {
-                        return Ok(true)
+                        return Ok(DescendantsReturn { has_identical_mark: true, has_found_block_to_stop_at: true })
                     }
-                } else if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false
-                || descendants_inline_blocks_have_identical_mark(&child, mark, block_map, Some(to_block_to_stop_at))? == false {
-                    return Ok(false)
+                } else if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false {
+                    return Ok(DescendantsReturn { has_identical_mark: false, has_found_block_to_stop_at: false })
+                }
+                let res = descendants_inline_blocks_have_identical_mark(&child, mark, block_map, Some(to_block_to_stop_at))?;
+                if res.has_found_block_to_stop_at || res.has_identical_mark == false {
+                    return Ok(res)
                 }
             },
-            None if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false
-            || descendants_inline_blocks_have_identical_mark(&child, mark, block_map, to_block_to_stop_at)? == false => return Ok(false),
-            _ => {}
+            None => {
+                if child.all_inline_blocks_have_identical_mark(mark, block_map)? == false ||
+                descendants_inline_blocks_have_identical_mark(&child, mark, block_map, to_block_to_stop_at)?.has_identical_mark == false {
+                    return Ok(DescendantsReturn { has_identical_mark: false, has_found_block_to_stop_at: false })
+                }
+            }
         };
     }
 
-    return Ok(true)
+    return Ok(DescendantsReturn { has_identical_mark: true, has_found_block_to_stop_at: false })
 }
 
 fn all_lower_relatives_have_identical_mark(
@@ -236,7 +246,7 @@ fn all_lower_relatives_have_identical_mark(
     let mut i = block.index(block_map)? + 1;
     while i < parent.children.len() {
         let younger_sibling = block_map.get_standard_block(&parent.children[i])?;
-        if descendants_inline_blocks_have_identical_mark(&younger_sibling, mark, block_map, None)? == false {
+        if descendants_inline_blocks_have_identical_mark(&younger_sibling, mark, block_map, None)?.has_identical_mark == false {
             return Ok(false)
         }
         i += 1;
