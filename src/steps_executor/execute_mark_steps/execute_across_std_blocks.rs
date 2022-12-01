@@ -146,17 +146,20 @@ fn apply_mark_to_descendants_inline_blocks(
     block_map: &mut BlockMap,
     to_block_to_stop_at: Option<(&String, usize)>, // (block id, end of to selection index (of inline block))
     add_mark: bool
-) -> Result<(), StepError> {
+) -> Result<bool, StepError> {
     for id in &block.children {
         let child = block_map.get_standard_block(id)?;
 
         match to_block_to_stop_at {
             Some(to_block_to_stop_at) => {
                 if id == to_block_to_stop_at.0 {
-                    return child.apply_mark_to_all_inline_blocks_in_range(mark.clone(), 0, to_block_to_stop_at.1, block_map, add_mark)
+                    child.apply_mark_to_all_inline_blocks_in_range(mark.clone(), 0, to_block_to_stop_at.1, block_map, add_mark)?;
+                    return Ok(true)
                 } else {
                     child.apply_mark_to_all_inline_blocks(mark.clone(), block_map, add_mark)?;
-                    apply_mark_to_descendants_inline_blocks(&child, mark, block_map, Some(to_block_to_stop_at), add_mark)?;
+                    if apply_mark_to_descendants_inline_blocks(&child, mark, block_map, Some(to_block_to_stop_at), add_mark)? {
+                        return Ok(true)
+                    }
                 }
             },
             None => {
@@ -166,7 +169,7 @@ fn apply_mark_to_descendants_inline_blocks(
         };
     }
 
-    return Ok(())
+    return Ok(false)
 }
 
 fn apply_mark_to_all_lower_relatives(
