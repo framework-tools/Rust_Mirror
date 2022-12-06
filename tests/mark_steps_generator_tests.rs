@@ -1467,22 +1467,6 @@ mod tests {
         match &steps[0] {
             Step::RemoveMarkStep(add_mark_step) => {
                 assert_eq!(add_mark_step.block_id, p_id1);
-            //     assert_eq!(add_mark_step.from, SubSelection {
-            //         block_id: p_id2.clone(),
-            //         offset: 0,
-            //         subselection: Some(Box::new(
-            //             SubSelection {
-            //                 block_id: p_id3.clone(),
-            //                 offset: 0,
-            //                 subselection: Some(Box::new(SubSelection::from(inline_block_id3b.clone(), 0, None)))
-            //             }
-            //         ))
-            // });
-            //     assert_eq!(add_mark_step.to, SubSelection {
-            //         block_id: p_id4.clone(),
-            //         offset: 0,
-            //         subselection: Some(Box::new(SubSelection::from(inline_block_id4.clone(), 10, None)))
-            //     });
                 assert_eq!(add_mark_step.mark, Mark::Bold);
             },
             step => return Err(StepError(format!("Expected RemoveMarkStep. Got: {:?}", step)))

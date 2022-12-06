@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use wasm_bindgen::JsValue;
 
-use crate::{mark::{Color, Mark}, frontend_interface::{get_js_field_as_string, get_js_field, get_js_field_as_bool}};
+use crate::{mark::{Color, Mark}, frontend_interface::{get_js_field_as_string, get_js_field, get_js_field_as_bool}, blocks::standard_blocks::{StandardBlockType, content_block::ContentBlock}};
 
 use super::StepError;
 
@@ -114,6 +114,7 @@ pub enum FormatBarEvent {
     Strikethrough,
     ForeColor(Color),
     BackColor(Color),
+    TurnInto(StandardBlockType)
 }
 
 impl FormatBarEvent {
@@ -125,6 +126,7 @@ impl FormatBarEvent {
             "italic" => Ok(FormatBarEvent::Italic),
             "underline" => Ok(FormatBarEvent::Underline),
             "strikethrough" => Ok(FormatBarEvent::Strikethrough),
+            value if value.contains("turn_into") => Ok(FormatBarEvent::TurnInto(parse_turn_into_str(value)?)),
             value => {
                 let as_mark = Mark::color_mark_from_str(value)?;
                 match as_mark {
@@ -134,6 +136,16 @@ impl FormatBarEvent {
                 }
             }
         }
+    }
+}
+
+fn parse_turn_into_str(value: &str) -> Result<StandardBlockType, StepError> {
+    match value {
+        "turn_into(paragraph)" => return Ok(StandardBlockType::Paragraph(ContentBlock::new(vec![]))),
+        "turn_into(h1)" => return Ok(StandardBlockType::H1(ContentBlock::new(vec![]))),
+        "turn_into(h2)" => return Ok(StandardBlockType::H2(ContentBlock::new(vec![]))),
+        "turn_into(h3)" => return Ok(StandardBlockType::H3(ContentBlock::new(vec![]))),
+        value => return Err(StepError(format!("Not a valid turn into statement. Got: {}", value)))
     }
 }
 

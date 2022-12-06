@@ -1,5 +1,5 @@
 
-use crate::{steps_generator::selection::SubSelection, mark::Mark, blocks::{Block, standard_blocks::StandardBlockType}};
+use crate::{steps_generator::selection::SubSelection, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
 
 
 #[derive(Debug, PartialEq, Clone)]
@@ -11,6 +11,7 @@ pub enum Step {
     TurnToChild(TurnToChild),
     TurnToParent(TurnToParent),
     AddBlock(AddBlockStep),
+    TurnInto(TurnInto),
     //ReplaceAroundStep
 }
 
@@ -56,4 +57,10 @@ pub struct AddBlockStep {
     pub block_id: String,
     pub child_offset: usize,
     pub block_type: StandardBlockType
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct TurnInto {
+    pub block_id: String,
+    pub new_block_type: StandardBlockType
 }
