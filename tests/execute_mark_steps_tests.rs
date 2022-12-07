@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_executor::execute_steps, mark::{Mark, Color}, new_ids::NewIds};
+    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_executor::execute_steps, mark::{Mark, Color}, new_ids::NewIds, step::Step};
 
     use serde_json::json;
 
@@ -1748,7 +1748,7 @@ mod tests {
         let block_map = BlockMap::from(vec![
             inline_block1.to_string(), inline_block2.to_string(), block.to_string(), root_block.to_string()
         ]).unwrap();
-        let event = Event::FormatBar(FormatBarEvent::BackColor(Color(255, 255, 0, 0.6)));
+        let event = Event::FormatBar(FormatBarEvent::BackColor(Color(255, 255, 0, 60)));
         let sub_selection_from = SubSelection::from(inline_block_id1, 2, None);
         let sub_selection_to = SubSelection::from(inline_block_id2, 3, None);
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
@@ -1764,4 +1764,5 @@ mod tests {
 
         return Ok(())
     }
+
 }

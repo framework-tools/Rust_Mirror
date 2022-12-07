@@ -138,6 +138,7 @@ impl StandardBlock {
         };
         while i < to + 1 && i < inline_blocks.len() {
             let inline_block = block_map.get_inline_block(&inline_blocks[i])?;
+
             if i == to {
                 match _for {
                     ForSelection::To(0) => {

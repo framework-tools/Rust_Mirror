@@ -132,7 +132,9 @@ mod tests {
     #[test]
     fn can_convert_color_to_string() {
         let color = Color(0, 0, 0, 60);
-        assert_eq!(color.to_string(), "(0, 0, 0, 0.6)");
+        let as_str = color.to_string();
+        println!("{}", as_str);
+        assert_eq!(as_str, "(0, 0, 0, 0.6)");
     }
 
     #[test]
@@ -1606,6 +1608,59 @@ mod tests {
             },
             step => return Err(StepError(format!("Expected AddMarkStep. Got: {:?}", step)))
         };
+        return Ok(())
+    }
+
+    #[test]
+    fn can_toggle_color() -> Result<(), StepError> {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id()?;
+        let paragraph_block_id = new_ids.get_id()?;
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello "
+            },
+            "marks": ["back_color(255, 255, 0, 0.6)"],
+            "parent": paragraph_block_id.clone()
+        });
+        let block = json!({
+            "_id": paragraph_block_id.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.to_string()
+        });
+        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id.clone()]);
+
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), block.to_string(), root_block.to_string()
+        ]).unwrap();
+        let event = Event::FormatBar(FormatBarEvent::BackColor(Color(255, 255, 0, 60)));
+        let sub_selection_from = SubSelection::from(inline_block_id1.clone(), 0, None);
+        let sub_selection_to = SubSelection::from(inline_block_id1, 6, None);
+        let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
+
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
+        assert_eq!(steps.len(), 1);
+        match &steps[0] {
+            Step::RemoveMarkStep(mark_step) => {
+                assert_eq!(mark_step.block_id, paragraph_block_id);
+                assert_eq!(mark_step.from, sub_selection_from);
+                assert_eq!(mark_step.to, sub_selection_to);
+                assert_eq!(mark_step.mark, Mark::BackColor(Color(255, 255, 0, 60)));
+            },
+            step => return Err(StepError(format!("Expected RemoveMarkStep. Got: {:?}", step)))
+        };
+
         return Ok(())
     }
 }
