@@ -124,6 +124,16 @@ mod tests {
         let mark = Mark::from_str("fore_color(0, 0, 0, 1)").unwrap();
         assert_eq!(mark, Mark::ForeColor(Color (0, 0, 0, 1)));
     }
+    #[test]
+    fn can_parse_back_color_mark() {
+        let mark = Mark::from_str("back_color(0, 0, 0, 0.6)").unwrap();
+        assert_eq!(mark, Mark::BackColor(Color (0, 0, 0, 60)));
+    }
+    #[test]
+    fn can_convert_color_to_string() {
+        let color = Color(0, 0, 0, 60);
+        assert_eq!(color.to_string(), "(0, 0, 0, 0.6)");
+    }
 
     #[test]
     fn can_apply_color_mark_selection_across_multiple_inline_blocks_with_different_color_already_present() -> Result<(), StepError> {
@@ -140,7 +150,7 @@ mod tests {
             "content": {
                 "text": "Hello "
             },
-            "marks": ["fore_color(255, 255, 255, 1)"],
+            "marks": ["back_color(255, 255, 255, 1)"],
             "parent": paragraph_block_id.clone()
         });
         let inline_block2 = json!({
@@ -150,7 +160,7 @@ mod tests {
             "content": {
                 "text": "World"
             },
-            "marks": ["bold", "fore_color(255, 255, 0, 1)"],
+            "marks": ["bold", "back_color(255, 255, 0, 1)"],
             "parent": paragraph_block_id.clone()
         });
         let block = json!({
@@ -169,7 +179,7 @@ mod tests {
         let block_map = BlockMap::from(vec![
             inline_block1.to_string(), inline_block2.to_string(), block.to_string(), root_block.to_string()
         ]).unwrap();
-        let event = Event::FormatBar(FormatBarEvent::ForeColor(Color(255, 255, 0, 1)));
+        let event = Event::FormatBar(FormatBarEvent::BackColor(Color(255, 255, 0, 1)));
         let sub_selection_from = SubSelection::from(inline_block_id1, 2, None);
         let sub_selection_to = SubSelection::from(inline_block_id2, 3, None);
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
@@ -181,7 +191,7 @@ mod tests {
                 assert_eq!(add_mark_step.block_id, paragraph_block_id);
                 assert_eq!(add_mark_step.from, sub_selection_from);
                 assert_eq!(add_mark_step.to, sub_selection_to);
-                assert_eq!(add_mark_step.mark, Mark::ForeColor(Color(255, 255, 0, 1)));
+                assert_eq!(add_mark_step.mark, Mark::BackColor(Color(255, 255, 0, 1)));
             },
             step => return Err(StepError(format!("Expected AddMarkStep. Got: {:?}", step)))
         };

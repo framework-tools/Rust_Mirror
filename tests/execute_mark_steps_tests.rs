@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_executor::execute_steps, mark::Mark, new_ids::NewIds};
+    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_executor::execute_steps, mark::{Mark, Color}, new_ids::NewIds};
 
     use serde_json::json;
 
@@ -1701,6 +1701,67 @@ mod tests {
         assert_eq!(updated_state.block_map.get_inline_block(&updated_p2.content_block()?.inline_blocks[0])?
         .text()?.clone().to_string(), "ef".to_string());
         assert_eq!(updated_state.block_map.get_inline_block(&updated_p2.content_block()?.inline_blocks[1])?.marks, vec![]);
+        return Ok(())
+    }
+
+    #[test]
+    fn can_apply_color_mark_selection_across_multiple_inline_blocks_with_different_color_already_present() -> Result<(), StepError> {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id()?;
+        let paragraph_block_id = new_ids.get_id()?;
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block_id2 = new_ids.get_id()?;
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello "
+            },
+            "marks": ["back_color(255, 255, 255, 0.6)"],
+            "parent": paragraph_block_id.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "World"
+            },
+            "marks": ["bold", "back_color(255, 255, 0, 0.6)"],
+            "parent": paragraph_block_id.clone()
+        });
+        let block = json!({
+            "_id": paragraph_block_id.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone(), inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.to_string()
+        });
+        let root_block = RootBlock::json_from(root_block_id, vec![paragraph_block_id.clone()]);
+
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), block.to_string(), root_block.to_string()
+        ]).unwrap();
+        let event = Event::FormatBar(FormatBarEvent::BackColor(Color(255, 255, 0, 0.6)));
+        let sub_selection_from = SubSelection::from(inline_block_id1, 2, None);
+        let sub_selection_to = SubSelection::from(inline_block_id2, 3, None);
+        let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
+
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
+        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_p_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
+        let inline_blocks = updated_p_block.content_block()?.clone().inline_blocks;
+        let updated_inline_2 = updated_state.block_map.get_inline_block(&inline_blocks[1]).unwrap();
+        assert_eq!(updated_inline_2.marks, vec![Mark::BackColor(Color(255, 255, 0, 1))]);
+        let updated_inline_3 = updated_state.block_map.get_inline_block(&inline_blocks[2]).unwrap();
+        assert_eq!(updated_inline_3.marks.contains(&Mark::BackColor(Color(255, 255, 0, 1))), true);
+
         return Ok(())
     }
 }

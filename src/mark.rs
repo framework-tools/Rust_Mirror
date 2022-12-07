@@ -37,11 +37,19 @@ impl Mark {
     pub fn color_mark_from_str(mark: &str) -> Result<Mark, StepError> {
         let color = mark.split("(").last().ok_or(StepError(format!("Invalid Mark: {}", mark)))?;
         let color = color.split(")").next().ok_or(StepError(format!("Invalid Mark: {}", mark)))?;
-        let color = color.split(",").collect::<Vec<&str>>();
-        let color = color.iter().map(|c| {
+        let color_as_str = color.split(",").collect::<Vec<&str>>();
+        let mut i = 0;
+        let mut color =  vec![];
+        for c in color_as_str {
             let c = c.trim();
-            c.parse::<u8>().map_err(|_| StepError(format!("Invalid Mark: {}", mark)))
-        }).collect::<Result<Vec<u8>, StepError>>()?;
+            if i != 3 {
+                color.push(c.parse::<u8>().map_err(|_| StepError(format!("Invalid Mark: {}", mark)))?);
+            } else {
+                let c = c.parse::<f32>().map_err(|_| StepError(format!("Invalid Mark: {}", mark)))?;
+                color.push((c * 100.0) as u8)
+            }
+            i += 1;
+        }
         if color.len() != 4 {
             return Err(StepError(format!("Color should have 4 numbers. Got: {}", mark)))
         }
@@ -80,6 +88,6 @@ impl Color {
     }
 
     pub fn to_string(&self) -> String {
-        format!("({}, {}, {}, {})", self.0, self.1, self.2, self.3)
+        format!("({}, {}, {}, {})", self.0, self.1, self.2, self.3 as f32 / 100.0)
     }
 }
