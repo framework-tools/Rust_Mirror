@@ -142,9 +142,9 @@ impl FormatBarEvent {
 fn parse_turn_into_str(value: &str) -> Result<StandardBlockType, StepError> {
     match value {
         "turn_into(paragraph)" => return Ok(StandardBlockType::Paragraph(ContentBlock::new(vec![]))),
-        "turn_into(h1)" => return Ok(StandardBlockType::H1(ContentBlock::new(vec![]))),
-        "turn_into(h2)" => return Ok(StandardBlockType::H2(ContentBlock::new(vec![]))),
-        "turn_into(h3)" => return Ok(StandardBlockType::H3(ContentBlock::new(vec![]))),
+        "turn_into(heading 1)" => return Ok(StandardBlockType::H1(ContentBlock::new(vec![]))),
+        "turn_into(heading 2)" => return Ok(StandardBlockType::H2(ContentBlock::new(vec![]))),
+        "turn_into(heading 3)" => return Ok(StandardBlockType::H3(ContentBlock::new(vec![]))),
         value => return Err(StepError(format!("Not a valid turn into statement. Got: {}", value)))
     }
 }
