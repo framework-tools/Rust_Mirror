@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{blocks::{standard_blocks::{StandardBlockType, content_block::ContentBlock}, RootBlock, BlockMap}, new_ids::NewIds, steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, step::Step, steps_executor::execute_steps};
+    use rust_mirror::{blocks::{standard_blocks::{StandardBlockType, content_block::ContentBlock}, RootBlock, BlockMap}, new_ids::NewIds, steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, step::Step, steps_actualisor::actualise_steps};
     use serde_json::json;
 
     #[test]
@@ -89,7 +89,7 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
 
         let updated_block = updated_state.block_map.get_standard_block(&paragraph_block_id)?;
         assert_eq!(updated_block.content, StandardBlockType::H1(ContentBlock { inline_blocks: vec![inline_block_id] }));

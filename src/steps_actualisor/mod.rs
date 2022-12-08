@@ -6,22 +6,22 @@ use crate::mark::Mark;
 use crate::new_ids::NewIds;
 use crate::steps_generator::selection::{Selection};
 use crate::{step::Step, blocks::BlockMap, steps_generator::StepError};
-use crate::steps_executor::execute_mark_steps::execute_mark_step;
+use crate::steps_actualisor::actualise_mark_steps::actualise_mark_step;
 
 use self::actualise_toggle_completed::actualise_toggle_completed;
 use self::actualise_turn_into::actualise_turn_into_step;
-use self::execute_add_block::execute_add_block;
-use self::execute_child_steps::execute_child_steps;
-use self::execute_replace_steps::execute_replace_step;
-use self::execute_split_step::execute_split_step;
-use crate::steps_executor::execute_parent_steps::execute_parent_steps;
+use self::actualise_add_block::actualise_add_block;
+use self::actualise_child_steps::actualise_child_steps;
+use self::actualise_replace_steps::actualise_replace_step;
+use self::actualise_split_step::actualise_split_step;
+use crate::steps_actualisor::actualise_parent_steps::actualise_parent_steps;
 
-pub mod execute_replace_steps;
-pub mod execute_mark_steps;
-pub mod execute_split_step;
-pub mod execute_child_steps;
-pub mod execute_parent_steps;
-pub mod execute_add_block;
+pub mod actualise_replace_steps;
+pub mod actualise_mark_steps;
+pub mod actualise_split_step;
+pub mod actualise_child_steps;
+pub mod actualise_parent_steps;
+pub mod actualise_add_block;
 pub mod actualise_turn_into;
 pub mod actualise_toggle_completed;
 
@@ -41,17 +41,17 @@ impl UpdatedState {
 
 
 
-pub fn execute_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
+pub fn actualise_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
     let mut updated_state = UpdatedState::new(block_map);
     for step in steps {
         updated_state = match step {
-            Step::ReplaceStep(replace_step) => execute_replace_step(replace_step, updated_state.block_map, updated_state.selection)?,
-            Step::SplitStep(split_step) => execute_split_step(split_step, updated_state.block_map, new_ids)?,
-            Step::AddMarkStep(mark_step) => execute_mark_step(mark_step, updated_state.block_map, true, new_ids)?, // execute_mark_step(mark_step, block_map, true, new_ids)?,
-            Step::RemoveMarkStep(mark_step) => execute_mark_step(mark_step, updated_state.block_map, false, new_ids)?, // execute_mark_step(mark_step, block_map, false, new_ids)?
-            Step::TurnToChild(turn_to_child_step) => execute_child_steps(updated_state.block_map, turn_to_child_step)?,
-            Step::TurnToParent(turn_to_parent_step) => execute_parent_steps(updated_state.block_map, turn_to_parent_step)?,
-            Step::AddBlock(add_block_step) => execute_add_block(add_block_step, updated_state.block_map, new_ids)?,
+            Step::ReplaceStep(replace_step) => actualise_replace_step(replace_step, updated_state.block_map, updated_state.selection)?,
+            Step::SplitStep(split_step) => actualise_split_step(split_step, updated_state.block_map, new_ids)?,
+            Step::AddMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, true, new_ids)?, // actualise_mark_step(mark_step, block_map, true, new_ids)?,
+            Step::RemoveMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, false, new_ids)?, // actualise_mark_step(mark_step, block_map, false, new_ids)?
+            Step::TurnToChild(turn_to_child_step) => actualise_child_steps(updated_state.block_map, turn_to_child_step)?,
+            Step::TurnToParent(turn_to_parent_step) => actualise_parent_steps(updated_state.block_map, turn_to_parent_step)?,
+            Step::AddBlock(add_block_step) => actualise_add_block(add_block_step, updated_state.block_map, new_ids)?,
             Step::TurnInto(turn_into_step) => actualise_turn_into_step(turn_into_step, updated_state.block_map)?,
             Step::ToggleCompleted(_id) => actualise_toggle_completed(_id, updated_state.block_map)?,
         };

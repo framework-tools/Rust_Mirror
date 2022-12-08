@@ -4,7 +4,7 @@ use js_sys::JsString;
 
 use crate::{blocks::{inline_blocks::{InlineBlock, text_block::StringUTF16}, BlockMap, Block, standard_blocks::{content_block::ContentBlock, StandardBlock}},
 step::{ReplaceStep, ReplaceSlice}, steps_generator::{StepError, selection::Selection},
-steps_executor::{UpdatedState, clean_block_after_transform}};
+steps_actualisor::{UpdatedState, clean_block_after_transform}};
 
 
 /// replace "from" index of from block to index of "to" block on their parent

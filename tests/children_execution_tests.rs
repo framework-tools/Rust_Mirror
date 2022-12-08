@@ -2,12 +2,12 @@
 
 #[cfg(test)]
 mod tests {
-    use rust_mirror::steps_executor::execute_steps;
+    use rust_mirror::steps_actualisor::actualise_steps;
     use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap}, steps_generator::{event::{Event, KeyPress, Key, KeyPressMetadata}, selection::{SubSelection, Selection}, generate_steps}, step::Step};
     use serde_json::json;
 
     #[test]
-    fn can_execute_turn_to_child_step_simple() {
+    fn can_actualise_turn_to_child_step_simple() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
@@ -69,7 +69,7 @@ mod tests {
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
 
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_paragraph_block1 = updated_state.block_map.get_standard_block(&paragraph_block_id1.clone()).unwrap();
         assert_eq!(updated_paragraph_block1.children.len(), 1);
@@ -182,7 +182,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         assert_eq!(updated_state.selection, None);
 

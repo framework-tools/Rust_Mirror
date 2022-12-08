@@ -1,11 +1,11 @@
-use crate::{step::MarkStep, blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, Block}, steps_executor::{UpdatedState, clean_block_after_transform}, steps_generator::{StepError, selection::SubSelection}, mark::Mark, new_ids::NewIds};
+use crate::{step::MarkStep, blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, Block}, steps_actualisor::{UpdatedState, clean_block_after_transform}, steps_generator::{StepError, selection::SubSelection}, mark::Mark, new_ids::NewIds};
 
 
 
 /// -> apply mark for "from" std block -> from "inner from" to end of inline blocks
 /// -> apply mark for "to" std block -> from start of inline blocks to "inner to"
 /// -> for each standard block between "from" & "to" -> assign mark to each of their inline blocks
-pub fn execute_mark_step_on_standard_blocks(
+pub fn actualise_mark_step_on_standard_blocks(
     mark_step: MarkStep,
     mut block_map: BlockMap,
     add_mark: bool,

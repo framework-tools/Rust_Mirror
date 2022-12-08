@@ -3,7 +3,7 @@ use crate::{step::AddBlockStep, blocks::{BlockMap, inline_blocks::InlineBlock, s
 use super::UpdatedState;
 
 
-pub fn execute_add_block(add_block_step: AddBlockStep, mut block_map: BlockMap, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
+pub fn actualise_add_block(add_block_step: AddBlockStep, mut block_map: BlockMap, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
     let mut parent = block_map.get_block(&add_block_step.block_id)?;
     let new_std_block_id = new_ids.get_id()?;
     let new_inline_block = InlineBlock::new(new_ids, new_std_block_id.clone())?;

@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_executor::execute_steps, mark::{Mark, Color}, new_ids::NewIds, step::Step};
+    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_actualisor::actualise_steps, mark::{Mark, Color}, new_ids::NewIds, step::Step};
 
     use serde_json::json;
 
     #[test]
-    fn can_execute_apply_mark_with_simple_selection_within_one_inline() -> Result<(), StepError> {
+    fn can_actualise_apply_mark_with_simple_selection_within_one_inline() -> Result<(), StepError> {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id()?;
@@ -41,7 +41,7 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_standard_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let content_block = updated_standard_block.content_block().unwrap();
@@ -79,7 +79,7 @@ mod tests {
     }
 
     #[test]
-    fn can_execute_remove_mark_selection_across_multiple_inline_blocks() -> Result<(), StepError> {
+    fn can_actualise_remove_mark_selection_across_multiple_inline_blocks() -> Result<(), StepError> {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id()?;
@@ -128,7 +128,7 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
         let updated_standard_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let content_block = updated_standard_block.content_block().unwrap();
         assert_eq!(content_block.inline_blocks.len(), 4);
@@ -166,7 +166,7 @@ mod tests {
     }
 
     #[test]
-    fn can_execute_apply_mark_selection_across_multiple_inline_blocks_and_execute_merge() {
+    fn can_actualise_apply_mark_selection_across_multiple_inline_blocks_and_actualise_merge() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
@@ -228,7 +228,7 @@ mod tests {
         ]).unwrap();
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
         let updated_standard_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let content_block = updated_standard_block.content_block().unwrap();
         assert_eq!(content_block.inline_blocks.len(), 2);
@@ -257,7 +257,7 @@ mod tests {
     }
 
     #[test]
-    fn can_execute_apply_mark_with_selection_across_standard_blocks() -> Result<(), StepError> {
+    fn can_actualise_apply_mark_with_selection_across_standard_blocks() -> Result<(), StepError> {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let inline_block_id1 = new_ids.get_id()?;
@@ -368,7 +368,7 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
 
         let updated_paragraph_block_1 = updated_state.block_map.get_standard_block(&paragraph_block_id1)?;
         assert_eq!(updated_paragraph_block_1.content_block()?.inline_blocks.len(), 2);
@@ -691,7 +691,7 @@ mod tests {
         ])?;
 
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
 
         let mut i = 1 as usize;
         while i < 11 {
@@ -950,7 +950,7 @@ mod tests {
             p7.to_string(), inline_block7.to_string()
         ])?;
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
 
         let mut i = 2 as usize;
         while i < 8 {
@@ -1292,7 +1292,7 @@ mod tests {
         ])?;
 
         let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         let mut i = 3 as usize;
         while i < 7 {
@@ -1555,7 +1555,7 @@ mod tests {
             head: sub_selection_to.clone()
         };
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
 
         let mut i = 3 as usize;
         while i < 5 {
@@ -1688,7 +1688,7 @@ mod tests {
             head: sub_selection_to.clone()
         };
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
 
         let updated_p1 = updated_state.block_map.get_standard_block(&p_id1)?;
         assert_eq!(updated_state.block_map.get_inline_block(&updated_p1.content_block()?.inline_blocks[0])?.marks, vec![]);
@@ -1754,7 +1754,7 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
         let updated_p_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let inline_blocks = updated_p_block.content_block()?.clone().inline_blocks;
         let updated_inline_2 = updated_state.block_map.get_inline_block(&inline_blocks[1]).unwrap();

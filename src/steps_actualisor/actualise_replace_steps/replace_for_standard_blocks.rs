@@ -1,5 +1,5 @@
 use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, inline_blocks::InlineBlock, Block},
-steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_executor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}};
+steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}};
 
 use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_inline_block_text};
 

@@ -14,7 +14,7 @@ pub mod replace_for_standard_blocks;
 /// For each "update" we need to:
 /// -> merge adjacent inline blocks with same marks (unimplemented)
 /// -> delete any text blocks with no text (unimplemented)
-pub fn execute_replace_step(replace_step: ReplaceStep, block_map: BlockMap, current_updated_selection: Option<Selection>) -> Result<UpdatedState, StepError> {
+pub fn actualise_replace_step(replace_step: ReplaceStep, block_map: BlockMap, current_updated_selection: Option<Selection>) -> Result<UpdatedState, StepError> {
     let from_block = block_map.get_block(&replace_step.from.block_id)?;
     return match from_block {
         Block::InlineBlock(from_block) => replace_selected_across_inline_blocks(from_block, block_map, replace_step),
@@ -60,7 +60,7 @@ pub fn replace_selected_across_blocks_children(
 //     return from_block.is_ok() && to_block.is_ok()
 // }
 
-// fn execute_replace_on_standard_blocks_fully_selected(replace_step: ReplaceStep, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
+// fn actualise_replace_on_standard_blocks_fully_selected(replace_step: ReplaceStep, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
 //     let from_standard_block = block_map.get_standard_block(&replace_step.from.block_id)?;
 //     let mut parent_block = block_map.get_block(&from_standard_block.parent)?;
 //     if replace_step.from.subselection.is_some() {

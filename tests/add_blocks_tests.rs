@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}},
-    steps_generator::{event::{Event, SlashScrimEvent}, selection::{SubSelection, Selection}, generate_steps}, step::{Step, ReplaceSlice}, steps_executor::execute_steps};
+    steps_generator::{event::{Event, SlashScrimEvent}, selection::{SubSelection, Selection}, generate_steps}, step::{Step, ReplaceSlice}, steps_actualisor::actualise_steps};
     use serde_json::json;
 
     #[test]
@@ -62,7 +62,7 @@ mod tests {
     }
 
     #[test]
-    fn can_execute_add_block_step() {
+    fn can_actualise_add_block_step() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let inline_block_id = new_ids.get_id().unwrap();
@@ -98,7 +98,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children.len(), 2);

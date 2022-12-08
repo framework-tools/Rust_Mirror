@@ -1,13 +1,13 @@
 
 use crate::{step::{MarkStep}, blocks::{BlockMap, Block, inline_blocks::{InlineBlock}}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
 
-use self::execute_across_std_blocks::execute_mark_step_on_standard_blocks;
+use self::actualise_across_std_blocks::actualise_mark_step_on_standard_blocks;
 
 use super::{clean_block_after_transform, UpdatedState};
 
-pub mod execute_across_std_blocks;
+pub mod actualise_across_std_blocks;
 
-pub fn execute_mark_step(
+pub fn actualise_mark_step(
     mark_step: MarkStep,
     mut block_map: BlockMap,
     add_mark: bool,
@@ -21,11 +21,11 @@ pub fn execute_mark_step(
     let block = block_map.get_block(&mark_step.from.block_id)?;
     match block {
         Block::InlineBlock(from_block) => {
-            let updated_state = execute_mark_step_on_inline_blocks(mark_step, from_block, block_map, add_mark, new_ids)?;
+            let updated_state = actualise_mark_step_on_inline_blocks(mark_step, from_block, block_map, add_mark, new_ids)?;
             block_map = updated_state.block_map;
         },
         Block::StandardBlock(_) => {
-            let updated_state = execute_mark_step_on_standard_blocks(mark_step, block_map, add_mark, new_ids)?;
+            let updated_state = actualise_mark_step_on_standard_blocks(mark_step, block_map, add_mark, new_ids)?;
             block_map = updated_state.block_map;
         },
         Block::Root(_) => return Err(StepError("Cannot mark root block".to_string()))
@@ -38,7 +38,7 @@ pub fn execute_mark_step(
     return Ok(UpdatedState { block_map, selection })
 }
 
-fn execute_mark_step_on_inline_blocks(
+fn actualise_mark_step_on_inline_blocks(
     mark_step: MarkStep,
     from_block: InlineBlock,
     mut block_map: BlockMap,

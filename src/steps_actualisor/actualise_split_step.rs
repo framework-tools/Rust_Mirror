@@ -9,7 +9,7 @@ use super::{UpdatedState, clean_block_after_transform};
 /// -> split parent's inline blocks after the index of the subselection index block
 /// -> create a new standard block with the new inline block & all inline blocks after the index
 /// -> move children from "from" block to new block
-pub fn execute_split_step(split_step: SplitStep, mut block_map: BlockMap, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
+pub fn actualise_split_step(split_step: SplitStep, mut block_map: BlockMap, new_ids: &mut NewIds) -> Result<UpdatedState, StepError> {
     let inline_block = block_map.get_inline_block(&split_step.subselection.block_id)?;
     let (first_half_inline_block, second_half_inline_block) = inline_block.split(split_step.subselection.offset, new_ids)?;
     let parent = first_half_inline_block.get_parent(&block_map)?;

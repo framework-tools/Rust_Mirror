@@ -3,11 +3,11 @@ mod tests {
     use serde_json::json;
 
     use rust_mirror::{steps_generator::{StepError, event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps},
-    new_ids::NewIds, blocks::{RootBlock, BlockMap, Block}, steps_executor::execute_steps,
+    new_ids::NewIds, blocks::{RootBlock, BlockMap, Block}, steps_actualisor::actualise_steps,
     mark::Mark};
 
     #[test]
-    fn can_execute_steps_for_standard_keypress() -> Result<(), StepError> {
+    fn can_actualise_steps_for_standard_keypress() -> Result<(), StepError> {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id()?;
@@ -42,7 +42,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = execute_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id)?;
         assert_eq!(updated_inline_block.text()?.clone().to_string().as_str(), "a");
@@ -52,7 +52,7 @@ mod tests {
     }
 
     // #[test]
-    // pub fn can_execute_backspace_with_caret_selection_in_middle_of_two_inline_blocks() {
+    // pub fn can_actualise_backspace_with_caret_selection_in_middle_of_two_inline_blocks() {
     //     let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
     //     let root_block_id = new_ids.get_id().unwrap();
@@ -99,7 +99,7 @@ mod tests {
     //     let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
     //     let steps = generate_steps(&event, &block_map, selection).unwrap();
-    //     let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+    //     let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
     //     let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id)?;
     //     assert_eq!(updated_inline_block.text()?, "a");
@@ -109,7 +109,7 @@ mod tests {
     // }
 
     #[test]
-    fn can_execute_steps_for_standard_keypress_with_selection_across_single_block() {
+    fn can_actualise_steps_for_standard_keypress_with_selection_across_single_block() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
@@ -150,7 +150,7 @@ mod tests {
         let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id).unwrap();
         assert_eq!(updated_inline_block.text().unwrap().clone().to_string().as_str(), "sok text");
@@ -158,7 +158,7 @@ mod tests {
     }
 
     #[test]
-    fn can_execute_for_selection_across_multiple_inline_blocks() {
+    fn can_actualise_for_selection_across_multiple_inline_blocks() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
@@ -221,7 +221,7 @@ mod tests {
         let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
         assert_eq!(updated_inline_block.text().unwrap().clone().to_string().as_str(), "He orld");
@@ -370,7 +370,7 @@ mod tests {
         };
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children, vec![std_block_id1.clone()]);
         let updated_std_block1 = updated_state.block_map.get_standard_block(&std_block_id1).unwrap();
@@ -418,7 +418,7 @@ mod tests {
     ///             <7/>
     ///             <8/>
     #[test]
-    fn can_execute_backspace_at_start_caret_on_top_layer_creates_replace_step_with_last_and_youngest_child_above() {
+    fn can_actualise_backspace_at_start_caret_on_top_layer_creates_replace_step_with_last_and_youngest_child_above() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
@@ -568,7 +568,7 @@ mod tests {
         };
 
         let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_inline_block_2 = updated_state.block_map.get_inline_block(&inline_block_id2).unwrap();
         assert_eq!(updated_inline_block_2.text().unwrap().clone().to_string().as_str(), &"a b cGoodbye World".to_string());
@@ -601,7 +601,7 @@ mod tests {
     ///     <7/>
     /// <8/>
     #[test]
-    fn can_execute_replace_where_from_is_shallower_than_to() {
+    fn can_actualise_replace_where_from_is_shallower_than_to() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
@@ -769,7 +769,7 @@ mod tests {
         };
 
         let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_inline_block_1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
         assert_eq!(updated_inline_block_1.text().unwrap().clone().to_string().as_str(), &"Hello bye World".to_string());
@@ -936,7 +936,7 @@ mod tests {
     //     }));
 
 
-    //     let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+    //     let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
     //     let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
     //     assert_eq!(updated_root_block.children, vec![std_block_id1.clone()]);
     //     let updated_std_block1 = updated_state.block_map.get_standard_block(&std_block_id1).unwrap();
@@ -1033,7 +1033,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children, vec![paragraph_block_id1.clone()]);
@@ -1097,7 +1097,7 @@ mod tests {
         let selection = Selection::from(from_sub_selection, to_sub_selection);
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = execute_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 
         let updated_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
         assert_eq!(updated_paragraph_block.content_block().unwrap().inline_blocks, vec![inline_block_id1.clone()]);
@@ -1168,7 +1168,7 @@ mod tests {
 //                 blocks_to_update: vec![]
 //             })
 //         ];
-//         let updated_block_map = execute_steps(steps, block_map, &mut new_ids).unwrap();
+//         let updated_block_map = actualise_steps(steps, block_map, &mut new_ids).unwrap();
 //         let updated_standard_block = updated_block_map.get_standard_block(&std_block_id1).unwrap();
 //         let content_block = updated_standard_block.content_block().unwrap();
 //         assert_eq!(content_block.inline_blocks, vec![inline_block_id1.clone()]);

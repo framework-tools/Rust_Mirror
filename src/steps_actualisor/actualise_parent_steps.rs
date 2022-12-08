@@ -7,7 +7,7 @@ use super::UpdatedState;
 ///
 /// -> new parent is it's previous parent's parent
 /// -> should be inserted 1 below previous parent as sibling
-pub fn execute_parent_steps(mut block_map: BlockMap, turn_to_parent_step: TurnToParent) -> Result<UpdatedState, StepError> {
+pub fn actualise_parent_steps(mut block_map: BlockMap, turn_to_parent_step: TurnToParent) -> Result<UpdatedState, StepError> {
     let mut current_block = block_map.get_standard_block(&turn_to_parent_step.block_id)?;
 
     let mut previous_parent = block_map.get_standard_block(&current_block.parent)?;

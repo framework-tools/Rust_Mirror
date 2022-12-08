@@ -2,9 +2,9 @@
 use wasm_bindgen::JsValue;
 
 use crate::{steps_generator::{event::Event, selection::Selection, generate_steps, StepError},
-new_ids::NewIds, blocks::BlockMap, steps_executor::{execute_steps, UpdatedState}};
+new_ids::NewIds, blocks::BlockMap, steps_actualisor::{actualise_steps, UpdatedState}};
 
-pub fn execute_event(
+pub fn actualise_event(
     selection_js: js_sys::Object,
     new_ids_arr: js_sys::Array,
     block_map_js: js_sys::Map,
@@ -20,7 +20,7 @@ pub fn execute_event(
         Err(StepError(err)) => return Response { selection: None, err: Some(err) }
     };
 
-    return match execute_steps(steps, block_map, &mut new_ids) {
+    return match actualise_steps(steps, block_map, &mut new_ids) {
         Ok(UpdatedState { selection, .. }) => {
             let selection = match selection {
                 Some(selection) => Some(selection.to_js_obj().unwrap()),
