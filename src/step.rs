@@ -12,6 +12,7 @@ pub enum Step {
     TurnToParent(TurnToParent),
     AddBlock(AddBlockStep),
     TurnInto(TurnInto),
+    ToggleCompleted(String) //block id
     //ReplaceAroundStep
 }
 

@@ -26,7 +26,8 @@ pub fn generate_steps(event: &Event, block_map: &BlockMap, selection: Selection)
             FormatBarEvent::BackColor(color) => generate_mark_steps(Mark::BackColor(color.clone()), from, to, block_map),
             FormatBarEvent::TurnInto(new_block_type) => generate_turn_into_step(new_block_type, from, block_map),
         },
-        Event::SlashScrim(slash_scrim_event) => generate_slash_scrim_steps(slash_scrim_event, from, to, block_map)
+        Event::SlashScrim(slash_scrim_event) => generate_slash_scrim_steps(slash_scrim_event, from, to, block_map),
+        Event::ToggleCompleted(_id) => Ok(vec![Step::ToggleCompleted(_id.clone())])
     }
 }
 

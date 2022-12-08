@@ -8,6 +8,7 @@ use crate::steps_generator::selection::{Selection};
 use crate::{step::Step, blocks::BlockMap, steps_generator::StepError};
 use crate::steps_executor::execute_mark_steps::execute_mark_step;
 
+use self::actualise_toggle_completed::actualise_toggle_completed;
 use self::actualise_turn_into::actualise_turn_into_step;
 use self::execute_add_block::execute_add_block;
 use self::execute_child_steps::execute_child_steps;
@@ -22,6 +23,7 @@ pub mod execute_child_steps;
 pub mod execute_parent_steps;
 pub mod execute_add_block;
 pub mod actualise_turn_into;
+pub mod actualise_toggle_completed;
 
 pub struct UpdatedState {
     pub block_map: BlockMap,
@@ -51,6 +53,7 @@ pub fn execute_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewIds
             Step::TurnToParent(turn_to_parent_step) => execute_parent_steps(updated_state.block_map, turn_to_parent_step)?,
             Step::AddBlock(add_block_step) => execute_add_block(add_block_step, updated_state.block_map, new_ids)?,
             Step::TurnInto(turn_into_step) => actualise_turn_into_step(turn_into_step, updated_state.block_map)?,
+            Step::ToggleCompleted(_id) => actualise_toggle_completed(_id, updated_state.block_map)?,
         };
     }
     return Ok(updated_state)

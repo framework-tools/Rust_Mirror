@@ -9,6 +9,7 @@ pub enum Event {
     KeyPress(KeyPress),
     FormatBar(FormatBarEvent),
     SlashScrim(SlashScrimEvent),
+    ToggleCompleted(String), //block id
 }
 
 impl Event {
