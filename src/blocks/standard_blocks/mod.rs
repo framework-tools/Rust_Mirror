@@ -4,11 +4,12 @@ use wasm_bindgen::JsValue;
 
 use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string};
 
-use self::content_block::ContentBlock;
+use self::{content_block::ContentBlock, list_block::ListBlock};
 
 use super::{inline_blocks::InlineBlock, BlockMap, Block, vec_string_to_arr};
 
 pub mod content_block;
+pub mod list_block;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct StandardBlock {
@@ -281,6 +282,10 @@ pub enum StandardBlockType {
     H1(ContentBlock),
     H2(ContentBlock),
     H3(ContentBlock),
+    TodoList(ListBlock),
+    DotPointList(ListBlock),
+    NumberedList(ListBlock),
+    ArrowList(ListBlock),
 }
 
 impl StandardBlockType {
@@ -292,6 +297,10 @@ impl StandardBlockType {
             "h1" => Ok(StandardBlockType::H1(ContentBlock::from_js_block(obj)?)),
             "h2" => Ok(StandardBlockType::H2(ContentBlock::from_js_block(obj)?)),
             "h3" => Ok(StandardBlockType::H3(ContentBlock::from_js_block(obj)?)),
+            "to-do list" => Ok(StandardBlockType::TodoList(ListBlock::from_js_block(obj)?)),
+            "dotpoint list" => Ok(StandardBlockType::DotPointList(ListBlock::from_js_block(obj)?)),
+            "numbered list" => Ok(StandardBlockType::NumberedList(ListBlock::from_js_block(obj)?)),
+            "arrow list" => Ok(StandardBlockType::ArrowList(ListBlock::from_js_block(obj)?)),
             _type => Err(StepError(format!("Block type '{}' not found", _type)))
         }
     }
@@ -303,6 +312,10 @@ impl StandardBlockType {
             "h1" => Ok(StandardBlockType::H1(ContentBlock::from_json(json)?)),
             "h2" => Ok(StandardBlockType::H2(ContentBlock::from_json(json)?)),
             "h3" => Ok(StandardBlockType::H3(ContentBlock::from_json(json)?)),
+            "to-do list" => Ok(StandardBlockType::TodoList(ListBlock::from_json(json)?)),
+            "dotpoint list" => Ok(StandardBlockType::DotPointList(ListBlock::from_json(json)?)),
+            "numbered list" => Ok(StandardBlockType::NumberedList(ListBlock::from_json(json)?)),
+            "arrow list" => Ok(StandardBlockType::ArrowList(ListBlock::from_json(json)?)),
             _ => Err(StepError(format!("Block type {} not found", block_type)))
         }
     }
@@ -340,7 +353,43 @@ impl StandardBlockType {
                         "inline_blocks": block.inline_blocks.iter().map(|inline_block| inline_block.to_string()).collect::<Vec<String>>()
                     }
                 })
-            }
+            },
+            StandardBlockType::TodoList(block) => {
+                json!({
+                    "_type": "to-do list",
+                    "content": {
+                        "inline_blocks": block.content.inline_blocks.iter().map(|inline_block| inline_block.to_string()).collect::<Vec<String>>(),
+                        "completed": block.completed
+                    }
+                })
+            },
+            StandardBlockType::DotPointList(block) => {
+                json!({
+                    "_type": "dotpoint list",
+                    "content": {
+                        "inline_blocks": block.content.inline_blocks.iter().map(|inline_block| inline_block.to_string()).collect::<Vec<String>>(),
+                        "completed": block.completed
+                    }
+                })
+            },
+            StandardBlockType::NumberedList(block) => {
+                json!({
+                    "_type": "numbered list",
+                    "content": {
+                        "inline_blocks": block.content.inline_blocks.iter().map(|inline_block| inline_block.to_string()).collect::<Vec<String>>(),
+                        "completed": block.completed
+                    }
+                })
+            },
+            StandardBlockType::ArrowList(block) => {
+                json!({
+                    "_type": "arrow list",
+                    "content": {
+                        "inline_blocks": block.content.inline_blocks.iter().map(|inline_block| inline_block.to_string()).collect::<Vec<String>>(),
+                        "completed": block.completed
+                    }
+                })
+            },
         }
     }
 
@@ -350,8 +399,13 @@ impl StandardBlockType {
             StandardBlockType::H1(_) => return Ok("h1".to_string()),
             StandardBlockType::H2(_) => return Ok("h2".to_string()),
             StandardBlockType::H3(_) => return Ok("h3".to_string()),
+            StandardBlockType::TodoList(_) => return Ok("to-do list".to_string()),
+            StandardBlockType::DotPointList(_) => return Ok("dotpoint list".to_string()),
+            StandardBlockType::NumberedList(_) => return Ok("numbered list".to_string()),
+            StandardBlockType::ArrowList(_) => return Ok("arrow list".to_string()),
         }
     }
+
     pub fn to_js(&self) -> Result<JsValue, StepError> {
         let content = js_sys::Object::new();
         match self {
@@ -359,7 +413,13 @@ impl StandardBlockType {
             StandardBlockType::H2(content_block) | StandardBlockType::H3(content_block)
                 => {
                     js_sys::Reflect::set(&content, &JsValue::from_str("inline_blocks"), &vec_string_to_arr(&content_block.inline_blocks)?.into()).unwrap();
-                }
+            },
+            StandardBlockType::TodoList(list_block) | StandardBlockType::DotPointList(list_block) |
+            StandardBlockType::NumberedList(list_block) | StandardBlockType::ArrowList(list_block)
+                => {
+                    js_sys::Reflect::set(&content, &JsValue::from_str("inline_blocks"), &vec_string_to_arr(&list_block.content.inline_blocks)?.into()).unwrap();
+                    js_sys::Reflect::set(&content, &JsValue::from_str("completed"), &JsValue::from(list_block.completed)).unwrap();
+            }
         }
         return Ok(content.into())
     }
@@ -370,6 +430,22 @@ impl StandardBlockType {
             StandardBlockType::H1(_) => Ok(StandardBlockType::H1(content_block)),
             StandardBlockType::H2(_) => Ok(StandardBlockType::H2(content_block)),
             StandardBlockType::H3(_) => Ok(StandardBlockType::H3(content_block)),
+            StandardBlockType::TodoList(list_block) => Ok(StandardBlockType::TodoList(ListBlock {
+                content: content_block,
+                completed: list_block.completed
+            })),
+            StandardBlockType::DotPointList(list_block) => Ok(StandardBlockType::DotPointList(ListBlock {
+                content: content_block,
+                completed: list_block.completed
+            })),
+            StandardBlockType::NumberedList(list_block) => Ok(StandardBlockType::NumberedList(ListBlock {
+                content: content_block,
+                completed: list_block.completed
+            })),
+            StandardBlockType::ArrowList(list_block) => Ok(StandardBlockType::ArrowList(ListBlock {
+                content: content_block,
+                completed: list_block.completed
+            })),
         }
     }
 
@@ -390,6 +466,34 @@ impl StandardBlockType {
             StandardBlockType::H3(ContentBlock { inline_blocks }) => {
                 let updated_inline_blocks = vec![inline_blocks, new_inline_blocks].concat();
                 return Ok(StandardBlockType::H3(ContentBlock { inline_blocks: updated_inline_blocks } ))
+            },
+            StandardBlockType::TodoList(list_block) => {
+                let updated_inline_blocks = vec![list_block.content.inline_blocks, new_inline_blocks].concat();
+                return Ok(Self::TodoList(ListBlock {
+                    content: ContentBlock { inline_blocks: updated_inline_blocks },
+                    completed: list_block.completed
+                }))
+            },
+            StandardBlockType::DotPointList(list_block) => {
+                let updated_inline_blocks = vec![list_block.content.inline_blocks, new_inline_blocks].concat();
+                return Ok(Self::DotPointList(ListBlock {
+                    content: ContentBlock { inline_blocks: updated_inline_blocks },
+                    completed: list_block.completed
+                }))
+            },
+            StandardBlockType::NumberedList(list_block) => {
+                let updated_inline_blocks = vec![list_block.content.inline_blocks, new_inline_blocks].concat();
+                return Ok(Self::NumberedList(ListBlock {
+                    content: ContentBlock { inline_blocks: updated_inline_blocks },
+                    completed: list_block.completed
+                }))
+            },
+            StandardBlockType::ArrowList(list_block) => {
+                let updated_inline_blocks = vec![list_block.content.inline_blocks, new_inline_blocks].concat();
+                return Ok(Self::ArrowList(ListBlock {
+                    content: ContentBlock { inline_blocks: updated_inline_blocks },
+                    completed: list_block.completed
+                }))
             },
         }
     }

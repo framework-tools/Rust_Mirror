@@ -1,4 +1,4 @@
-use crate::{step::SplitStep, blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock, StandardBlock}, Block}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
+use crate::{step::SplitStep, blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock, StandardBlock, list_block::ListBlock}, Block}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
 
 use super::{UpdatedState, clean_block_after_transform};
 
@@ -38,6 +38,10 @@ fn get_new_enter_block_type(block_type: &StandardBlockType) -> Result<StandardBl
     return match block_type {
         StandardBlockType::Paragraph(_) | StandardBlockType::H1(_) | StandardBlockType::H2(_) | StandardBlockType::H3(_)
             => Ok(StandardBlockType::Paragraph(ContentBlock { inline_blocks: vec![] })),
+        StandardBlockType::TodoList(_) => Ok(StandardBlockType::TodoList(ListBlock { content: ContentBlock { inline_blocks: vec![] }, completed: false })),
+        StandardBlockType::DotPointList(_) => Ok(StandardBlockType::DotPointList(ListBlock { content: ContentBlock { inline_blocks: vec![] }, completed: false })),
+        StandardBlockType::NumberedList(_) => Ok(StandardBlockType::NumberedList(ListBlock { content: ContentBlock { inline_blocks: vec![] }, completed: false })),
+        StandardBlockType::ArrowList(_) => Ok(StandardBlockType::ArrowList(ListBlock { content: ContentBlock { inline_blocks: vec![] }, completed: false })),
         //block_type => return Err(StepError(format!("Cannot enter on block type {:?}", block_type)))
     }
 }
