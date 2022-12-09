@@ -19,6 +19,7 @@ impl Event {
             "keypress" => Ok(Event::KeyPress(KeyPress::from_js_obj(obj)?)),
             "formatbar" => Ok(Event::FormatBar(FormatBarEvent::from_js_obj(obj)?)),
             "slash_scrim" => Ok(Event::SlashScrim(SlashScrimEvent::from_js_obj(obj)?)),
+            "toggle_completed" => Ok(Event::ToggleCompleted(get_js_field_as_string(&JsValue::from(&obj), "value")?)),
             _type => Err(StepError(format!("Expected event _type to be either 'keypress' or 'formatbar'. Got: {}", _type)))
         }
     }
