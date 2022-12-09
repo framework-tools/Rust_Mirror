@@ -11,6 +11,13 @@ pub struct ListBlock {
 }
 
 impl ListBlock {
+    pub fn new() ->Self {
+        return Self {
+            content: ContentBlock { inline_blocks: vec![] },
+            completed: false
+        }
+    }
+
     pub fn from_js_block(obj: &JsValue) -> Result<Self, StepError> {
         let content = get_js_field(obj, "content")?;
         return Ok(Self {
