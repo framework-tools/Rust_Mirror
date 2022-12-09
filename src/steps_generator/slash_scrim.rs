@@ -38,6 +38,10 @@ pub fn generate_slash_scrim_steps(
         "heading 1" => StandardBlockType::H1(ContentBlock::new(vec![])),
         "heading 2" => StandardBlockType::H2(ContentBlock::new(vec![])),
         "heading 3" => StandardBlockType::H3(ContentBlock::new(vec![])),
+        "to-do list" => StandardBlockType::H3(ContentBlock::new(vec![])),
+        "numbered list" => StandardBlockType::H3(ContentBlock::new(vec![])),
+        "dotpoint list" => StandardBlockType::H3(ContentBlock::new(vec![])),
+        "arrow list" => StandardBlockType::H3(ContentBlock::new(vec![])),
         block_type => return Err(StepError(format!("There is no valid block type: {}", block_type)))
     };
 
