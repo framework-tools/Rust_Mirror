@@ -108,6 +108,8 @@ impl StandardBlock {
         match &self.content {
             StandardBlockType::Paragraph(block) | StandardBlockType::H1(block) |
             StandardBlockType::H2(block) | StandardBlockType::H3(block) => Ok(block),
+            StandardBlockType::TodoList(content) | StandardBlockType::ArrowList(content) |
+            StandardBlockType::DotPointList(content) | StandardBlockType::NumberedList(content) => Ok(&content.content),
             _ => Err(StepError("Block does not have a content block".to_string()))
         }
     }
