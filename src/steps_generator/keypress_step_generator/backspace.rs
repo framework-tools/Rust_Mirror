@@ -1,4 +1,4 @@
-use crate::{blocks::{BlockMap, Block, inline_blocks::InlineBlock, standard_blocks::{StandardBlock, StandardBlockType, content_block::ContentBlock}}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps}, step::{Step, ReplaceStep, ReplaceSlice, TurnToParent, TurnInto}};
+use crate::{blocks::{BlockMap, Block, inline_blocks::InlineBlock, standard_blocks::{StandardBlock, StandardBlockType, content_block::ContentBlock}}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps, turn_into_paragraph_step}, step::{Step, ReplaceStep, ReplaceSlice, TurnToParent, TurnInto}};
 
 
 pub fn generate_steps_for_backspace(
@@ -14,10 +14,7 @@ pub fn generate_steps_for_backspace(
                     if from_block.index(block_map)? == 0 { // caret at start of standard block
                         let std_block = block_map.get_inline_block(&from.block_id)?.get_parent(block_map)?;
                         if std_block.is_list() && std_block.text_is_empty(block_map)? {
-                            return Ok(vec![Step::TurnInto(TurnInto {
-                                block_id: std_block.id(),
-                                new_block_type: StandardBlockType::Paragraph(ContentBlock { inline_blocks: vec![] })
-                            })])
+                            return turn_into_paragraph_step(std_block.id())
                         } else {
                             return caret_at_start_of_parent_block_steps(from_block, block_map)
                         }

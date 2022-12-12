@@ -1,5 +1,5 @@
 
-use crate::{blocks::{BlockMap, standard_blocks::StandardBlockType}, step::{Step, TurnInto}, mark::Mark};
+use crate::{blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}}, step::{Step, TurnInto}, mark::Mark};
 
 use self::{event::{Event, FormatBarEvent}, keypress_step_generator::{generate_keyboard_event_steps}, selection::{Selection, SubSelection}, mark_steps::generate_mark_steps, slash_scrim::generate_slash_scrim_steps};
 
@@ -34,4 +34,11 @@ pub fn generate_steps(event: &Event, block_map: &BlockMap, selection: Selection)
 fn generate_turn_into_step(new_block_type: &StandardBlockType, from: SubSelection, block_map: &BlockMap) -> Result<Vec<Step>, StepError> {
     let inline_block = block_map.get_inline_block(&from.block_id)?;
     return Ok(vec![Step::TurnInto(TurnInto { block_id: inline_block.parent, new_block_type: new_block_type.clone() })])
+}
+
+pub fn turn_into_paragraph_step(block_id: String) -> Result<Vec<Step>, StepError> {
+    return Ok(vec![Step::TurnInto(TurnInto {
+        block_id,
+        new_block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![]))
+    })])
 }
