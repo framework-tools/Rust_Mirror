@@ -2,7 +2,7 @@
 
 
 
-use crate::{step::{Step, SplitStep}, blocks::{BlockMap, standard_blocks::{StandardBlock, StandardBlockType, content_block::ContentBlock}, Block}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps}, new_ids::NewIds};
+use crate::{step::{Step, SplitStep, TurnInto}, blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}, Block}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps}, new_ids::NewIds};
 
 pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: SubSelection) -> Result<Vec<Step>, StepError> {
     let mut steps = vec![];
@@ -10,6 +10,14 @@ pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: Su
         let delete_selected_steps = generate_replace_selected_steps(block_map, from.clone(), to, "".to_string())?;
         for step in delete_selected_steps {
             steps.push(step);
+        }
+    } else {
+        let std_block = block_map.get_inline_block(&from.block_id)?.get_parent(block_map)?;
+        if std_block.is_list() && std_block.text_is_empty(block_map)? {
+            return Ok(vec![Step::TurnInto(TurnInto {
+                block_id: std_block.id(),
+                new_block_type: StandardBlockType::Paragraph(ContentBlock { inline_blocks: vec![] })
+            })])
         }
     }
 

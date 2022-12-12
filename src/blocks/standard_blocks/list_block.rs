@@ -27,8 +27,8 @@ impl ListBlock {
     }
 
     pub fn from_json(block: &serde_json::Value) -> Result<Self, StepError> {
-        let block = block.get("content").ok_or(StepError("Block does not have block field".to_string()))?;
-        let completed = match block.get("content").ok_or(StepError("Block does not have block field".to_string()))?
+        let content = block.get("content").ok_or(StepError("Block does not have content field".to_string()))?;
+        let completed = match content.get("completed").ok_or(StepError("Block does not have completed field".to_string()))?
         .as_bool() {
             Some(completed) => completed,
             None => return Err(StepError("'Completed' value is not a bool".to_string()))

@@ -276,6 +276,24 @@ impl StandardBlock {
         }
         return Ok(())
     }
+
+    pub fn is_list(&self) -> bool {
+        return match self.content {
+            StandardBlockType::TodoList(_) | StandardBlockType::DotPointList(_)
+            | StandardBlockType::ArrowList(_) | StandardBlockType::NumberedList(_) => true,
+            _ => false
+        }
+    }
+
+    pub fn text_is_empty(&self, block_map: &BlockMap) -> Result<bool, StepError> {
+        let content = self.content_block()?;
+        if content.inline_blocks.len() == 1 {
+            let inline_block = block_map.get_inline_block(&content.inline_blocks[0])?;
+            return Ok(inline_block.text()?.len() == 0)
+        } else {
+            return Ok(false)
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
