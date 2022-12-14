@@ -16,6 +16,7 @@ pub fn replace_selected_across_standard_blocks(
     mut from_block: StandardBlock,
     mut block_map: BlockMap,
     mut replace_step: ReplaceStep,
+    mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
     if from_block.parent != to_block.parent {
@@ -25,7 +26,7 @@ pub fn replace_selected_across_standard_blocks(
     let mut parent_block = block_map.get_block(&from_block.parent)?;
     let mut to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
     parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
-    block_map.update_block(parent_block)?;
+    block_map.update_block(parent_block, &mut blocks_to_update)?;
 
     replace_step.from = replace_step.from.get_two_deepest_layers()?;
     from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
@@ -38,8 +39,8 @@ pub fn replace_selected_across_standard_blocks(
         let mut from_siblings = from_parent.children()?.clone();
         from_siblings.splice(from_block.index(&block_map)? + 1.., siblings_after_to_block);
         from_parent.set_children(from_siblings)?;
-        from_parent.set_new_parent_of_children(&mut block_map)?;
-        block_map.update_block(from_parent)?;
+        from_parent.set_new_parent_of_children(&mut block_map, &mut blocks_to_update)?;
+        block_map.update_block(from_parent, &mut blocks_to_update)?;
     }
 
     match &replace_step.from.subselection {
@@ -49,41 +50,48 @@ pub fn replace_selected_across_standard_blocks(
             let inner_to_index = to_block.index_of(&to_inner_subselection.block_id)?;
 
             from_block.children = to_block.children.clone();
-            from_block.set_new_parent_of_children(&mut block_map)?;
+            from_block.set_new_parent_of_children(&mut block_map, &mut blocks_to_update)?;
 
             let from_block_with_updated_text = merge_blocks_inline_blocks(from_block, to_block, inner_from_index, inner_to_index)?;
-            let block_map = from_block_with_updated_text.set_as_parent_for_all_inline_blocks(block_map)?;
+            let block_map = from_block_with_updated_text.set_as_parent_for_all_inline_blocks(block_map, &mut blocks_to_update)?;
 
-            let block_map = update_from_subselection_inline_block_text(block_map, &replace_step)?;
-            let block_map = update_to_subselection_inline_block_text(block_map, &replace_step,&from_block_with_updated_text._id)?;
-            let block_map = clean_block_after_transform(from_block_with_updated_text, block_map)?;
+            let block_map = update_from_subselection_inline_block_text(block_map, &replace_step, &mut blocks_to_update)?;
+            let block_map = update_to_subselection_inline_block_text(block_map, &replace_step,&from_block_with_updated_text._id, &mut blocks_to_update)?;
+            let block_map = clean_block_after_transform(from_block_with_updated_text, block_map, &mut blocks_to_update)?;
 
-            return Ok(UpdatedState { block_map, selection: Some(Selection::update_selection_from(replace_step)) })
+            return Ok(UpdatedState {
+                block_map,
+                selection: Some(Selection::update_selection_from(replace_step)),
+                blocks_to_update,
+                blocks_to_remove: vec![]
+            })
         },
-        None => return replace_across_standard_blocks_no_subselection(from_block, block_map, replace_step)
+        None => return replace_across_standard_blocks_no_subselection(from_block, block_map, replace_step, blocks_to_update)
     }
 }
 
 fn update_from_subselection_inline_block_text(
     block_map: BlockMap,
     replace_step: &ReplaceStep,
+    mut blocks_to_update: &mut Vec<String>
 ) -> Result<BlockMap, StepError> {
     let (from_subselection_block, offset) = get_subselection_inline_block(&block_map, &replace_step.from)?;
     let replace_with = match &replace_step.slice {
         ReplaceSlice::String(string) => string.clone(),
         _ => return Err(StepError("Replace slice should be string".to_string()))
     };
-    return update_from_inline_block_text(from_subselection_block, block_map, offset, replace_with)
+    return update_from_inline_block_text(from_subselection_block, block_map, offset, replace_with, &mut blocks_to_update)
 }
 
 fn update_to_subselection_inline_block_text(
     block_map: BlockMap,
     replace_step: &ReplaceStep,
-    new_parent_id: &str
+    new_parent_id: &str,
+    mut blocks_to_update: &mut Vec<String>
 ) -> Result<BlockMap, StepError> {
     let (mut to_subselection_block, offset) = get_subselection_inline_block(&block_map, &replace_step.to)?;
     to_subselection_block.parent = new_parent_id.to_string();
-    return update_to_inline_block_text(to_subselection_block, block_map, offset)
+    return update_to_inline_block_text(to_subselection_block, block_map, offset, &mut blocks_to_update)
 }
 
 fn get_subselection_inline_block(
@@ -97,7 +105,8 @@ fn get_subselection_inline_block(
 fn replace_across_standard_blocks_no_subselection(
     from_block: StandardBlock,
     block_map: BlockMap,
-    replace_step: ReplaceStep
+    replace_step: ReplaceStep,
+    mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     if replace_step.from.block_id == replace_step.to.block_id { // same block
         if replace_step.from.offset == replace_step.to.offset { // same offset
@@ -115,10 +124,15 @@ fn replace_across_standard_blocks_no_subselection(
             }
             let updated_standard_block = from_block.update_block_content(ContentBlock { inline_blocks })?;
             let updated_standard_block_id = updated_standard_block.id();
-            let block_map = clean_block_after_transform(updated_standard_block, block_map)?;
+            let block_map = clean_block_after_transform(updated_standard_block, block_map, &mut blocks_to_update)?;
             let updated_standard_block = block_map.get_standard_block(&updated_standard_block_id)?;
-            let block_map = updated_standard_block.set_as_parent_for_all_inline_blocks(block_map)?;
-            return Ok(UpdatedState { block_map, selection: Some(Selection{ anchor: updated_subselection.clone(), head: updated_subselection } ) })
+            let block_map = updated_standard_block.set_as_parent_for_all_inline_blocks(block_map, &mut blocks_to_update)?;
+            return Ok(UpdatedState {
+                block_map,
+                selection: Some(Selection{ anchor: updated_subselection.clone(), head: updated_subselection }),
+                blocks_to_update,
+                blocks_to_remove: vec![]
+            })
         } else {
             unimplemented!()
         }
@@ -127,7 +141,12 @@ fn replace_across_standard_blocks_no_subselection(
     }
 }
 
-fn merge_blocks_inline_blocks(from_block: StandardBlock, to_block: StandardBlock, inner_from_index: usize, inner_to_index: usize) -> Result<StandardBlock, StepError> {
+fn merge_blocks_inline_blocks(
+    from_block: StandardBlock,
+    to_block: StandardBlock,
+    inner_from_index: usize,
+    inner_to_index: usize
+) -> Result<StandardBlock, StepError> {
     let updated_content_block = from_block.content_block()?.clone();
     let mut updated_inline_blocks = updated_content_block.inline_blocks[..inner_from_index + 1].to_vec();
     let to_content_block = to_block.content_block()?;

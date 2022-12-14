@@ -302,14 +302,14 @@ impl Block {
         return Ok(())
     }
 
-    pub fn set_new_parent_of_children(&self, block_map: &mut BlockMap) -> Result<(), StepError> {
+    pub fn set_new_parent_of_children(&self, block_map: &mut BlockMap, blocks_to_update: &mut Vec<String>) -> Result<(), StepError> {
         match self {
-            Self::StandardBlock(std_block) => return std_block.set_new_parent_of_children(block_map),
+            Self::StandardBlock(std_block) => return std_block.set_new_parent_of_children(block_map, blocks_to_update),
             Self::Root(root) => {
                 for id in &root.children {
                     let mut block = block_map.get_standard_block(id)?;
                     block.parent = self.id();
-                    block_map.update_block(Block::StandardBlock(block))?;
+                    block_map.update_block(Block::StandardBlock(block), blocks_to_update)?;
                 }
             },
             Self::InlineBlock(_) => return Err(StepError("Inline blocks do not contain children".to_string()))
@@ -481,8 +481,9 @@ impl BlockMap {
         }
     }
 
-    pub fn update_block(&mut self, block: Block) -> Result<Option<String>, StepError> {
+    pub fn update_block(&mut self, block: Block, blocks_to_update: &mut Vec<String>) -> Result<Option<String>, StepError> {
         let id = block.id();
+        blocks_to_update.push(id.clone());
         match self {
             Self::Rust(rust_map) => {
                 let json = block.to_json()?.to_string();
@@ -495,10 +496,10 @@ impl BlockMap {
         }
     }
 
-    pub fn update_blocks(&mut self, blocks: Vec<Block>) -> Result<Vec<Option<String>>, StepError> {
+    pub fn update_blocks(&mut self, blocks: Vec<Block>, blocks_to_update: &mut Vec<String>) -> Result<Vec<Option<String>>, StepError> {
         let mut return_values = vec![];
         for block in blocks {
-            return_values.push(self.update_block(block)?)
+            return_values.push(self.update_block(block, blocks_to_update)?)
         }
         return Ok(return_values)
     }

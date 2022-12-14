@@ -17,23 +17,33 @@ pub fn actualise_event(
 
     let steps = match generate_steps(&event, &block_map, selection) {
         Ok(steps) => steps,
-        Err(StepError(err)) => return Response { selection: None, err: Some(err) }
+        Err(StepError(err)) => return Response {
+            selection: None,
+            blocks_to_update: JsValue::from(js_sys::Array::new()),
+            err: Some(err)
+        }
     };
 
     return match actualise_steps(steps, block_map, &mut new_ids) {
-        Ok(UpdatedState { selection, .. }) => {
+        Ok(UpdatedState { selection, blocks_to_update, .. }) => {
             let selection = match selection {
                 Some(selection) => Some(selection.to_js_obj().unwrap()),
                 None => None
             };
-            Response { selection, err: None }
+            let js_blocks_to_update = js_sys::Array::new();
+            for id in blocks_to_update {
+                js_blocks_to_update.push(&JsValue::from_str(&id));
+            }
+
+            Response { selection, blocks_to_update: JsValue::from(js_blocks_to_update), err: None }
         },
-        Err(StepError(err)) => Response { selection: None, err: Some(err) }
+        Err(StepError(err)) => Response { selection: None, blocks_to_update: JsValue::from(js_sys::Array::new()), err: Some(err) }
     }
 }
 
 pub struct Response {
     pub selection: Option<JsValue>,
+    pub blocks_to_update: JsValue,
     pub err: Option<String>
 }
 

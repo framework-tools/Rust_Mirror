@@ -27,14 +27,18 @@ pub mod actualise_toggle_completed;
 
 pub struct UpdatedState {
     pub block_map: BlockMap,
-    pub selection: Option<Selection>
+    pub selection: Option<Selection>,
+    pub blocks_to_update: Vec<String>, // Vec<ID>
+    pub blocks_to_remove: Vec<String>, // Vec<ID>
 }
 
 impl UpdatedState {
     pub fn new(block_map: BlockMap) -> Self {
         return Self {
             block_map,
-            selection: None
+            selection: None,
+            blocks_to_update: vec![],
+            blocks_to_remove: vec![]
         }
     }
 }
@@ -45,31 +49,40 @@ pub fn actualise_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewI
     let mut updated_state = UpdatedState::new(block_map);
     for step in steps {
         updated_state = match step {
-            Step::ReplaceStep(replace_step) => actualise_replace_step(replace_step, updated_state.block_map, updated_state.selection)?,
-            Step::SplitStep(split_step) => actualise_split_step(split_step, updated_state.block_map, new_ids)?,
-            Step::AddMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, true, new_ids)?, // actualise_mark_step(mark_step, block_map, true, new_ids)?,
-            Step::RemoveMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, false, new_ids)?, // actualise_mark_step(mark_step, block_map, false, new_ids)?
-            Step::TurnToChild(turn_to_child_step) => actualise_child_steps(updated_state.block_map, turn_to_child_step)?,
-            Step::TurnToParent(turn_to_parent_step) => actualise_parent_steps(updated_state.block_map, turn_to_parent_step)?,
-            Step::AddBlock(add_block_step) => actualise_add_block(add_block_step, updated_state.block_map, new_ids)?,
-            Step::TurnInto(turn_into_step) => actualise_turn_into_step(turn_into_step, updated_state.block_map)?,
-            Step::ToggleCompleted(_id) => actualise_toggle_completed(_id, updated_state.block_map)?,
+            Step::ReplaceStep(replace_step) => actualise_replace_step(replace_step, updated_state.block_map, updated_state.selection, updated_state.blocks_to_update)?,
+            Step::SplitStep(split_step) => actualise_split_step(split_step, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
+            Step::AddMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, true, new_ids, updated_state.blocks_to_update)?,
+            Step::RemoveMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, false, new_ids, updated_state.blocks_to_update)?,
+            Step::TurnToChild(turn_to_child_step) => actualise_child_steps(updated_state.block_map, turn_to_child_step, updated_state.blocks_to_update)?,
+            Step::TurnToParent(turn_to_parent_step) => actualise_parent_steps(updated_state.block_map, turn_to_parent_step, updated_state.blocks_to_update)?,
+            Step::AddBlock(add_block_step) => actualise_add_block(add_block_step, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
+            Step::TurnInto(turn_into_step) => actualise_turn_into_step(turn_into_step, updated_state.block_map, updated_state.blocks_to_update)?,
+            Step::ToggleCompleted(_id) => actualise_toggle_completed(_id, updated_state.block_map, updated_state.blocks_to_update)?,
         };
     }
     return Ok(updated_state)
 }
 
-pub fn clean_block_after_transform(block: StandardBlock, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
-    block_map.update_block(Block::StandardBlock(block.clone()))?;
+pub fn clean_block_after_transform(block: StandardBlock, mut block_map: BlockMap, blocks_to_update: &mut Vec<String>) -> Result<BlockMap, StepError> {
+    block_map.update_block(Block::StandardBlock(block.clone()), blocks_to_update)?;
     if block.content_block()?.inline_blocks.len() > 1 {
-        block_map = merge_inline_blocks_with_identical_marks(&block, block_map)?;
+        block_map = merge_inline_blocks_with_identical_marks(&block, block_map, blocks_to_update)?;
         let block = block_map.get_standard_block(&block.id())?; // need to get newly updated block
-        block_map = remove_empty_inline_blocks(&block, block_map, &block.content_block()?.inline_blocks[0])?;
+        block_map = remove_empty_inline_blocks(
+            &block,
+            block_map,
+            &block.content_block()?.inline_blocks[0],
+            blocks_to_update
+        )?;
     }
     return Ok(block_map)
 }
 
-pub fn merge_inline_blocks_with_identical_marks(standard_block: &StandardBlock, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
+pub fn merge_inline_blocks_with_identical_marks(
+    standard_block: &StandardBlock,
+    mut block_map: BlockMap,
+    blocks_to_update: &mut Vec<String>
+) -> Result<BlockMap, StepError> {
     let content_block = standard_block.content_block()?;
     let mut previous_marks: Vec<Mark> = vec![];
     let mut previous_type: Option<InlineBlockType> = None; // CAN only be None for first round
@@ -81,13 +94,13 @@ pub fn merge_inline_blocks_with_identical_marks(standard_block: &StandardBlock, 
             if all_marks_are_identical(&inline_block.marks, &previous_marks) && inline_block.is_same_type(&previous_type) {
                 let previous_inline_block = block_map.get_inline_block(&content_block.inline_blocks[i - 1])?;
                 let new_inline_block = previous_inline_block.merge(inline_block)?;
-                block_map.update_block(Block::InlineBlock(new_inline_block))?;
+                block_map.update_block(Block::InlineBlock(new_inline_block), blocks_to_update)?;
 
                 let mut content_block = content_block.clone();
                 content_block.inline_blocks.remove(i);
                 let standard_block = standard_block.clone().update_block_content(content_block)?;
-                block_map.update_block(Block::StandardBlock(standard_block.clone()))?;
-                return merge_inline_blocks_with_identical_marks(&standard_block, block_map)
+                block_map.update_block(Block::StandardBlock(standard_block.clone()), blocks_to_update)?;
+                return merge_inline_blocks_with_identical_marks(&standard_block, block_map, blocks_to_update)
             }
         }
         previous_marks = inline_block.marks.clone();
@@ -100,7 +113,8 @@ pub fn merge_inline_blocks_with_identical_marks(standard_block: &StandardBlock, 
 pub fn remove_empty_inline_blocks(
     standard_block: &StandardBlock,
     mut block_map: BlockMap,
-    first_block_id: &str
+    first_block_id: &str,
+    blocks_to_update: &mut Vec<String>
 ) -> Result<BlockMap, StepError> {
     let content_block = standard_block.content_block()?;
     let mut i = 0;
@@ -110,8 +124,8 @@ pub fn remove_empty_inline_blocks(
             let mut content_block = content_block.clone();
             content_block.inline_blocks.remove(i);
             let standard_block = standard_block.clone().update_block_content(content_block)?;
-            block_map.update_block(Block::StandardBlock(standard_block.clone()))?;
-            return remove_empty_inline_blocks(&standard_block, block_map, first_block_id)
+            block_map.update_block(Block::StandardBlock(standard_block.clone()), blocks_to_update)?;
+            return remove_empty_inline_blocks(&standard_block, block_map, first_block_id, blocks_to_update)
         }
         i += 1;
     }
@@ -119,7 +133,7 @@ pub fn remove_empty_inline_blocks(
     // if content block is empty -> readd the first inline block
     if content_block.inline_blocks.len() == 0 {
         let updated_content_block = ContentBlock { inline_blocks: vec![first_block_id.to_string()]};
-        block_map.update_block(Block::StandardBlock(standard_block.clone().update_block_content(updated_content_block)?))?;
+        block_map.update_block(Block::StandardBlock(standard_block.clone().update_block_content(updated_content_block)?), blocks_to_update)?;
     }
     return Ok(block_map)
 }

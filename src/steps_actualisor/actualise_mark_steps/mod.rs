@@ -11,22 +11,23 @@ pub fn actualise_mark_step(
     mark_step: MarkStep,
     mut block_map: BlockMap,
     add_mark: bool,
-    new_ids: &mut NewIds
+    new_ids: &mut NewIds,
+    mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let from_raw_selection = mark_step.from.to_raw_selection(&block_map)?;
-    println!("from_raw_selection: {:#?}", from_raw_selection);
     let to_raw_selection = mark_step.to.to_raw_selection(&block_map)?;
-    println!("from_raw_selection: {:#?}", to_raw_selection);
 
     let block = block_map.get_block(&mark_step.from.block_id)?;
     match block {
         Block::InlineBlock(from_block) => {
-            let updated_state = actualise_mark_step_on_inline_blocks(mark_step, from_block, block_map, add_mark, new_ids)?;
+            let updated_state = actualise_mark_step_on_inline_blocks(mark_step, from_block, block_map, add_mark, new_ids, blocks_to_update)?;
             block_map = updated_state.block_map;
+            blocks_to_update = updated_state.blocks_to_update;
         },
         Block::StandardBlock(_) => {
-            let updated_state = actualise_mark_step_on_standard_blocks(mark_step, block_map, add_mark, new_ids)?;
+            let updated_state = actualise_mark_step_on_standard_blocks(mark_step, block_map, add_mark, new_ids, blocks_to_update)?;
             block_map = updated_state.block_map;
+            blocks_to_update = updated_state.blocks_to_update;
         },
         Block::Root(_) => return Err(StepError("Cannot mark root block".to_string()))
     };
@@ -35,7 +36,7 @@ pub fn actualise_mark_step(
         anchor: from_raw_selection.real_selection_from_raw(&block_map)?,
         head: to_raw_selection.real_selection_from_raw(&block_map)?
     });
-    return Ok(UpdatedState { block_map, selection })
+    return Ok(UpdatedState { block_map, selection, blocks_to_update, blocks_to_remove: vec![] })
 }
 
 fn actualise_mark_step_on_inline_blocks(
@@ -43,7 +44,8 @@ fn actualise_mark_step_on_inline_blocks(
     from_block: InlineBlock,
     mut block_map: BlockMap,
     add_mark: bool,
-    new_ids: &mut NewIds
+    new_ids: &mut NewIds,
+    mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     if mark_step.from.block_id == mark_step.to.block_id {
         let (before_block, middle_block, after_block) = create_before_middle_after_blocks_with_new_text_and_mark(from_block, new_ids, mark_step, add_mark)?;
@@ -63,10 +65,10 @@ fn actualise_mark_step_on_inline_blocks(
             head: SubSelection { block_id: middle_block.id(), offset: middle_block.text()?.len(), subselection: None },
         };
         block_map.update_blocks(vec![
-            Block::StandardBlock(updated_parent_block.clone()), Block::InlineBlock(before_block), Block::InlineBlock(middle_block), Block::InlineBlock(after_block)
-        ])?;
-        block_map = clean_block_after_transform(updated_parent_block, block_map)?;
-        return Ok(UpdatedState { block_map, selection: Some(new_selection) })
+            Block::StandardBlock(updated_parent_block.clone()), Block::InlineBlock(before_block), Block::InlineBlock(middle_block), Block::InlineBlock(after_block),
+        ], &mut blocks_to_update)?;
+        block_map = clean_block_after_transform(updated_parent_block, block_map, &mut blocks_to_update)?;
+        return Ok(UpdatedState { block_map, selection: Some(new_selection), blocks_to_update, blocks_to_remove: vec![] })
     } else {
         //split from block
         //split to block
@@ -91,7 +93,7 @@ fn actualise_mark_step_on_inline_blocks(
         block_map.update_blocks(vec![
             Block::InlineBlock(first_half_of_from_block), Block::InlineBlock(second_half_of_from_block),
             Block::InlineBlock(first_half_of_to_block), Block::InlineBlock(second_half_of_to_block)
-        ])?;
+        ], &mut blocks_to_update)?;
 
         let mut content_block = from_parent_block.content_block()?.clone();
         // for_each_block_between_from_and_to_apply_mark
@@ -100,7 +102,7 @@ fn actualise_mark_step_on_inline_blocks(
         while i < j {
             let block = block_map.get_inline_block(&content_block.inline_blocks[i])?;
             let block = block.apply_mark(mark_step.mark.clone(), add_mark);
-            block_map.update_block(Block::InlineBlock(block))?;
+            block_map.update_block(Block::InlineBlock(block), &mut blocks_to_update)?;
             i += 1;
         }
 
@@ -116,10 +118,10 @@ fn actualise_mark_step_on_inline_blocks(
             vec![first_half_of_to_block_id, second_half_of_to_block_id]
         );
         let updated_parent_block = from_parent_block.update_block_content(content_block)?;
-        block_map.update_block(Block::StandardBlock(updated_parent_block.clone()))?;
-        block_map = clean_block_after_transform(updated_parent_block, block_map)?;
+        block_map.update_block(Block::StandardBlock(updated_parent_block.clone()), &mut blocks_to_update)?;
+        block_map = clean_block_after_transform(updated_parent_block, block_map, &mut blocks_to_update)?;
 
-        return Ok(UpdatedState { block_map, selection: Some(new_subselection) })
+        return Ok(UpdatedState { block_map, selection: Some(new_subselection), blocks_to_update, blocks_to_remove: vec![] })
     }
 }
 

@@ -7,7 +7,11 @@ use super::UpdatedState;
 /// Block above -> parent of the block we're turning to a child
 /// set block's parent to block above
 /// -> update all these blocks in the block map
-pub fn actualise_child_steps(mut block_map: BlockMap, turn_to_child_step: TurnToChild) -> Result<UpdatedState, StepError> {
+pub fn actualise_child_steps(
+    mut block_map: BlockMap,
+    turn_to_child_step: TurnToChild,
+    mut blocks_to_update: Vec<String>
+) -> Result<UpdatedState, StepError> {
     let mut new_child_block = block_map.get_standard_block(&turn_to_child_step.block_id)?;
 
     let mut parent = new_child_block.get_parent(&block_map)?;
@@ -20,9 +24,14 @@ pub fn actualise_child_steps(mut block_map: BlockMap, turn_to_child_step: TurnTo
             new_child_block.parent = block_above.id();
             block_map.update_blocks(vec![
                 Block::StandardBlock(new_child_block), Block::StandardBlock(block_above), parent
-            ])?;
+            ], &mut blocks_to_update)?;
         },
         None => return Err(StepError("Should not be able to turn into child if first index".to_string()))
     }
-    return Ok(UpdatedState { block_map, selection: None })
+    return Ok(UpdatedState {
+        block_map,
+        selection: None,
+        blocks_to_update,
+        blocks_to_remove: vec![]
+    })
 }

@@ -14,18 +14,24 @@ pub mod replace_for_standard_blocks;
 /// For each "update" we need to:
 /// -> merge adjacent inline blocks with same marks (unimplemented)
 /// -> delete any text blocks with no text (unimplemented)
-pub fn actualise_replace_step(replace_step: ReplaceStep, block_map: BlockMap, current_updated_selection: Option<Selection>) -> Result<UpdatedState, StepError> {
+pub fn actualise_replace_step(
+    replace_step: ReplaceStep,
+    block_map: BlockMap,
+    current_updated_selection: Option<Selection>,
+    mut blocks_to_update: Vec<String>
+) -> Result<UpdatedState, StepError> {
     let from_block = block_map.get_block(&replace_step.from.block_id)?;
     return match from_block {
-        Block::InlineBlock(from_block) => replace_selected_across_inline_blocks(from_block, block_map, replace_step),
-        Block::StandardBlock(from_block) => replace_selected_across_standard_blocks(from_block, block_map, replace_step),
+        Block::InlineBlock(from_block) => replace_selected_across_inline_blocks(from_block, block_map, replace_step, blocks_to_update),
+        Block::StandardBlock(from_block) => replace_selected_across_standard_blocks(from_block, block_map, replace_step, blocks_to_update),
         Block::Root(root_block) => replace_selected_across_blocks_children(
             Block::Root(root_block),
             block_map,
             replace_step.from,
             replace_step.to,
             replace_step.slice,
-            current_updated_selection
+            current_updated_selection,
+            blocks_to_update
         ),
     }
 }
@@ -37,7 +43,8 @@ pub fn replace_selected_across_blocks_children(
     from: SubSelection,
     to: SubSelection,
     slice: ReplaceSlice,
-    current_updated_selection: Option<Selection>
+    current_updated_selection: Option<Selection>,
+    mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let blocks_to_add = match slice {
         ReplaceSlice::Blocks(blocks) => blocks,
@@ -45,12 +52,17 @@ pub fn replace_selected_across_blocks_children(
     };
     block.splice_children(from.offset, to.offset, blocks_to_add)?;
     let block_before_first_child_deleted_id = block.get_child_from_index(from.offset - 1)?;
-    block_map.update_block(block)?;
+    block_map.update_block(block, &mut blocks_to_update)?;
     if current_updated_selection.is_some() {
-        return Ok(UpdatedState { block_map, selection: current_updated_selection })
+        return Ok(UpdatedState { block_map, selection: current_updated_selection, blocks_to_update, blocks_to_remove: vec![] })
     } else {
         let updated_subselection = SubSelection::at_end_of_block(&block_before_first_child_deleted_id, &block_map)?;
-        return Ok(UpdatedState { block_map, selection: Some(Selection{ anchor: updated_subselection.clone(), head: updated_subselection } ) })
+        return Ok(UpdatedState {
+            block_map,
+            selection: Some(Selection{ anchor: updated_subselection.clone(), head: updated_subselection }),
+            blocks_to_update,
+            blocks_to_remove: vec![]
+        })
     }
 }
 

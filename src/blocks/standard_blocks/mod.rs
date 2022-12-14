@@ -202,11 +202,15 @@ impl StandardBlock {
         return Ok(self)
     }
 
-    pub fn set_as_parent_for_all_inline_blocks(&self, mut block_map: BlockMap) -> Result<BlockMap, StepError> {
+    pub fn set_as_parent_for_all_inline_blocks(
+        &self,
+        mut block_map: BlockMap,
+        blocks_to_update: &mut Vec<String>
+    ) -> Result<BlockMap, StepError> {
         for id in &self.content_block()?.inline_blocks {
             let mut inline_block = block_map.get_inline_block(&id)?;
             inline_block.parent = self.id();
-            block_map.update_block(Block::InlineBlock(inline_block))?;
+            block_map.update_block(Block::InlineBlock(inline_block), blocks_to_update)?;
         }
         return Ok(block_map)
     }
@@ -215,11 +219,15 @@ impl StandardBlock {
         return block_map.get_root_block(&self.parent).is_ok()
     }
 
-    pub fn set_new_parent_of_children(&self, block_map: &mut BlockMap) -> Result<(), StepError> {
+    pub fn set_new_parent_of_children(
+        &self,
+        block_map: &mut BlockMap,
+        blocks_to_update: &mut Vec<String>
+    ) -> Result<(), StepError> {
         for id in &self.children {
             let mut block = block_map.get_standard_block(id)?;
             block.parent = self.id();
-            block_map.update_block(Block::StandardBlock(block))?;
+            block_map.update_block(Block::StandardBlock(block), blocks_to_update)?;
         }
         return Ok(())
     }
@@ -247,14 +255,15 @@ impl StandardBlock {
         from: usize,
         to: usize,
         block_map: &mut BlockMap,
-        add_mark: bool
+        add_mark: bool,
+        blocks_to_update: &mut Vec<String>
     ) -> Result<(), StepError> {
         let inline_blocks = &self.content_block()?.inline_blocks;
         let mut i = from;
         while i < to + 1 && i < inline_blocks.len() {
             let mut inline_block = block_map.get_inline_block(&inline_blocks[i])?;
             inline_block = inline_block.apply_mark(mark.clone(), add_mark);
-            block_map.update_block(Block::InlineBlock(inline_block))?;
+            block_map.update_block(Block::InlineBlock(inline_block), blocks_to_update)?;
             i += 1;
         }
         return Ok(())
@@ -264,14 +273,15 @@ impl StandardBlock {
         &self,
         mark: Mark,
         block_map: &mut BlockMap,
-        add_mark: bool
+        add_mark: bool,
+        blocks_to_update: &mut Vec<String>
     ) -> Result<(), StepError> {
         let inline_blocks = &self.content_block()?.inline_blocks;
         let mut i = 0;
         while i < inline_blocks.len() {
             let mut inline_block = block_map.get_inline_block(&inline_blocks[i])?;
             inline_block = inline_block.apply_mark(mark.clone(), add_mark);
-            block_map.update_block(Block::InlineBlock(inline_block))?;
+            block_map.update_block(Block::InlineBlock(inline_block), blocks_to_update)?;
             i += 1;
         }
         return Ok(())
@@ -518,4 +528,3 @@ impl StandardBlockType {
         }
     }
 }
-
