@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}},
+    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock}},
     steps_generator::{event::{Event, SlashScrimEvent}, selection::{SubSelection, Selection}, generate_steps}, step::{Step, ReplaceSlice}, steps_actualisor::actualise_steps};
     use serde_json::json;
 
@@ -176,5 +176,50 @@ mod tests {
             },
             _ => panic!("New block type should be a paragraph")
         }
+    }
+    #[test]
+    fn add_block_in_empty_block_should_change_block_rather_than_adding_below() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let inline_block_id = new_ids.get_id().unwrap();
+        let paragraph_block_id = new_ids.get_id().unwrap();
+        let root_block_id = new_ids.get_id().unwrap();
+
+        let inline_block = json!({
+            "_id": inline_block_id.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "/pa"
+            },
+            "marks": [],
+            "parent": paragraph_block_id.clone()
+        }).to_string();
+        let block = json!({
+            "_id": paragraph_block_id,
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone().to_string()
+        }).to_string();
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id.clone()]).to_string();
+
+        let block_map = BlockMap::from(vec![inline_block, block, root_block]).unwrap();
+        let event = Event::SlashScrim(SlashScrimEvent { block_type: "dotpoint list".to_string() });
+        let sub_selection = SubSelection::from(inline_block_id.clone().clone(), 3, None);
+        let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
+
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
+        assert_eq!(steps.len(), 2);
+        match &steps[1] {
+            Step::TurnInto(turn_into) => {
+                assert_eq!(turn_into.new_block_type, StandardBlockType::DotPointList(ListBlock { content: ContentBlock::new(vec![]), completed: false }));
+            },
+            _ => panic!("Expected turn into step")
+        };
     }
 }

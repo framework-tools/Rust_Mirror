@@ -2,7 +2,7 @@
 
 
 
-use crate::{step::{Step, SplitStep, TurnInto}, blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}, Block}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps, turn_into_paragraph_step}, new_ids::NewIds};
+use crate::{step::{Step, SplitStep, TurnInto}, blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}, Block}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps, turn_into::turn_into_paragraph_step}, new_ids::NewIds};
 
 pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: SubSelection) -> Result<Vec<Step>, StepError> {
     let mut steps = vec![];
