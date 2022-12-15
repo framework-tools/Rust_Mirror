@@ -74,8 +74,9 @@ fn block_is_empty_other_than_slash_and_search(
 ) -> Result<bool, StepError> {
     let content_block = nearest_standard_block.content_block()?;
     if content_block.inline_blocks.len() == 1 {
-        let inline_block = block_map.get_inline_block(&content_block.inline_blocks[0])?;
-        return Ok(replace_step.from.offset == 0 && replace_step.to.offset == inline_block.text()?.len())
+        // let inline_block = block_map.get_inline_block(&content_block.inline_blocks[0])?;
+        // return Ok(replace_step.from.offset == 0 && replace_step.to.offset == inline_block.text()?.len())
+        return Ok(false)
     } else {
         return Ok(false)
     }
