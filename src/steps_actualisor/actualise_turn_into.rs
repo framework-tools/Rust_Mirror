@@ -1,4 +1,4 @@
-use crate::{step::TurnInto, blocks::{BlockMap, Block, standard_blocks::StandardBlock}, steps_generator::StepError};
+use crate::{step::TurnInto, blocks::{BlockMap, Block, standard_blocks::StandardBlock}, steps_generator::{StepError, selection::{Selection, SubSelection}}};
 
 use super::UpdatedState;
 
@@ -18,5 +18,11 @@ pub fn actualise_turn_into_step(
         marks: block.marks,
     };
     block_map.update_block(Block::StandardBlock(block), &mut blocks_to_update)?;
-    return Ok(UpdatedState { block_map, selection: None, blocks_to_update, blocks_to_remove: vec![] })
+    let subselection = SubSelection::at_end_of_block(&turn_into_step.block_id, &block_map)?;
+    return Ok(UpdatedState {
+        block_map,
+        selection: Some(Selection { anchor: subselection.clone(), head: subselection }),
+        blocks_to_update,
+        blocks_to_remove: vec![]
+    })
 }
