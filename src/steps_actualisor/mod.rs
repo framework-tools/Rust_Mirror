@@ -58,6 +58,8 @@ pub fn actualise_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewI
             Step::AddBlock(add_block_step) => actualise_add_block(add_block_step, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
             Step::TurnInto(turn_into_step) => actualise_turn_into_step(turn_into_step, updated_state.block_map, updated_state.blocks_to_update)?,
             Step::ToggleCompleted(_id) => actualise_toggle_completed(_id, updated_state.block_map, updated_state.blocks_to_update)?,
+            Step::Copy(from, to) => unimplemented!(),
+            Step::Paste(from, to) => unimplemented!(),
         };
     }
     return Ok(updated_state)

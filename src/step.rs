@@ -1,5 +1,5 @@
 
-use crate::{steps_generator::selection::SubSelection, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
+use crate::{steps_generator::selection::{SubSelection, Selection}, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
 
 
 #[derive(Debug, PartialEq, Clone)]
@@ -12,7 +12,9 @@ pub enum Step {
     TurnToParent(TurnToParent),
     AddBlock(AddBlockStep),
     TurnInto(TurnInto),
-    ToggleCompleted(String) //block id
+    ToggleCompleted(String), //block id
+    Copy(SubSelection, SubSelection),
+    Paste(SubSelection, SubSelection),
     //ReplaceAroundStep
 }
 
@@ -65,3 +67,4 @@ pub struct TurnInto {
     pub block_id: String,
     pub new_block_type: StandardBlockType
 }
+

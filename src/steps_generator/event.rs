@@ -10,6 +10,7 @@ pub enum Event {
     FormatBar(FormatBarEvent),
     SlashScrim(SlashScrimEvent),
     ToggleCompleted(String), //block id
+    ContextMenu(ContextMenuEvent),
 }
 
 impl Event {
@@ -20,7 +21,8 @@ impl Event {
             "formatbar" => Ok(Event::FormatBar(FormatBarEvent::from_js_obj(obj)?)),
             "slash_scrim" => Ok(Event::SlashScrim(SlashScrimEvent::from_js_obj(obj)?)),
             "toggle_completed" => Ok(Event::ToggleCompleted(get_js_field_as_string(&JsValue::from(&obj), "value")?)),
-            _type => Err(StepError(format!("Expected event _type to be either 'keypress' or 'formatbar'. Got: {}", _type)))
+            "context_menu" => Ok(Event::ContextMenu(ContextMenuEvent::from_js_obj(obj)?)),
+            _type => Err(StepError(format!("Expected event _type. Got: {}", _type)))
         }
     }
 }
@@ -164,5 +166,21 @@ impl SlashScrimEvent {
         return Ok(SlashScrimEvent {
             block_type: get_js_field_as_string(&obj, "value")?
         })
+    }
+}
+
+pub enum ContextMenuEvent {
+    Copy,
+    Cut,
+    Paste
+}
+impl ContextMenuEvent {
+    pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
+        return match get_js_field_as_string(&obj, "value")?.as_str() {
+            "copy" => Ok(Self::Copy),
+            "cut" => Ok(Self::Cut),
+            "paste" => Ok(Self::Paste),
+            value => Err(StepError(format!("Expected valid context menu event. Got: {}", value))),
+        }
     }
 }

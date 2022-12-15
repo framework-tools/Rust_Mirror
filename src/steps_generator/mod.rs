@@ -1,7 +1,7 @@
 
-use crate::{blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}}, step::{Step, TurnInto}, mark::Mark};
+use crate::{blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}}, step::{Step, TurnInto, ReplaceStep}, mark::Mark};
 
-use self::{event::{Event, FormatBarEvent}, keypress_step_generator::{generate_keyboard_event_steps}, selection::{Selection, SubSelection}, mark_steps::generate_mark_steps, slash_scrim::generate_slash_scrim_steps, turn_into::generate_turn_into_step};
+use self::{event::{Event, FormatBarEvent, ContextMenuEvent}, keypress_step_generator::{generate_keyboard_event_steps, backspace::generate_steps_for_backspace}, selection::{Selection, SubSelection}, mark_steps::generate_mark_steps, slash_scrim::generate_slash_scrim_steps, turn_into::generate_turn_into_step};
 
 pub mod keypress_step_generator;
 pub mod selection;
@@ -26,6 +26,14 @@ pub fn generate_steps(event: &Event, block_map: &BlockMap, selection: Selection)
             FormatBarEvent::ForeColor(color) => generate_mark_steps(Mark::ForeColor(color.clone()), from, to, block_map),
             FormatBarEvent::BackColor(color) => generate_mark_steps(Mark::BackColor(color.clone()), from, to, block_map),
             FormatBarEvent::TurnInto(new_block_type) => generate_turn_into_step(new_block_type, from, block_map),
+        },
+        Event::ContextMenu(context_menu_event) => match context_menu_event {
+            ContextMenuEvent::Copy => Ok(vec![Step::Copy(from, to)]),
+            &ContextMenuEvent::Cut =>  Ok(vec![
+                vec![Step::Copy(from.clone(), to.clone())],
+                generate_steps_for_backspace(block_map, from, to)?,
+            ].into_iter().flatten().collect()),
+            ContextMenuEvent::Paste => Ok(vec![Step::Paste(from, to)]),
         },
         Event::SlashScrim(slash_scrim_event) => generate_slash_scrim_steps(slash_scrim_event, from, to, block_map),
         Event::ToggleCompleted(_id) => Ok(vec![Step::ToggleCompleted(_id.clone())])
