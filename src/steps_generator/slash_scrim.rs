@@ -16,7 +16,18 @@ pub fn generate_slash_scrim_steps(
             let text = inline_block.text()?;
             let mut i = to.offset;
             loop {
-                let char = String::from_utf16(&[text.0[i]]).unwrap();
+                let char;
+                if from.block_id == to.block_id && from.offset == to.offset && from.offset == text.len() {
+                    char = String::from_utf16(&[text.0[i - 1]]).unwrap();
+                    replace_slash_scrim_text_step = Some(ReplaceStep {
+                        block_id: inline_block.parent.clone(),
+                        from: SubSelection { block_id: inline_block.id(), offset: from.offset - 1, subselection: None },
+                        to: SubSelection { block_id: inline_block.id(), offset: to.offset, subselection: None },
+                        slice: ReplaceSlice::String("".to_string())
+                    })
+                } else {
+                    char = String::from_utf16(&[text.0[i]]).unwrap();
+                }
                 if char == "/".to_string() {
                     break;
                 }
