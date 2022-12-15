@@ -13,7 +13,7 @@ pub fn generate_steps_for_backspace(
                 if from.offset == 0 { // at start of block
                     if from_block.index(block_map)? == 0 { // caret at start of standard block
                         let std_block = block_map.get_inline_block(&from.block_id)?.get_parent(block_map)?;
-                        if std_block.is_list() && std_block.text_is_empty(block_map)? {
+                        if std_block.is_list() {
                             return turn_into_paragraph_step(std_block.id())
                         } else {
                             return caret_at_start_of_parent_block_steps(from_block, block_map)
