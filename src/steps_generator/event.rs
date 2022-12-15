@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use wasm_bindgen::JsValue;
 
-use crate::{mark::{Color, Mark}, frontend_interface::{get_js_field_as_string, get_js_field, get_js_field_as_bool}, blocks::standard_blocks::{StandardBlockType, content_block::ContentBlock}};
+use crate::{mark::{Color, Mark}, frontend_interface::{get_js_field_as_string, get_js_field, get_js_field_as_bool}, blocks::standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock}};
 
 use super::StepError;
 
@@ -147,6 +147,10 @@ fn parse_turn_into_str(value: &str) -> Result<StandardBlockType, StepError> {
         "turn_into(heading 1)" => return Ok(StandardBlockType::H1(ContentBlock::new(vec![]))),
         "turn_into(heading 2)" => return Ok(StandardBlockType::H2(ContentBlock::new(vec![]))),
         "turn_into(heading 3)" => return Ok(StandardBlockType::H3(ContentBlock::new(vec![]))),
+        "turn_into(to-do list)" => return Ok(StandardBlockType::TodoList(ListBlock { content: ContentBlock::new(vec![]), completed: false } )),
+        "turn_into(dotpoint list)" => return Ok(StandardBlockType::DotPointList(ListBlock { content: ContentBlock::new(vec![]), completed: false } )),
+        "turn_into(numbered list)" => return Ok(StandardBlockType::NumberedList(ListBlock { content: ContentBlock::new(vec![]), completed: false } )),
+        "turn_into(arrow list)" => return Ok(StandardBlockType::ArrowList(ListBlock { content: ContentBlock::new(vec![]), completed: false } )),
         value => return Err(StepError(format!("Not a valid turn into statement. Got: {}", value)))
     }
 }
