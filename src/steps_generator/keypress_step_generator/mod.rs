@@ -23,6 +23,17 @@ pub fn generate_keyboard_event_steps(
             generate_mark_steps(Mark::Italic, from, to, block_map),
         Key::Standard('u') | Key::Standard('U') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
             generate_mark_steps(Mark::Underline, from, to, block_map),
+        Key::Standard('c') | Key::Standard('C') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
+            Ok(vec![Step::Copy(from, to)]),
+        Key::Standard('x') | Key::Standard('X') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
+            Ok(vec![
+                vec![Step::Copy(from.clone(), to.clone())],
+                generate_steps_for_backspace(block_map, from, to)?,
+            ].into_iter().flatten().collect()),
+        Key::Standard('v') | Key::Standard('V') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
+            Ok(vec![Step::Paste(from, to)]),
+        Key::Standard('z') | Key::Standard('Z') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
+            unimplemented!(),
         //standard press
         Key::Standard(key) => generate_replace_selected_steps(block_map, from, to, key.to_string()),
         Key::Backspace => generate_steps_for_backspace(block_map, from, to),
