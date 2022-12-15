@@ -17,7 +17,8 @@ pub fn actualise_toggle_completed(
                 block_map,
                 selection: None,
                 blocks_to_update,
-                blocks_to_remove: vec![]
+                blocks_to_remove: vec![],
+                copy: None
             })
         },
         t => Err(StepError(format!("Cannot toggle completed on any block other than a to-do list. Got block: {:#?}", t)))

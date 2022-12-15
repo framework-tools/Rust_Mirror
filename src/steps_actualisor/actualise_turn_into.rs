@@ -23,6 +23,7 @@ pub fn actualise_turn_into_step(
         block_map,
         selection: Some(Selection { anchor: subselection.clone(), head: subselection }),
         blocks_to_update,
-        blocks_to_remove: vec![]
+        blocks_to_remove: vec![],
+        copy: None
     })
 }

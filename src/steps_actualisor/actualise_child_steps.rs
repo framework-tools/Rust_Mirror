@@ -32,6 +32,7 @@ pub fn actualise_child_steps(
         block_map,
         selection: None,
         blocks_to_update,
-        blocks_to_remove: vec![]
+        blocks_to_remove: vec![],
+        copy: None
     })
 }

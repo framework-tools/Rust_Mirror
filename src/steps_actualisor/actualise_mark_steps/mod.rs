@@ -36,7 +36,7 @@ pub fn actualise_mark_step(
         anchor: from_raw_selection.real_selection_from_raw(&block_map)?,
         head: to_raw_selection.real_selection_from_raw(&block_map)?
     });
-    return Ok(UpdatedState { block_map, selection, blocks_to_update, blocks_to_remove: vec![] })
+    return Ok(UpdatedState { block_map, selection, blocks_to_update, blocks_to_remove: vec![], copy: None })
 }
 
 fn actualise_mark_step_on_inline_blocks(
@@ -68,7 +68,7 @@ fn actualise_mark_step_on_inline_blocks(
             Block::StandardBlock(updated_parent_block.clone()), Block::InlineBlock(before_block), Block::InlineBlock(middle_block), Block::InlineBlock(after_block),
         ], &mut blocks_to_update)?;
         block_map = clean_block_after_transform(updated_parent_block, block_map, &mut blocks_to_update)?;
-        return Ok(UpdatedState { block_map, selection: Some(new_selection), blocks_to_update, blocks_to_remove: vec![] })
+        return Ok(UpdatedState { block_map, selection: Some(new_selection), blocks_to_update, blocks_to_remove: vec![], copy: None })
     } else {
         //split from block
         //split to block
@@ -121,7 +121,7 @@ fn actualise_mark_step_on_inline_blocks(
         block_map.update_block(Block::StandardBlock(updated_parent_block.clone()), &mut blocks_to_update)?;
         block_map = clean_block_after_transform(updated_parent_block, block_map, &mut blocks_to_update)?;
 
-        return Ok(UpdatedState { block_map, selection: Some(new_subselection), blocks_to_update, blocks_to_remove: vec![] })
+        return Ok(UpdatedState { block_map, selection: Some(new_subselection), blocks_to_update, blocks_to_remove: vec![], copy: None })
     }
 }
 

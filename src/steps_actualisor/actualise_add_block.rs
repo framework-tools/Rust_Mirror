@@ -38,6 +38,7 @@ pub fn actualise_add_block(
             head: SubSelection { block_id: new_inline_block_id.clone(), offset: 0, subselection: None },
         }),
         blocks_to_update,
-        blocks_to_remove: vec![]
+        blocks_to_remove: vec![],
+        copy: None
     })
 }

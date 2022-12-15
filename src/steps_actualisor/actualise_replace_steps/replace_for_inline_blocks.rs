@@ -51,7 +51,8 @@ fn replace_across_single_inline_block(
         block_map,
         selection: Some(Selection::update_selection_from(replace_step)),
         blocks_to_update,
-        blocks_to_remove: vec![]
+        blocks_to_remove: vec![],
+        copy: None
     })
 }
 
@@ -90,7 +91,8 @@ fn replace_across_multiple_inline_blocks(
         block_map,
         selection: Some(Selection::update_selection_from(replace_step)),
         blocks_to_update,
-        blocks_to_remove: vec![]
+        blocks_to_remove: vec![],
+        copy: None
     })
 }
 

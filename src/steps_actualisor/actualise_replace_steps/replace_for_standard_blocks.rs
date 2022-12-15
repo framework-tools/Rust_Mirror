@@ -63,7 +63,8 @@ pub fn replace_selected_across_standard_blocks(
                 block_map,
                 selection: Some(Selection::update_selection_from(replace_step)),
                 blocks_to_update,
-                blocks_to_remove: vec![]
+                blocks_to_remove: vec![],
+                copy: None
             })
         },
         None => return replace_across_standard_blocks_no_subselection(from_block, block_map, replace_step, blocks_to_update)
@@ -131,7 +132,8 @@ fn replace_across_standard_blocks_no_subselection(
                 block_map,
                 selection: Some(Selection{ anchor: updated_subselection.clone(), head: updated_subselection }),
                 blocks_to_update,
-                blocks_to_remove: vec![]
+                blocks_to_remove: vec![],
+                copy: None
             })
         } else {
             unimplemented!()

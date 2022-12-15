@@ -32,5 +32,5 @@ pub fn actualise_parent_steps(
     block_map.update_blocks(vec![
         Block::StandardBlock(current_block), Block::StandardBlock(previous_parent), previous_grandparent
     ], &mut blocks_to_update)?;
-    return Ok(UpdatedState { block_map, selection: None, blocks_to_update, blocks_to_remove: vec![] })
+    return Ok(UpdatedState { block_map, selection: None, blocks_to_update, blocks_to_remove: vec![], copy: None })
 }

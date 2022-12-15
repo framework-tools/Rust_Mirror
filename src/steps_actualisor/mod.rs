@@ -30,6 +30,7 @@ pub struct UpdatedState {
     pub selection: Option<Selection>,
     pub blocks_to_update: Vec<String>, // Vec<ID>
     pub blocks_to_remove: Vec<String>, // Vec<ID>
+    pub copy: Option<Vec<Block>>
 }
 
 impl UpdatedState {
@@ -38,7 +39,8 @@ impl UpdatedState {
             block_map,
             selection: None,
             blocks_to_update: vec![],
-            blocks_to_remove: vec![]
+            blocks_to_remove: vec![],
+            copy: None
         }
     }
 }

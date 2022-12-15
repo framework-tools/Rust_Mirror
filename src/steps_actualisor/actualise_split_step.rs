@@ -44,7 +44,8 @@ pub fn actualise_split_step(
         block_map,
         selection: Some(Selection { anchor: updated_subselection.clone(), head: updated_subselection.clone() }),
         blocks_to_update,
-        blocks_to_remove: vec![]
+        blocks_to_remove: vec![],
+        copy: None
     })
 }
 

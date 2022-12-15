@@ -54,14 +54,15 @@ pub fn replace_selected_across_blocks_children(
     let block_before_first_child_deleted_id = block.get_child_from_index(from.offset - 1)?;
     block_map.update_block(block, &mut blocks_to_update)?;
     if current_updated_selection.is_some() {
-        return Ok(UpdatedState { block_map, selection: current_updated_selection, blocks_to_update, blocks_to_remove: vec![] })
+        return Ok(UpdatedState { block_map, selection: current_updated_selection, blocks_to_update, blocks_to_remove: vec![], copy: None })
     } else {
         let updated_subselection = SubSelection::at_end_of_block(&block_before_first_child_deleted_id, &block_map)?;
         return Ok(UpdatedState {
             block_map,
             selection: Some(Selection{ anchor: updated_subselection.clone(), head: updated_subselection }),
             blocks_to_update,
-            blocks_to_remove: vec![]
+            blocks_to_remove: vec![],
+            copy: None
         })
     }
 }
