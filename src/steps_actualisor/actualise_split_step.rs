@@ -16,7 +16,8 @@ pub fn actualise_split_step(
     mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let inline_block = block_map.get_inline_block(&split_step.subselection.block_id)?;
-    let (first_half_inline_block, second_half_inline_block) = inline_block.split(split_step.subselection.offset, new_ids)?;
+    let (first_half_inline_block, mut second_half_inline_block) = inline_block.split(split_step.subselection.offset, new_ids)?;
+    second_half_inline_block.marks = vec![];
     let parent = first_half_inline_block.get_parent(&block_map)?;
     let new_block_content = get_new_enter_block_type(&parent.content)?;
     let new_block_content = new_block_content.push_to_content(vec![second_half_inline_block.id()])?;
