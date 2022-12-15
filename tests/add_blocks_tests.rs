@@ -217,6 +217,7 @@ mod tests {
         assert_eq!(steps.len(), 2);
         match &steps[1] {
             Step::TurnInto(turn_into) => {
+                assert_eq!(turn_into.block_id, paragraph_block_id);
                 assert_eq!(turn_into.new_block_type, StandardBlockType::DotPointList(ListBlock { content: ContentBlock::new(vec![]), completed: false }));
             },
             _ => panic!("Expected turn into step")

@@ -47,14 +47,14 @@ pub fn generate_slash_scrim_steps(
     let nearest_standard_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
     if replace_slash_scrim_text_step.is_some() {
         let replace_step = replace_slash_scrim_text_step.unwrap();
-        // if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? {
-        //     steps.push(Step::ReplaceStep(replace_step));
-        //     steps.push(Step::TurnInto(TurnInto {
-        //         block_id: nearest_standard_block.parent.clone(),
-        //         new_block_type: new_block_type
-        //     }));
-        //     return Ok(steps)
-        // }
+        if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? {
+            steps.push(Step::ReplaceStep(replace_step));
+            steps.push(Step::TurnInto(TurnInto {
+                block_id: nearest_standard_block.id(),
+                new_block_type: new_block_type
+            }));
+            return Ok(steps)
+        }
 
         steps.push(Step::ReplaceStep(replace_step));
     }
