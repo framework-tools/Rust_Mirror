@@ -3,7 +3,7 @@ use crate::{blocks::{BlockMap}, step::Step, mark::Mark, new_ids::NewIds};
 
 use self::{backspace::generate_steps_for_backspace, enter::generate_steps_for_enter, tab::generate_steps_for_tab, };
 
-use super::{event::{KeyPress, Key, KeyPressMetadata}, selection::{SubSelection}, StepError, mark_steps::generate_mark_steps, generate_replace_selected_steps::generate_replace_selected_steps};
+use super::{event::{KeyPress, Key, KeyPressMetadata}, selection::{SubSelection}, StepError, mark_steps::generate_mark_steps, generate_replace_selected_steps::generate_replace_selected_steps, clipboard_steps::{generate_cut_steps, generate_paste_steps}};
 
 pub mod backspace;
 pub mod enter;
@@ -26,12 +26,9 @@ pub fn generate_keyboard_event_steps(
         Key::Standard('c') | Key::Standard('C') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
             Ok(vec![Step::Copy(from, to)]),
         Key::Standard('x') | Key::Standard('X') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
-            Ok(vec![
-                vec![Step::Copy(from.clone(), to.clone())],
-                generate_steps_for_backspace(block_map, from, to)?,
-            ].into_iter().flatten().collect()),
+            generate_cut_steps(from, to, block_map),
         Key::Standard('v') | Key::Standard('V') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
-            Ok(vec![Step::Paste(from, to)]),
+            generate_paste_steps(from, to, block_map),
         Key::Standard('z') | Key::Standard('Z') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
             unimplemented!(),
         //standard press

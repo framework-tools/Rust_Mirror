@@ -2,7 +2,7 @@
 use serde_json::json;
 use wasm_bindgen::JsValue;
 
-use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string};
+use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string, step::AddBlockStep};
 
 use self::{content_block::ContentBlock, list_block::ListBlock};
 
@@ -243,10 +243,29 @@ impl StandardBlock {
         }
     }
 
+    pub fn next_sibling(&self, block_map: &BlockMap) -> Result<Option<StandardBlock>, StepError> {
+        let parent = self.get_parent(block_map)?;
+        let next_sibling = parent.get_child_from_index(self.index(block_map)? + 1);
+        return match next_sibling {
+            Ok(id) => Ok(Some(block_map.get_standard_block(&id)?)),
+            Err(_) => Ok(None)
+        }
+    }
+
     pub fn get_siblings_after(&self, block_map: &BlockMap) -> Result<Vec<String>, StepError> {
         let parent = self.get_parent(block_map)?;
         let children_after = &parent.children()?[self.index(block_map)? + 1 ..];
         return Ok(children_after.to_vec())
+    }
+
+    pub fn parents_next_sibling(&self, block_map: &BlockMap) -> Result<Option<StandardBlock>, StepError> {
+        let parent = block_map.get_standard_block(&self.parent)?;
+        let grand_parent = parent.get_parent(block_map)?;
+        let next_sibling = grand_parent.get_child_from_index(parent.index(block_map)? + 1);
+        return match next_sibling {
+            Ok(id) => Ok(Some(block_map.get_standard_block(&id)?)),
+            Err(_) => Ok(None)
+        }
     }
 
     pub fn apply_mark_to_all_inline_blocks_in_range(
@@ -303,6 +322,20 @@ impl StandardBlock {
         } else {
             return Ok(false)
         }
+    }
+
+    pub fn depth_from_root(&self, block_map: &BlockMap) -> Result<usize, StepError> {
+        let mut i = 0;
+        let mut current_block = self.clone();
+        loop  {
+            current_block = match current_block.parent_is_root(block_map) {
+                true => break,
+                false => block_map.get_standard_block(&current_block.id())?
+            };
+            i += 1;
+            current_block = block_map.get_standard_block(&current_block.parent)?;
+        }
+        return Ok(i)
     }
 }
 

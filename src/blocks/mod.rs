@@ -29,6 +29,7 @@ impl Block {
         };
         let kind = json.get("kind").ok_or(StepError(format!("Block does not have kind field: {}", json)))?
             .as_str().ok_or(StepError("Block kind field is not a string".to_string()))?;
+
         return match kind {
             "standard" => {
                 Ok(Block::StandardBlock(StandardBlock {
@@ -258,7 +259,7 @@ impl Block {
             "kind": "standard",
             "_type": "paragraph",
             "content": {
-                "text": ""
+                "inline_blocks": []
             },
             "marks": [],
             "parent": parent_id.to_string(),
