@@ -274,7 +274,6 @@ impl SubSelection {
         let inline_blocks = &std_block.content_block()?.inline_blocks;
         let mut current_count = 0;
         for id in inline_blocks {
-            println!("current_count: {}", current_count );
             let inline_block = block_map.get_inline_block(&id)?;
             if inline_block.text()?.len() + current_count >= self.offset {
                 return Ok(Self {

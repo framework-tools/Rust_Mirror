@@ -72,8 +72,6 @@ mod tests {
                 subselection: None
             },
         };
-        println!("expected: {:#?}", expected_selection);
-        println!("actual: {:#?}", updated_state.selection);
         assert_eq!(updated_state.selection, Some(expected_selection));
         return Ok(())
     }

@@ -1,8 +1,8 @@
-use crate::{mark::Mark, step::{Step, MarkStep}, blocks::{BlockMap, Block, standard_blocks::StandardBlock}};
+use crate::{mark::Mark, step::{Step, MarkStep}, blocks::{BlockMap, Block, standard_blocks::StandardBlock}, utilities::{get_blocks_between, BlockStructure, BlocksBetween}};
 
 use super::{selection::SubSelection, StepError};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum ForSelection {
     From(usize),
     To(usize),
@@ -30,9 +30,47 @@ pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, blo
             }
         },
         Block::StandardBlock(from_block) => {
-            let parent = block_map.get_block(&from_block.parent)?;
-            if all_standard_blocks_have_identical_mark(&parent, &mark, block_map, from.clone(), to.clone())? == false {
-                should_add_mark = true;
+            // let parent = block_map.get_block(&from_block.parent)?;
+            // if all_standard_blocks_have_identical_mark(&parent, &mark, block_map, from.clone(), to.clone())? == false {
+            //     should_add_mark = true;
+            // }
+            match get_blocks_between(&from, &to, BlockStructure::Flat, block_map)? {
+                BlocksBetween::Flat(blocks) => {
+                    let mut i = 0;
+                    for block in &blocks {
+                        if i == 0 {
+                            if block.all_inline_blocks_in_range_have_identical_mark(
+                                &mark,
+                                block.index_of(&from.get_deepest_subselection().block_id)?,
+                                block.content_block()?.inline_blocks.len() - 1,
+                                ForSelection::From(from.get_deepest_subselection().offset),
+                                block_map
+                            )? == false {
+                                should_add_mark = true;
+                                break;
+                            }
+                        } else if i == blocks.len() - 1 {
+                            if block.all_inline_blocks_in_range_have_identical_mark(
+                                &mark,
+                                0,
+                                block.index_of(&to.get_deepest_subselection().block_id)?,
+                                ForSelection::To(to.get_deepest_subselection().offset),
+                                block_map
+                            )? == false {
+                                should_add_mark = true;
+                                break;
+                            }
+                        } else {
+                            if block.all_inline_blocks_have_identical_mark(&mark, block_map)? == false {
+                                should_add_mark = true;
+                                break;
+                            }
+                        }
+
+                        i += 1;
+                    }
+                },
+                _ => unreachable!()
             }
         },
         Block::Root(_) => return Err(StepError("Cannot generate mark steps for a root block".to_string()))
@@ -48,6 +86,8 @@ pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, blo
         return Ok(vec![Step::RemoveMarkStep(mark_step)])
     }
 }
+
+// old
 
 /// NEED TO ADD SAME DESCENDANT CASE AFTER FINISHED HANDLING THESE CASES
 /// For "from" and "to":

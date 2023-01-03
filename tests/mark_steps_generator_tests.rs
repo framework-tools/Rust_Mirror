@@ -122,7 +122,7 @@ mod tests {
     #[test]
     fn can_parse_fore_color_mark() {
         let mark = Mark::from_str("fore_color(0, 0, 0, 1)").unwrap();
-        assert_eq!(mark, Mark::ForeColor(Color (0, 0, 0, 1)));
+        assert_eq!(mark, Mark::ForeColor(Color (0, 0, 0, 100)));
     }
     #[test]
     fn can_parse_back_color_mark() {
@@ -133,7 +133,6 @@ mod tests {
     fn can_convert_color_to_string() {
         let color = Color(0, 0, 0, 60);
         let as_str = color.to_string();
-        println!("{}", as_str);
         assert_eq!(as_str, "(0, 0, 0, 0.6)");
     }
 
@@ -593,8 +592,8 @@ mod tests {
                     offset: 0,
                     subselection: Some(Box::new(SubSelection {
                         block_id: p_id10.clone(),
-                        offset: 0,
-                        subselection: Some(Box::new(SubSelection::from(inline_block_id10, 1, None)))
+                        offset: 1,
+                        subselection: Some(Box::new(SubSelection::from(inline_block_id10.clone(), 1, None)))
         }))}))}))};
 
         let selection = Selection::from(sub_selection_to.clone(), sub_selection_from.clone());
@@ -878,7 +877,6 @@ mod tests {
         // testing every case
         let mut i = 1;
         while i < 6 {
-            println!("i: {}", i);
             inline_blocks[i]["marks"] = json!([]);
             if i != 1 {
                 inline_blocks[i - 1]["marks"] = json!(["bold"]);
