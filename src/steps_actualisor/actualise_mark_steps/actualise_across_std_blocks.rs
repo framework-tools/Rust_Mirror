@@ -1,7 +1,5 @@
 use crate::{step::MarkStep, blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, Block}, steps_actualisor::{UpdatedState, clean_block_after_transform}, steps_generator::{StepError, selection::SubSelection}, mark::Mark, new_ids::NewIds, utilities::{get_blocks_between, BlockStructure, BlocksBetween}};
 
-
-
 /// -> apply mark for "from" std block -> from "inner from" to end of inline blocks
 /// -> apply mark for "to" std block -> from start of inline blocks to "inner to"
 /// -> for each standard block between "from" & "to" -> assign mark to each of their inline blocks
@@ -21,7 +19,7 @@ pub fn actualise_mark_step_on_standard_blocks(
     split_edge_inline_blocks(&mut block_map, new_ids, from_deepest_layer, from_deepest_std_block, &mut blocks_to_update)?;
     split_edge_inline_blocks(&mut block_map, new_ids, to_deepest_layer, to_deepest_std_block, &mut blocks_to_update)?;
 
-    match get_blocks_between(&mark_step.from, &mark_step.to, BlockStructure::Flat, &block_map)? {
+    match get_blocks_between(BlockStructure::Flat, &mark_step.from, &mark_step.to, &block_map, new_ids)? {
         BlocksBetween::Flat(blocks) => {
             let mut i = 0;
             for block in &blocks {
@@ -70,7 +68,7 @@ pub fn actualise_mark_step_on_standard_blocks(
     })
 }
 
-fn split_edge_inline_blocks(
+pub fn split_edge_inline_blocks(
     block_map: &mut BlockMap,
     new_ids: &mut NewIds,
     deepest_layer: &SubSelection,

@@ -7,6 +7,10 @@ pub enum NewIds {
 }
 
 impl NewIds {
+    pub fn new() -> Self {
+        return NewIds::Rust(Vec::new())
+    }
+
     pub fn get_id(&mut self) -> Result<String, StepError> {
         match self {
             Self::Rust(ids) => {

@@ -1,4 +1,4 @@
-use crate::{mark::Mark, step::{Step, MarkStep}, blocks::{BlockMap, Block, standard_blocks::StandardBlock}, utilities::{get_blocks_between, BlockStructure, BlocksBetween}};
+use crate::{mark::Mark, step::{Step, MarkStep}, blocks::{BlockMap, Block, standard_blocks::StandardBlock}, utilities::{get_blocks_between, BlockStructure, BlocksBetween}, new_ids::NewIds};
 
 use super::{selection::SubSelection, StepError};
 
@@ -30,7 +30,7 @@ pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, blo
             }
         },
         Block::StandardBlock(_) => {
-            match get_blocks_between(&from, &to, BlockStructure::Flat, block_map)? {
+            match get_blocks_between(BlockStructure::Flat, &from, &to, block_map, &mut NewIds::new())? {
                 BlocksBetween::Flat(blocks) => {
                     let mut i = 0;
                     for block in &blocks {

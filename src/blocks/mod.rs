@@ -566,6 +566,13 @@ impl BlockMap {
             Self::Rust(_) => return Err(StepError("Cannot convert rust map to js map".to_string()))
         }
     }
+
+    pub fn contains(&self, key: &str) -> bool {
+        match self {
+            Self::Js(js_map) => js_map.has(&JsValue::from_str(key)),
+            Self::Rust(rs_map) => rs_map.contains_key(key)
+        }
+    }
 }
 
 pub fn id_from_json_block(json: &Value) -> Result<String, StepError> {
