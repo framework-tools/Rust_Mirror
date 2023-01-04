@@ -10,6 +10,11 @@ pub fn actualise_copy(
     block_map: BlockMap,
     new_ids: &mut NewIds
 ) -> Result<UpdatedState, StepError> {
+    // match block_map.get_block(&from.block_id)? {
+    //     Block::InlineBlock() =>
+    //     Block::StandardBlock() =>
+    //     Block::Root(_) => return Err(StepError("From block should never be root".to_string()))
+    // };
     let blocks_between = get_blocks_between(
         BlockStructure::Tree,
         &from,
@@ -30,3 +35,7 @@ pub fn actualise_copy(
         copy: Some(copy)
     })
 }
+
+// pub fn actualise_paste(
+
+// )
