@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{utilities::{BlockStructure, BlocksBetween, get_blocks_between}, new_ids::NewIds, blocks::{Block, RootBlock, BlockMap}, steps_generator::{selection::{Selection, SubSelection}, StepError}};
+    use rust_mirror::{utilities::{BlockStructure, BlocksBetween, get_blocks_between, Tree}, new_ids::NewIds, blocks::{Block, RootBlock, BlockMap}, steps_generator::{selection::{Selection, SubSelection}, StepError}};
     use serde_json::json;
 
 
@@ -142,7 +142,7 @@ mod tests {
             &mut new_ids
         ).unwrap();
         match blocks_as_tree {
-            BlocksBetween::Tree { top_blocks, block_map } => {
+            BlocksBetween::Tree(Tree { top_blocks, block_map }) => {
                 assert_eq!(top_blocks[0].id(), std_block_id1);
                 assert_eq!(top_blocks[1].id(), std_block_id5);
                 assert_eq!(top_blocks[2].id(), std_block_id3);
@@ -608,7 +608,7 @@ mod tests {
             &mut new_ids
         ).unwrap();
         match blocks_as_tree {
-            BlocksBetween::Tree { top_blocks, block_map } => {
+            BlocksBetween::Tree(Tree { top_blocks, block_map }) => {
                 assert_eq!(top_blocks[0].id(), p_id1);
                 assert_eq!(top_blocks[1].id(), p_id5);
                 assert_eq!(top_blocks[2].id(), p_id6);
@@ -870,7 +870,7 @@ mod tests {
             &mut new_ids
         ).unwrap();
         match blocks_as_tree {
-            BlocksBetween::Tree { top_blocks, block_map } => {
+            BlocksBetween::Tree(Tree { top_blocks, block_map }) => {
                 assert_eq!(top_blocks[0].id(), p_id2);
                 assert_eq!(top_blocks[1].id(), p_id4);
                 assert_eq!(top_blocks.len(), 2);
@@ -1203,7 +1203,7 @@ mod tests {
             &mut new_ids
         ).unwrap();
         match blocks_as_tree {
-            BlocksBetween::Tree { top_blocks, block_map } => {
+            BlocksBetween::Tree(Tree { top_blocks, block_map }) => {
                 assert_eq!(top_blocks[0].id(), p_id3);
                 assert_eq!(top_blocks[1].id(), p_id4);
                 assert_eq!(top_blocks[2].id(), p_id5);
@@ -1462,7 +1462,7 @@ mod tests {
             &mut new_ids
         ).unwrap();
         match blocks_as_tree {
-            BlocksBetween::Tree { top_blocks, block_map } => {
+            BlocksBetween::Tree(Tree { top_blocks, block_map }) => {
                 assert_eq!(top_blocks[0].id(), p_id3);
                 assert_eq!(top_blocks[1].id(), p_id4);
                 assert_eq!(top_blocks.len(), 2);
@@ -1592,7 +1592,7 @@ mod tests {
             &mut new_ids
         ).unwrap();
         match blocks_as_tree {
-            BlocksBetween::Tree { top_blocks, block_map } => {
+            BlocksBetween::Tree(Tree { top_blocks, block_map }) => {
                 assert_eq!(top_blocks[0].id(), p_id1);
                 assert_eq!(top_blocks.len(), 1);
 

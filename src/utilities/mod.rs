@@ -10,10 +10,12 @@ pub enum BlockStructure {
 
 pub enum BlocksBetween {
     Flat(Vec<StandardBlock>),
-    Tree {
-        top_blocks: Vec<StandardBlock>,
-        block_map: BlockMap
-    }
+    Tree(Tree)
+}
+
+pub struct Tree {
+    pub top_blocks: Vec<StandardBlock>,
+    pub block_map: BlockMap
 }
 
 /// Goes through and gets every standard block that is selected (even partially)
@@ -108,7 +110,7 @@ pub fn get_blocks_between(
     }
 
     return match block_structure {
-        BlockStructure::Tree => Ok(BlocksBetween::Tree { top_blocks: blocks, block_map: new_block_map }),
+        BlockStructure::Tree => Ok(BlocksBetween::Tree(Tree { top_blocks: blocks, block_map: new_block_map })),
         BlockStructure::Flat => Ok(BlocksBetween::Flat(blocks))
     }
 }

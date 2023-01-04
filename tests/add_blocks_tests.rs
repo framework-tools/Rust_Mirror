@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock}},
-    steps_generator::{event::{Event, SlashScrimEvent}, selection::{SubSelection, Selection}, generate_steps}, step::{Step, ReplaceSlice}, steps_actualisor::actualise_steps};
+    steps_generator::{event::{Event, SlashScrimEvent}, selection::{SubSelection, Selection}, generate_steps}, step::{Step, ReplaceSlice}, steps_actualisor::actualise_steps, custom_copy::CustomCopy};
     use serde_json::json;
 
     #[test]
@@ -98,7 +98,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children.len(), 2);
@@ -155,7 +155,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children.len(), 2);

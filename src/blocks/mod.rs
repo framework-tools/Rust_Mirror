@@ -563,7 +563,13 @@ impl BlockMap {
     pub fn to_js_map(self) -> Result<Map, StepError> {
         match self {
             Self::Js(js_map) => Ok(js_map),
-            Self::Rust(_) => return Err(StepError("Cannot convert rust map to js map".to_string()))
+            Self::Rust(rust_map) => {
+                let js_map = js_sys::Map::new();
+                for (id, json) in rust_map {
+                    js_map.set(&JsValue::from_str(&id) ,&js_sys::JSON::parse(&json).unwrap());
+                }
+                return Ok(js_map)
+            }
         }
     }
 
