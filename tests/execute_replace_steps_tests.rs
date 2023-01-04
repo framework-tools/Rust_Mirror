@@ -4,7 +4,7 @@ mod tests {
 
     use rust_mirror::{steps_generator::{StepError, event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps},
     new_ids::NewIds, blocks::{RootBlock, BlockMap, Block}, steps_actualisor::actualise_steps,
-    mark::Mark};
+    mark::Mark, custom_copy::CustomCopy};
 
     #[test]
     fn can_actualise_steps_for_standard_keypress() -> Result<(), StepError> {
@@ -42,7 +42,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new())?;
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id)?;
         assert_eq!(updated_inline_block.text()?.clone().to_string().as_str(), "a");
@@ -99,7 +99,7 @@ mod tests {
     //     let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
     //     let steps = generate_steps(&event, &block_map, selection).unwrap();
-    //     let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+    //     let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
     //     let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id)?;
     //     assert_eq!(updated_inline_block.text()?, "a");
@@ -150,7 +150,7 @@ mod tests {
         let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id).unwrap();
         assert_eq!(updated_inline_block.text().unwrap().clone().to_string().as_str(), "sok text");
@@ -221,7 +221,7 @@ mod tests {
         let selection = Selection::from(from_sub_selection.clone(), to_sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_inline_block = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
         assert_eq!(updated_inline_block.text().unwrap().clone().to_string().as_str(), "He orld");
@@ -370,7 +370,7 @@ mod tests {
         };
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children, vec![std_block_id1.clone()]);
         let updated_std_block1 = updated_state.block_map.get_standard_block(&std_block_id1).unwrap();
@@ -568,7 +568,7 @@ mod tests {
         };
 
         let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_inline_block_2 = updated_state.block_map.get_inline_block(&inline_block_id2).unwrap();
         assert_eq!(updated_inline_block_2.text().unwrap().clone().to_string().as_str(), &"a b cGoodbye World".to_string());
@@ -769,7 +769,7 @@ mod tests {
         };
 
         let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_inline_block_1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
         assert_eq!(updated_inline_block_1.text().unwrap().clone().to_string().as_str(), &"Hello bye World".to_string());
@@ -936,7 +936,7 @@ mod tests {
     //     }));
 
 
-    //     let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+    //     let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
     //     let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
     //     assert_eq!(updated_root_block.children, vec![std_block_id1.clone()]);
     //     let updated_std_block1 = updated_state.block_map.get_standard_block(&std_block_id1).unwrap();
@@ -1033,7 +1033,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
         assert_eq!(updated_root_block.children, vec![paragraph_block_id1.clone()]);
@@ -1097,7 +1097,7 @@ mod tests {
         let selection = Selection::from(from_sub_selection, to_sub_selection);
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
         assert_eq!(updated_paragraph_block.content_block().unwrap().inline_blocks, vec![inline_block_id1.clone()]);
@@ -1168,7 +1168,7 @@ mod tests {
 //                 blocks_to_update: vec![]
 //             })
 //         ];
-//         let updated_block_map = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+//         let updated_block_map = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 //         let updated_standard_block = updated_block_map.get_standard_block(&std_block_id1).unwrap();
 //         let content_block = updated_standard_block.content_block().unwrap();
 //         assert_eq!(content_block.inline_blocks, vec![inline_block_id1.clone()]);

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_actualisor::actualise_steps, mark::{Mark, Color}, new_ids::NewIds, step::Step};
+    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_actualisor::actualise_steps, mark::{Mark, Color}, new_ids::NewIds, step::Step, custom_copy::CustomCopy};
 
     use serde_json::json;
 
@@ -41,7 +41,7 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_standard_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let content_block = updated_standard_block.content_block().unwrap();
@@ -126,7 +126,7 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
         let updated_standard_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let content_block = updated_standard_block.content_block().unwrap();
         assert_eq!(content_block.inline_blocks.len(), 4);
@@ -226,7 +226,7 @@ mod tests {
         ]).unwrap();
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
         let updated_standard_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let content_block = updated_standard_block.content_block().unwrap();
         assert_eq!(content_block.inline_blocks.len(), 2);
@@ -366,7 +366,7 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new())?;
 
         let updated_paragraph_block_1 = updated_state.block_map.get_standard_block(&paragraph_block_id1)?;
         assert_eq!(updated_paragraph_block_1.content_block()?.inline_blocks.len(), 2);
@@ -689,7 +689,7 @@ mod tests {
         ])?;
 
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new())?;
 
         let mut i = 1 as usize;
         while i < 11 {
@@ -948,7 +948,7 @@ mod tests {
             p7.to_string(), inline_block7.to_string()
         ])?;
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new())?;
 
         let mut i = 2 as usize;
         while i < 8 {
@@ -1290,7 +1290,7 @@ mod tests {
         ])?;
 
         let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let mut i = 3 as usize;
         while i < 7 {
@@ -1553,7 +1553,7 @@ mod tests {
             head: sub_selection_to.clone()
         };
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new())?;
 
         let mut i = 3 as usize;
         while i < 5 {
@@ -1686,7 +1686,7 @@ mod tests {
             head: sub_selection_to.clone()
         };
         let steps = generate_steps(&event, &block_map, selection)?;
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids)?;
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new())?;
 
         let updated_p1 = updated_state.block_map.get_standard_block(&p_id1)?;
         assert_eq!(updated_state.block_map.get_inline_block(&updated_p1.content_block()?.inline_blocks[0])?.marks, vec![]);
@@ -1752,7 +1752,7 @@ mod tests {
         let selection = Selection::from(sub_selection_from.clone(), sub_selection_to.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
         let updated_p_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let inline_blocks = updated_p_block.content_block()?.clone().inline_blocks;
         let updated_inline_2 = updated_state.block_map.get_inline_block(&inline_blocks[1]).unwrap();

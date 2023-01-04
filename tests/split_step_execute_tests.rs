@@ -1,7 +1,7 @@
 
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap}, steps_generator::{event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps, StepError}, steps_actualisor::actualise_steps, mark::Mark};
+    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap}, steps_generator::{event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps, StepError}, steps_actualisor::actualise_steps, mark::Mark, custom_copy::CustomCopy};
     use serde_json::json;
 
 
@@ -42,7 +42,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let original_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let inline_blocks = &original_paragraph_block.content_block().unwrap().inline_blocks;
@@ -111,7 +111,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let original_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let inline_blocks = &original_paragraph_block.content_block().unwrap().inline_blocks;
@@ -212,7 +212,7 @@ mod tests {
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
 
-        let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let original_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id).unwrap();
         let inline_blocks = &original_paragraph_block.content_block().unwrap().inline_blocks;
@@ -346,7 +346,7 @@ mod tests {
 
     //     let steps = generate_steps(&event, &block_map, selection).unwrap();
 
-    //     let updated_state = actualise_steps(steps, block_map, &mut new_ids).unwrap();
+    //     let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
     //     let original_paragraph_block = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
     //     let inline_blocks = &original_paragraph_block.content_block().unwrap().inline_blocks;
