@@ -2,7 +2,26 @@ use crate::{step::TurnInto, blocks::{BlockMap, Block, standard_blocks::StandardB
 
 use super::UpdatedState;
 
+// This function takes in a 
+// - TurnInto step, 
+// - a BlockMap, 
+// - a vector of Strings representing the blocks to update. 
+//It returns a Result object with an UpdatedState as the Ok variant, 
+//or a StepError as the Err variant.
 
+// The function first retrieves the standard block identified by the block_id field of the TurnInto step. 
+//Then, it uses the update_block_content method of the new_block_type field 
+//of the TurnInto step to update the content of the retrieved block with the new block type.
+
+// Next, the function updates the block map with the updated block 
+//and updates the list of blocks to update. 
+//It then creates a subselection representing the end of the updated block 
+//and returns an UpdatedState object with 
+// - the updated block map, 
+// - the created subselection as the selection, 
+// - the updated list of blocks to update, 
+// - an empty list of blocks to remove, 
+// -  a None value for the copy field.
 pub fn actualise_turn_into_step(
     turn_into_step: TurnInto,
     mut block_map: BlockMap,

@@ -14,6 +14,22 @@ pub mod replace_for_standard_blocks;
 /// For each "update" we need to:
 /// -> merge adjacent inline blocks with same marks (unimplemented)
 /// -> delete any text blocks with no text (unimplemented)
+// ------------------------------------------------------
+// This function appears to be used to replace a selected range of blocks with new content. 
+//It takes a ReplaceStep struct which contains the range to be replaced and the new content, 
+//as well as a BlockMap which is a map of all the blocks in the document and a vector of block IDs to be updated. 
+//It also takes an optional current_updated_selection which is the current selection after the replacement.
+
+// The function first gets the block specified by the from field in the ReplaceStep struct
+// and determines the type of block it is. 
+//It then calls one of three functions depending on the type of block: 
+// - replace_selected_across_inline_blocks, 
+// - replace_selected_across_standard_blocks, 
+// - replace_selected_across_blocks_children. 
+//These functions are responsible for replacing the selected range with the new content 
+//and returning an UpdatedState struct which contains the updated BlockMap, 
+//a new selection range if applicable, and vectors of block IDs to be updated and removed.
+
 pub fn actualise_replace_step(
     replace_step: ReplaceStep,
     block_map: BlockMap,
@@ -36,7 +52,17 @@ pub fn actualise_replace_step(
     }
 }
 
+// This function looks like it handles the process of replacing blocks of content 
+//within a document with a given set of new blocks. 
+//It does this by first splicing the children of the block specified by from.offset and to.offset
+//with the new blocks specified in slice. 
+//It then updates the block in the block map with the modified version of the block.
 
+// If there is a current updated selection specified in current_updated_selection, 
+//the function returns this as the new selection. 
+//Otherwise, it calculates the new selection by getting the id of the block 
+//before the first child was deleted and finding the end of this block. 
+//It then returns this as the new selection.
 pub fn replace_selected_across_blocks_children(
     mut block: Block,
     mut block_map: BlockMap,

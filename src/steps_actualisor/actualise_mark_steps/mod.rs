@@ -7,6 +7,27 @@ use super::{clean_block_after_transform, UpdatedState};
 
 pub mod actualise_across_std_blocks;
 
+
+// This function appears to be used to apply a "mark" to a range of blocks in a document. 
+//It takes a MarkStep struct as input, 
+//which represents the mark to be applied and the range of blocks to which it should be applied. 
+//It also takes a BlockMap which seems to be a map of block IDs to blocks, 
+//a boolean add_mark which indicates whether the mark should be added or removed, 
+//a mutable reference to a NewIds struct which seems to be used to generate new unique IDs for blocks as needed, 
+//and a mutable vector of strings called blocks_to_update, 
+//which appears to be used to track which blocks need to be updated in the document.
+// The function first converts the from and to fields of the MarkStep struct 
+//to "raw selections" using the to_raw_selection function. 
+//It then retrieves the block specified in the from field of the MarkStep struct, 
+//and dispatches on the type of the block. 
+//If the block is an inline block, 
+//it calls the actualise_mark_step_on_inline_blocks function to apply the mark to the inline block. 
+//If the block is a standard block, 
+//it calls the actualise_mark_step_on_standard_blocks function to apply the mark to a range of standard blocks. 
+//If the block is the root block, it returns an error.
+//The function converts the raw selections back to regular selections
+// and returns an UpdatedState struct containing the updated BlockMap
+// and a selection range from the modified from and to blocks.
 pub fn actualise_mark_step(
     mark_step: MarkStep,
     mut block_map: BlockMap,
@@ -39,6 +60,30 @@ pub fn actualise_mark_step(
     return Ok(UpdatedState { block_map, selection, blocks_to_update, blocks_to_remove: vec![], copy: None })
 }
 
+// This function appears to be used to apply a "mark" to a range of inline blocks in a document. 
+//It takes a MarkStep struct as input, 
+//which represents the mark to be applied and the range of blocks to which it should be applied, 
+//an InlineBlock called from_block, a BlockMap, a boolean add_mark which indicates 
+//whether the mark should be added or removed, 
+//a mutable reference to a NewIds struct which seems to be used to generate new unique IDs for blocks as needed, 
+//and a mutable vector of strings called blocks_to_update, 
+//which appears to be used to track which blocks need to be updated in the document.
+
+// The function first checks if the from and to fields of the MarkStep struct refer to the same block. 
+//If they do, it calls the create_before_middle_after_blocks_with_new_text_and_mark function 
+//to create three new blocks: 
+// - one before the range to be marked, 
+// - one containing the range to be marked, 
+// - one after the range to be marked. 
+//It then updates the parent block to include the new blocks, 
+//and returns an UpdatedState struct containing the updated BlockMap and 
+//a selection range covering the newly marked block.
+
+// If the from and to fields refer to different blocks, 
+//the function splits the from and to blocks at the specified offsets, 
+//applies the mark to the appropriate blocks, and then updates the parent blocks to include the new blocks. 
+//It then returns an UpdatedState struct containing the updated BlockMap
+//and a selection range covering the marked blocks.
 fn actualise_mark_step_on_inline_blocks(
     mark_step: MarkStep,
     from_block: InlineBlock,
@@ -125,6 +170,22 @@ fn actualise_mark_step_on_inline_blocks(
     }
 }
 
+//This function appears to be used to create three new inline blocks based on a given input block. 
+//It takes an InlineBlock called from_block, 
+//a mutable reference to a NewIds struct which seems to be used to generate new unique IDs for blocks as needed, 
+//a MarkStep struct which represents the mark to be applied and the range of blocks to which it should be applied, 
+//and a boolean add_mark which indicates whether the mark should be added or removed.
+
+// The function first retrieves the text of the input block, 
+//and then calls the split_before_middle_after method on the text to split it into three parts: 
+// - one before the range to be marked, 
+// - one containing the range to be marked, 
+// - one after the range to be marked. 
+//t then creates three new inline blocks based on the input block, 
+//using the update_text method to set the text of each block to the corresponding part of the split text. 
+//It applies the mark specified in the MarkStep struct to the middle block, 
+//and then returns the three blocks as a tuple.
+
 pub fn create_before_middle_after_blocks_with_new_text_and_mark(
     from_block: InlineBlock,
     new_ids: &mut NewIds,
@@ -142,6 +203,11 @@ pub fn create_before_middle_after_blocks_with_new_text_and_mark(
     return Ok((before_block, middle_block, after_block))
 }
 
+// This function appears to be used to create a selection range based on the IDs and lengths of two inline blocks. 
+//It takes the ID of the first block as a string and a reference to the second block. 
+//It then returns a Selection struct with the anchor set
+// - to the start of the first block and 
+// - the head set to the end of the second block.
 pub fn updated_selection_after_apply_mark(
     second_half_of_from_block_id: String,
     first_half_of_to_block: &InlineBlock,

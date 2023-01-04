@@ -2,6 +2,15 @@ use crate::{blocks::{BlockMap, standard_blocks::StandardBlockType, Block}, steps
 
 use super::UpdatedState;
 
+// This function appears to toggle the completed field of a TodoList block in a BlockMap. 
+//It returns an UpdatedState object with the 
+// - updated block map, 
+// - an empty selection, 
+// - list of updated blocks, 
+// - list of removed blocks, 
+// - no copied block. 
+//If the block is not a TodoList block, 
+//it returns an error with a message indicating that the block type is not supported.
 pub fn actualise_toggle_completed(
     _id: String,
     mut block_map: BlockMap,
