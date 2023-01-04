@@ -7,6 +7,25 @@ use super::UpdatedState;
 ///
 /// -> new parent is it's previous parent's parent
 /// -> should be inserted 1 below previous parent as sibling
+// ------------------------------------------------
+
+//This function appears to be responsible for handling the TurnToParent operation, which involves taking a block and making it the sibling of its parent block. It does this by updating the parent of the current block, as well as updating the children of the parent block and the previous grandparent block.
+
+// It does this by first getting a reference to the current block 
+//and its previous parent block from the block_map, 
+//using the block_id provided in the turn_to_parent_step parameter. 
+//It then gets the index of the current block within the parent's children list. 
+//It separates the children list of the parent into two lists, 
+//one containing the children before the current block and one containing the children after it.
+
+// The children after the current block are added to the current block's children list, 
+//and the parent field of each of those blocks is updated to be the current block's ID. 
+//The children before the current block are kept as the children of the previous parent.
+
+// The previous grandparent block is then retrieved from the block_map, 
+//and the current block is inserted into its children list after the previous parent block. 
+//The parent field of the current block is updated to be the ID of the previous grandparent block. 
+//Finally, all of the modified blocks are updated in the block_map and an UpdatedState object is returned.
 pub fn actualise_parent_steps(
     mut block_map: BlockMap,
     turn_to_parent_step: TurnToParent,

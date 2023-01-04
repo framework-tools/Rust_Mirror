@@ -7,6 +7,22 @@ use super::UpdatedState;
 /// Block above -> parent of the block we're turning to a child
 /// set block's parent to block above
 /// -> update all these blocks in the block map
+// ------------------------------------------------
+
+// It looks like this function is intended to actualize a TurnToChild step, 
+//which involves changing the parent-child relationship of a block. 
+//The function first retrieves the new_child_block, 
+//which is the block that will become a child, 
+//and then retrieves its current parent block. 
+//It removes the new_child_block from the parent's list of children, 
+//and then retrieves the block immediately above the new_child_block. 
+//If this block exists, the function sets the new_child_block as its child 
+//and updates the blocks in the block map. 
+//If the block above the new_child_block does not exist, 
+//the function returns an error indicating that it is not possible to turn the block into a child 
+//if it is the first block in the document. 
+//Finally, the function returns an UpdatedState object with the updated block map 
+//and an empty list of blocks to update and remove.
 pub fn actualise_child_steps(
     mut block_map: BlockMap,
     turn_to_child_step: TurnToChild,

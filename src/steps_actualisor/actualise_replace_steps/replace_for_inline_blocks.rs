@@ -11,6 +11,27 @@ steps_actualisor::{UpdatedState, clean_block_after_transform}};
 /// replace with slice that consists of:
 ///  -> "from" block with chars removed from offset to end of text
 ///  -> "to" block with chars removed from start of text to offset
+//-------------------------------------------------------------
+// The function replace_selected_across_inline_blocks takes in an 
+// - InlineBlock, 
+// - aBlockMap, 
+// - a ReplaceStep, 
+// - a mutable vector of Strings representing blocks to update. 
+//It returns a Result with an UpdatedState on success or a StepError on failure.
+
+// The function first checks the type of the slice field of the ReplaceStep, 
+//which should be a String, and returns an error if it is not. 
+//It then retrieves the InlineBlock specified by the to field of the ReplaceStep. 
+//If the parent of the from_block is not the same as the parent of the to_block, the function returns an error.
+
+// If the _id field of the from_block is the same as the _id field of the to_block, 
+//the function calls replace_across_single_inline_block with the 
+// - from_block, 
+// - block_map, 
+// - replace_step, 
+// - replace_with, 
+// - blocks_to_update as arguments. 
+//Otherwise, it calls replace_across_multiple_inline_blocks with the same arguments.
 pub fn replace_selected_across_inline_blocks(
     from_block: InlineBlock,
     block_map: BlockMap,
@@ -33,6 +54,20 @@ pub fn replace_selected_across_inline_blocks(
         replace_across_multiple_inline_blocks(from_block, block_map, replace_step, replace_with, blocks_to_update)
     }
 }
+
+// This function updates a single inline block with new text 
+//that has the specified string replaced within it. 
+//The replace_with parameter is the string to insert, and replace_step is a struct
+//containing information about the range of the text to replace (from and to fields).
+
+// The function first retrieves the current text of the from_block and stores it in a text variable. 
+//It then uses the splice method of the text variable to remove the specified range 
+//and insert the replace_with string in its place.
+
+// Next, the function creates an updated version of the from_block 
+//with the modified text using the update_text method. 
+//Finally, it updates the block in the block map and returns an UpdatedState struct 
+//with the modified block map and an updated selection.
 
 fn replace_across_single_inline_block(
     from_block: InlineBlock,
@@ -71,6 +106,28 @@ fn replace_across_single_inline_block(
 /// -> Remove any inline blocks between the "from" & "to" index on the parent block
 /// -> Remove "from" block text from "from" offset to end & add replace with
 /// -> Remove "to" block text from start to offset
+//--------------------------------------------------
+
+//This function appears to be responsible for replacing the selected text across multiple inline blocks, 
+//in a document represented as a BlockMap. 
+//The replace_step argument is a ReplaceStep struct 
+//that contains the start and end points of the text selection, 
+//and the replace_with argument is a string that contains the text to replace the selected text with. 
+//The function first retrieves the to_block from the block_map, 
+//which is the inline block that the end of the selection is in. 
+//It then calls remove_inline_blocks_between_from_and_to to remove the inline blocks 
+//between the from_block and the to_block.
+
+// After that, the function calls update_from_inline_block_text to update the text of the from_block, 
+//replacing the selected text with the replace_with string. 
+//It then calls update_to_inline_block_text to update the text of the to_block, 
+//replacing the selected text with the replace_with string. 
+//Finally, it calls clean_block_after_transform to clean up the updated_parent_block, 
+//and then returns an UpdatedState struct that contains the 
+// - updated block_map, 
+// - an updated selection, 
+// - lists of blocks to update and blocks to remove.
+
 fn replace_across_multiple_inline_blocks(
     from_block: InlineBlock,
     block_map: BlockMap,
@@ -95,7 +152,15 @@ fn replace_across_multiple_inline_blocks(
         copy: None
     })
 }
+// This function appears to remove all of the inline blocks 
+//that appear between the from_block and to_block in the parent_block.
 
+// It does this by getting the parent block of from_block, 
+//then finding the indices of from_block and to_block in the parent block's list of inline blocks. 
+//It then splices the list of inline blocks by removing all of the blocks 
+//from the index immediately after from_block to to_block, inclusive. 
+//Finally, it updates the parent block's content with the modified list of inline blocks
+//and returns the updated parent block.
 fn remove_inline_blocks_between_from_and_to(
     block_map: &BlockMap,
     from_block: &InlineBlock,
@@ -109,6 +174,22 @@ fn remove_inline_blocks_between_from_and_to(
     return parent_block.update_block_content(content_block)
 }
 
+//This function updates the text of an InlineBlock in a BlockMap. 
+//It takes in 
+// - an InlineBlock, 
+// - a BlockMap, 
+// - a new offset for the text, 
+// - a replace_with string to replace the text from the offset, 
+// - a mutable blocks_to_update vector. 
+//It first retrieves the current text of the InlineBlock 
+//and creates a new StringUTF16 object with the replace_with string. 
+//It then splices the original text from the offset 
+//until the end of the text with the new StringUTF16 object. 
+//It then calls update_inline_block_with_new_text_in_block function with the updated 
+// - InlineBlock, 
+// - the original BlockMap, 
+// - the new text, 
+// - the blocks_to_update vector and returns the result.
 pub fn update_from_inline_block_text(
     from_block: InlineBlock,
     block_map: BlockMap,
@@ -121,6 +202,12 @@ pub fn update_from_inline_block_text(
     return update_inline_block_with_new_text_in_block(from_block, block_map, text.clone(), blocks_to_update)
 }
 
+// This function updates the given to_block by replacing its text with a new text 
+//that has the first offset characters removed. 
+//The updated block is then added to the block map and returned. 
+//The blocks_to_update vector is used to track the blocks that have been updated 
+//so that they can be passed to the frontend to be updated.
+
 pub fn update_to_inline_block_text(
     to_block: InlineBlock,
     block_map: BlockMap,
@@ -131,6 +218,16 @@ pub fn update_to_inline_block_text(
     text.splice(0..offset, StringUTF16::new());
     return update_inline_block_with_new_text_in_block(to_block, block_map, text.clone(), blocks_to_update)
 }
+
+//It looks like update_inline_block_with_new_text_in_block is a function that takes an 
+// - InlineBlock, 
+// - a BlockMap, 
+// - a StringUTF16, 
+// - a mutable reference to a Vec<String>. 
+//It updates the text of the InlineBlock with the provided StringUTF16 
+//and updates the BlockMap to include this updated InlineBlock. 
+//It also appends the id of the updated InlineBlock to the Vec<String> passed in as the blocks_to_update argument. 
+//Finally, it returns the updated BlockMap.
 
 fn update_inline_block_with_new_text_in_block(
     inline_block: InlineBlock,
