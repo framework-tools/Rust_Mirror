@@ -36,6 +36,13 @@ pub fn actualise_copy(
     })
 }
 
-// pub fn actualise_paste(
+/// 2 Cases: Copy is: Inline blocks or Standard Blocks
+/// If inline: insert inline blocks at "from" selection on standard block
+/// if standard blocks:
+/// -> first blocks inline blocks get inserted at "from" selection standard block -> similar to inline case
+/// -> Rest of the blocks get inserted into the "from" std block's parents
+pub fn actualise_paste(
 
-// )
+) {
+    unimplemented!()
+}

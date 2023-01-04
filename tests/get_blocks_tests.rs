@@ -1606,4 +1606,122 @@ mod tests {
             _ => panic!("Expected tree"),
         }
     }
+
+    /// <1> Hell|o </1><2> brave </2><3> ne|w </3><4> world </4>
+    #[test]
+    fn get_blocks_test_inline() -> Result<(), StepError> {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let inline_id1 = new_ids.get_id()?;
+        let inline_id2 = new_ids.get_id()?;
+        let inline_id3 = new_ids.get_id()?;
+        let inline_id4 = new_ids.get_id()?;
+        let p_id = new_ids.get_id()?;
+        let root_block_id = new_ids.get_id()?;
+
+        let p = json!({
+            "_id": p_id.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_id1.clone(), inline_id2.clone(), inline_id3.clone(), inline_id4.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.to_string()
+        });
+        let inline_block1 = json!({
+            "_id": inline_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": " Hello "
+            },
+            "marks": [],
+            "parent": p_id.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": " brave "
+            },
+            "marks": ["bold"],
+            "parent": p_id.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": " new "
+            },
+            "marks": [],
+            "parent": p_id.clone()
+        });
+        let inline_block4 = json!({
+            "_id": inline_id4.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": " world "
+            },
+            "marks": ["bold"],
+            "parent": p_id.clone()
+        });
+
+        let root_block = RootBlock::json_from(
+            root_block_id.clone(),
+            vec![p_id.clone()]
+        );
+
+        let block_map = BlockMap::from(
+            vec![
+                root_block.to_string(), p.to_string(), inline_block1.to_string(),
+                inline_block2.to_string(), inline_block3.to_string(), inline_block4.to_string()
+            ]
+        ).unwrap();
+
+        let sub_selection_from = SubSelection::from(inline_id1.clone(), 5, None);
+        let sub_selection_to = SubSelection::from(inline_id3.clone(), 3, None);
+
+        let blocks_as_tree = get_blocks_between(
+            BlockStructure::Tree,
+            &sub_selection_from,
+            &sub_selection_to,
+            &block_map,
+            &mut new_ids
+        ).unwrap();
+        match blocks_as_tree {
+            BlocksBetween::Tree(Tree { top_blocks, block_map }) => {
+                let std_block = top_blocks[0].clone();
+                assert_eq!(std_block.id(), p_id);
+                assert_eq!(top_blocks.len(), 1);
+
+                let inline_blocks = &std_block.content_block()?.inline_blocks;
+                assert_eq!(inline_blocks.len(), 3);
+
+                let mut i = 0;
+                for id in inline_blocks {
+                    let inline_block = block_map.get_inline_block(id)?;
+                    if i == 0 {
+                        assert_eq!(inline_block.text()?.clone().to_string(), "o ".to_string());
+                    }
+                    if i == 1 {
+                        assert_eq!(inline_block.text()?.clone().to_string(), " brave ".to_string());
+                    }
+                    if i == 2 {
+                        assert_eq!(inline_block.text()?.clone().to_string(), " ne".to_string());
+                    }
+
+                    i += 1;
+                }
+
+
+                return Ok(())
+            },
+            _ => panic!("Expected tree"),
+        }
+    }
 }

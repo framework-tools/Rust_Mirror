@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{steps_generator::{selection::SubSelection, StepError}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block}, steps_actualisor::actualise_mark_steps::actualise_across_std_blocks::split_edge_inline_blocks, new_ids::NewIds};
+use crate::{steps_generator::{selection::SubSelection, StepError}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block, inline_blocks::InlineBlock}, steps_actualisor::actualise_mark_steps::actualise_across_std_blocks::split_edge_inline_blocks, new_ids::NewIds};
 
 #[derive(PartialEq)]
 pub enum BlockStructure {
@@ -43,17 +43,19 @@ pub fn get_blocks_between(
 ) -> Result<BlocksBetween, StepError> {
     let mut blocks = Vec::new();
     let mut new_block_map = BlockMap::Rust(HashMap::new());
-    let current_node = block_map.get_standard_block(&from.clone().get_two_deepest_layers()?.block_id);
-    let mut current_node = match current_node {
-        Ok(current_node) => Ok(current_node),
-        Err(_) => Err(StepError("Expected from block to be std block. Got inline block. Not allowed in this fn".to_string()))
+    let from_second_deepest = from.clone().get_two_deepest_layers();
+    let mut current_node = match from_second_deepest {
+        Ok(sub_selection) => block_map.get_standard_block(&sub_selection.block_id),
+        Err(_) => block_map.get_inline_block(&from.block_id)?.get_parent(block_map),
     }?;
+    let depth_from_root = current_node.depth_from_root(block_map);
+    let mut depth_from_root = match depth_from_root {
+        Ok(v) => v,
+        _ => 0
+    };
 
-    let mut depth_from_root = current_node.depth_from_root(block_map)?;
-
-    let to_second_deepest = to.clone().get_two_deepest_layers()?;
     let mut first = true;
-    while current_node.id() != to_second_deepest.block_id {
+    loop {
         if first && block_structure == BlockStructure::Tree {
             current_node = split_edge_block_inline_blocks(
                 true,
@@ -66,6 +68,15 @@ pub fn get_blocks_between(
             first = false;
         }
 
+        let to_second_deepest = to.clone().get_two_deepest_layers();
+        if to_second_deepest.is_ok() {
+            if current_node.id() == to_second_deepest.unwrap().block_id {
+                break;
+            }
+        } else {
+            break;
+        }
+
         let next_node;
         if current_node.children.len() > 0 { // has children
             next_node = block_map.get_standard_block(&current_node.children[0])?;
@@ -74,7 +85,7 @@ pub fn get_blocks_between(
         } else {
             next_node = match current_node.parents_next_sibling(block_map)? {
                 Some(sib) => sib,
-                None => return Err(StepError("Reached no end of nodes before we found the to block".to_string()))
+                None => return Err(StepError("No next node but have not yet reached final node".to_string()))
             };
             if current_node.depth_from_root(block_map)? == 0 {
                 depth_from_root = 0;
