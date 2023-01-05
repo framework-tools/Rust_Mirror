@@ -49,22 +49,24 @@ pub fn actualise_paste(
         let insertion_std_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
         let new_inline_blocks = copy_tree.top_blocks[0].get_inline_blocks(&copy_tree.block_map)?;
 
-        let insertion_std_block = insertion_std_block.insert_inline_blocks(
+        let mut insertion_std_block = insertion_std_block.insert_inline_blocks(
             new_inline_blocks,
             from.get_deepest_subselection().clone(),
             &mut block_map,
             new_ids,
             &mut blocks_to_update
         )?;
-        let insertion_std_block = add_children_to_start_of_blocks_children(
-            insertion_std_block,
-            copy_tree.top_blocks[0].clone(),
-            &copy_tree,
-            &mut block_map,
-            new_ids,
-            &mut blocks_to_update
-        )?;
-        let insertion_std_block = add_all_other_blocks_below(insertion_std_block, copy_tree, &mut block_map, new_ids, &mut blocks_to_update)?;
+        if insertion_std_block.children.len() > 0 {
+            insertion_std_block = add_children_to_start_of_blocks_children(
+                insertion_std_block,
+                copy_tree.top_blocks[0].clone(),
+                &copy_tree,
+                &mut block_map,
+                new_ids,
+                &mut blocks_to_update
+            )?;
+        }
+        // let insertion_std_block = add_all_other_blocks_below(insertion_std_block, copy_tree, &mut block_map, new_ids, &mut blocks_to_update)?;
 
         block_map = clean_block_after_transform(insertion_std_block, block_map, &mut blocks_to_update)?;
     }
