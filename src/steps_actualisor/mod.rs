@@ -96,6 +96,7 @@ pub fn actualise_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewI
             Step::Paste(from, to) => actualise_paste(copy.clone(), from, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
         };
     }
+    updated_state.copy = Some(copy);
     return Ok(updated_state)
 }
 

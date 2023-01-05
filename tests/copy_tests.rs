@@ -91,6 +91,14 @@ mod tests {
         let steps = generate_steps(&event, &block_map, selection.clone()).unwrap();
         let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new())?;
 
+        let copy = updated_state.copy.unwrap();
+        let tree = match copy {
+            CustomCopy::Rust(tree) => tree,
+            CustomCopy::Js(_) => panic!("Should be rust")
+        };
+
+        assert_eq!(tree.top_blocks.len(), 1);
+
         return Ok(())
     }
 }

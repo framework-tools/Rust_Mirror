@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{steps_generator::{selection::SubSelection, StepError}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block, inline_blocks::InlineBlock}, steps_actualisor::actualise_mark_steps::actualise_across_std_blocks::split_edge_inline_blocks, new_ids::NewIds};
+use crate::{steps_generator::{selection::SubSelection, StepError}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block, inline_blocks::{InlineBlock, text_block::StringUTF16}}, steps_actualisor::actualise_mark_steps::{actualise_across_std_blocks::split_edge_inline_blocks, create_before_middle_after_blocks_with_new_text_and_mark}, new_ids::NewIds};
 
 #[derive(PartialEq)]
 pub enum BlockStructure {
@@ -58,15 +58,17 @@ pub fn get_blocks_between(
     let mut first = true;
     loop {
         if first && block_structure == BlockStructure::Tree {
-            current_node = split_edge_block_inline_blocks(
-                true,
-                from,
-                block_map,
-                current_node,
-                &mut new_block_map,
-                new_ids
-            )?;
-            first = false;
+            if from.get_deepest_subselection().block_id != to.get_deepest_subselection().block_id {
+                current_node = split_edge_block_inline_blocks(
+                    true,
+                    from,
+                    block_map,
+                    current_node,
+                    &mut new_block_map,
+                    new_ids
+                )?;
+                first = false;
+            }
         }
 
         let to_second_deepest = to.clone().get_two_deepest_layers();
@@ -106,14 +108,23 @@ pub fn get_blocks_between(
 
     if block_structure == BlockStructure::Tree {
         current_node.children = vec![];
-        current_node = split_edge_block_inline_blocks(
-            false,
-            to,
-            block_map,
-            current_node,
-            &mut new_block_map,
-            new_ids
-        )?;
+        let deepest_from = from.get_deepest_subselection();
+        let deepest_to = to.get_deepest_subselection();
+        if deepest_from.block_id == deepest_to.block_id {
+            let mut inline_block_selected = block_map.get_inline_block(&deepest_from.block_id)?;
+            let (_, middle, _) = inline_block_selected.text()?.split_before_middle_after(deepest_from.offset, deepest_to.offset);
+            inline_block_selected = inline_block_selected.update_text(middle)?;
+            new_block_map.update_block(Block::InlineBlock(inline_block_selected), &mut Vec::new())?;
+        } else {
+            current_node = split_edge_block_inline_blocks(
+                false,
+                to,
+                block_map,
+                current_node,
+                &mut new_block_map,
+                new_ids
+            )?;
+        }
         add_block_and_inline_blocks_to_new_block_map(block_map, &mut new_block_map, current_node.clone())?;
     }
 
