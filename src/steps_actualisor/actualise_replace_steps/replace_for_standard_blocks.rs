@@ -14,31 +14,31 @@ use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_
 /// -> remove all standard blocks between from & to
 // -----------------------------------------------------------
 
-//This function replaces a selected range of text with a new string in a document. 
-//The from_block and to_block parameters represent the start and end blocks of the selected range, respectively. 
-//The replace_step parameter holds the new string to be inserted and the updated selection after the replacement. 
-//The blocks_to_update parameter is a list of blocks that will be updated in the block map 
+//This function replaces a selected range of text with a new string in a document.
+//The from_block and to_block parameters represent the start and end blocks of the selected range, respectively.
+//The replace_step parameter holds the new string to be inserted and the updated selection after the replacement.
+//The blocks_to_update parameter is a list of blocks that will be updated in the block map
 //as a result of the replacement.
 
-// The function first checks if the from_block and to_block have the same parent block. 
-//If they do not, an error is returned. 
-//Next, the function checks if the from_block and to_block 
-//are the same block or if they are different blocks. 
-//If they are the same block, it calls the replace_across_single_standard_block function to perform the replacement. 
+// The function first checks if the from_block and to_block have the same parent block.
+//If they do not, an error is returned.
+//Next, the function checks if the from_block and to_block
+//are the same block or if they are different blocks.
+//If they are the same block, it calls the replace_across_single_standard_block function to perform the replacement.
 //If they are different blocks, it calls the replace_across_multiple_standard_blocks function to perform the replacement.
 
-// The replace_across_single_standard_block function updates the text of the from_block 
-//with the new string and updates the block map with the modified block. 
-//The replace_across_multiple_standard_blocks function removes all blocks between the from_block and to_block, 
-//updates the text of the from_block and to_block with the new string, 
+// The replace_across_single_standard_block function updates the text of the from_block
+//with the new string and updates the block map with the modified block.
+//The replace_across_multiple_standard_blocks function removes all blocks between the from_block and to_block,
+//updates the text of the from_block and to_block with the new string,
 //and updates the block map with the modified blocks.
 
-// The function returns a Result object with an UpdatedState variant containing 
-//the updated block map, 
-// - updated selection, 
-// - list of blocks to update, 
-// - list of blocks to remove, 
-// - copy information. 
+// The function returns a Result object with an UpdatedState variant containing
+//the updated block map,
+// - updated selection,
+// - list of blocks to update,
+// - list of blocks to remove,
+// - copy information.
 //If an error occurs, the Result object will contain a StepError variant
 pub fn replace_selected_across_standard_blocks(
     mut from_block: StandardBlock,
@@ -65,7 +65,7 @@ pub fn replace_selected_across_standard_blocks(
         let siblings_after_to_block = to_block.get_siblings_after(&block_map)?;
         let mut from_parent = from_block.get_parent(&block_map)?;
         let mut from_siblings = from_parent.children()?.clone();
-        from_siblings.splice(from_block.index(&block_map)? + 1.., siblings_after_to_block);
+        from_siblings.splice(from_block.index(&block_map)? + 1..from_block.index(&block_map)? + 1, siblings_after_to_block);
         from_parent.set_children(from_siblings)?;
         from_parent.set_new_parent_of_children(&mut block_map, &mut blocks_to_update)?;
         block_map.update_block(from_parent, &mut blocks_to_update)?;
@@ -98,8 +98,8 @@ pub fn replace_selected_across_standard_blocks(
         None => return replace_across_standard_blocks_no_subselection(from_block, block_map, replace_step, blocks_to_update)
     }
 }
-// This function updates the text of the inline block 
-//that corresponds to the from position of the replace_step operation. 
+// This function updates the text of the inline block
+//that corresponds to the from position of the replace_step operation.
 
 //It does this by:
 
@@ -108,8 +108,8 @@ pub fn replace_selected_across_standard_blocks(
 // 3. Updating the text of the inline block by replacing a slice of it with the replacement string, starting at the specified offset. This is done using the update_from_inline_block_text function.
 // 4. Finally, the updated block map is returned.
 
-// Note that this function expects the replace_step to contain a subselection 
-//(i.e., the from and to positions should have an inner selection). 
+// Note that this function expects the replace_step to contain a subselection
+//(i.e., the from and to positions should have an inner selection).
 //If this is not the case, an error is returned.
 fn update_from_subselection_inline_block_text(
     block_map: BlockMap,
@@ -124,21 +124,21 @@ fn update_from_subselection_inline_block_text(
     return update_from_inline_block_text(from_subselection_block, block_map, offset, replace_with, &mut blocks_to_update)
 }
 
-// The update_to_subselection_inline_block_text function updates 
-//the text of the to_subselection_block inline block in the given block_map. 
-//The to_subselection_block is obtained by calling the get_subselection_inline_block function 
-//with the replace_step.to argument. The offset value is also obtained 
+// The update_to_subselection_inline_block_text function updates
+//the text of the to_subselection_block inline block in the given block_map.
+//The to_subselection_block is obtained by calling the get_subselection_inline_block function
+//with the replace_step.to argument. The offset value is also obtained
 //from the get_subselection_inline_block function.
 
-// The to_subselection_block inline block's parent is set to new_parent_id, 
-//and the update_to_inline_block_text function is called with the 
-// - to_subselection_block, 
-// - block_map, 
-// - offset, 
-// - blocks_to_update arguments. 
-//The update_to_inline_block_text function creates a new text string 
-//by splicing the current text of to_subselection_block from the start index to the offset index. 
-//Then, the function updates the to_subselection_block inline block with the new text 
+// The to_subselection_block inline block's parent is set to new_parent_id,
+//and the update_to_inline_block_text function is called with the
+// - to_subselection_block,
+// - block_map,
+// - offset,
+// - blocks_to_update arguments.
+//The update_to_inline_block_text function creates a new text string
+//by splicing the current text of to_subselection_block from the start index to the offset index.
+//Then, the function updates the to_subselection_block inline block with the new text
 //and updates the block_map with the updated block.
 // The updated block_map is returned by the update_to_subselection_inline_block_text function.
 fn update_to_subselection_inline_block_text(
@@ -152,10 +152,10 @@ fn update_to_subselection_inline_block_text(
     return update_to_inline_block_text(to_subselection_block, block_map, offset, &mut blocks_to_update)
 }
 
-// This function appears to be used to get an InlineBlock and an offset based on a given SubSelection. 
-//The SubSelection is used to get a "child" SubSelection, 
-//which is then used to get an InlineBlock from the BlockMap. 
-//The offset is taken from the child SubSelection. 
+// This function appears to be used to get an InlineBlock and an offset based on a given SubSelection.
+//The SubSelection is used to get a "child" SubSelection,
+//which is then used to get an InlineBlock from the BlockMap.
+//The offset is taken from the child SubSelection.
 //This InlineBlock and offset are then returned as a tuple
 fn get_subselection_inline_block(
     block_map: &BlockMap,
@@ -165,14 +165,14 @@ fn get_subselection_inline_block(
     return Ok((block_map.get_inline_block(&inner_subselection.block_id)?, inner_subselection.offset))
 }
 
-// This function appears to be a helper function for replacing 
-//a selection of text with new text or blocks in a document. 
-//If the "from" and "to" positions of the selection are within the same block, 
-//the function will update the contents of that block by 
-//splicing in the new text or blocks as specified in the replace_step argument. 
-//If the "from" and "to" positions are not within the same block, 
-//it looks like the function will attempt to remove all blocks between 
-//the "from" and "to" blocks and then splice in the new text or blocks. 
+// This function appears to be a helper function for replacing
+//a selection of text with new text or blocks in a document.
+//If the "from" and "to" positions of the selection are within the same block,
+//the function will update the contents of that block by
+//splicing in the new text or blocks as specified in the replace_step argument.
+//If the "from" and "to" positions are not within the same block,
+//it looks like the function will attempt to remove all blocks between
+//the "from" and "to" blocks and then splice in the new text or blocks.
 
 
 //However, the code for this scenario has not been implemented yet, as indicated by the unimplemented! macros.
@@ -218,13 +218,13 @@ fn replace_across_standard_blocks_no_subselection(
 }
 // This function looks like it merges two inline blocks within two different standard blocks together.
 
-// It first creates a copy of the from_block's content block, 
-//and then creates a vector of the first inner_from_index + 1 inline blocks in the new content block. 
-//It then gets the to_block's content block, 
-//and gets a vector of the inline blocks after inner_to_index. 
-//These two vectors are then appended together to form a new vector of inline blocks 
-//for the new content block. 
-//Finally, the from_block's content block is updated with this new vector of inline blocks, 
+// It first creates a copy of the from_block's content block,
+//and then creates a vector of the first inner_from_index + 1 inline blocks in the new content block.
+//It then gets the to_block's content block,
+//and gets a vector of the inline blocks after inner_to_index.
+//These two vectors are then appended together to form a new vector of inline blocks
+//for the new content block.
+//Finally, the from_block's content block is updated with this new vector of inline blocks,
 //and the modified from_block is returned.
 fn merge_blocks_inline_blocks(
     from_block: StandardBlock,
