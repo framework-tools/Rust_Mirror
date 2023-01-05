@@ -45,6 +45,7 @@ pub fn actualise_paste(
     mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let copy_tree = copy.to_tree()?;
+    let last_block = copy_tree.get_last_block()?;
     if copy_tree.top_blocks.len() > 0 {
         let insertion_std_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
         let new_inline_blocks = copy_tree.top_blocks[0].get_inline_blocks(&copy_tree.block_map)?;
@@ -71,9 +72,11 @@ pub fn actualise_paste(
         block_map = clean_block_after_transform(insertion_std_block, block_map, &mut blocks_to_update)?;
     }
 
+    let subselection = SubSelection::at_end_of_block(&last_block._id, &block_map)?;
+
     return Ok(UpdatedState {
         block_map,
-        selection: None,
+        selection: Some(Selection { anchor: subselection.clone(), head: subselection }),
         blocks_to_update,
         blocks_to_remove: vec![],
         copy: None

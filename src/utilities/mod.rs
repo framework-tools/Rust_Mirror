@@ -19,6 +19,23 @@ pub struct Tree {
     pub block_map: BlockMap
 }
 
+impl Tree {
+    pub fn get_last_block(&self) -> Result<InlineBlock, StepError> {
+        let mut current_block = self.block_map.get_standard_block(&self.top_blocks.last().unwrap()._id)?;
+        loop {
+            let next_sibling = current_block.next_sibling(&self.block_map)?;
+            if next_sibling.is_some() {
+                current_block = next_sibling.unwrap();
+            } else if current_block.children.len() > 0 {
+                current_block = self.block_map.get_standard_block(&current_block.children[0])?;
+            } else {
+                return current_block.get_last_inline_block(&self.block_map)
+            }
+        }
+    }
+
+}
+
 /// Goes through and gets every standard block that is selected (even partially)
 ///
 /// Gets them in either a tree structure or flat.
