@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use crate::{utilities::{BlocksBetween, get_blocks_between, BlockStructure, Tree, get_all_blocks}, custom_copy::CustomCopy, steps_generator::{StepError, selection::SubSelection}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block}, new_ids::NewIds};
+use crate::{utilities::{BlocksBetween, get_blocks_between, BlockStructure, Tree, get_all_blocks}, custom_copy::CustomCopy, steps_generator::{StepError, selection::{SubSelection, Selection}}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block}, new_ids::NewIds};
 
 use super::{UpdatedState, clean_block_after_transform};
 
@@ -27,7 +27,7 @@ pub fn actualise_copy(
 
     return Ok(UpdatedState {
         block_map,
-        selection: None,
+        selection: Some(Selection { anchor: from, head: to }),
         blocks_to_update,
         blocks_to_remove: vec![],
         copy: Some(copy)
