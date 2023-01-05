@@ -1,8 +1,10 @@
 
+use std::ops::Index;
+
 use serde_json::json;
 use wasm_bindgen::JsValue;
 
-use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string, step::AddBlockStep};
+use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection, selection::SubSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string, step::AddBlockStep, steps_actualisor::clean_block_after_transform};
 
 use self::{content_block::ContentBlock, list_block::ListBlock};
 
@@ -336,6 +338,46 @@ impl StandardBlock {
             current_block = block_map.get_standard_block(&current_block.parent)?;
         }
         return Ok(i)
+    }
+
+    pub fn insert_inline_blocks(
+        mut self,
+        mut new_inline_blocks: Vec<InlineBlock>,
+        deepest_subselection: SubSelection,
+        block_map: &mut BlockMap,
+        new_ids: &mut NewIds,
+        blocks_to_update: &mut Vec<String>
+    ) -> Result<Self, StepError> {
+        let insertion_block_id = self.get_inline_block_from_index(self.index_of(&deepest_subselection.block_id)?)?;
+        let insertion_block = block_map.get_inline_block(&insertion_block_id)?;
+        let (first_half, second_half) = insertion_block.split(deepest_subselection.offset, new_ids)?;
+        // we should use new ids here
+        let mut new_inline_blocks_ids: Vec<String> = new_inline_blocks.iter().map(|x| new_ids.get_id()).flatten().collect();
+        new_inline_blocks = new_inline_blocks.into_iter().map(|mut b| {
+            b._id = new_inline_blocks_ids.pop().unwrap();
+            b.parent = self.id();
+            return b
+        }).collect();
+        new_inline_blocks_ids = new_inline_blocks.iter().map(|x| x._id.clone()).collect();
+        new_inline_blocks_ids.push(second_half.id());
+        let mut inline_blocks = self.content_block()?.clone().inline_blocks;
+        inline_blocks.splice(first_half.index(block_map)? + 1..first_half.index(block_map)? + 1, new_inline_blocks_ids);
+        self = self.update_block_content(ContentBlock { inline_blocks })?;
+
+        block_map.update_blocks(new_inline_blocks.into_iter().map(|b| Block::InlineBlock(b)).collect(), blocks_to_update)?;
+        block_map.update_block(Block::InlineBlock(first_half), blocks_to_update)?;
+        block_map.update_block(Block::InlineBlock(second_half), blocks_to_update)?;
+        block_map.update_block(Block::StandardBlock(self.clone()), blocks_to_update)?;
+        return Ok(self)
+    }
+
+    pub fn get_inline_blocks(&self, block_map: &BlockMap) -> Result<Vec<InlineBlock>, StepError> {
+        let inline_blocks_ids = &self.content_block()?.inline_blocks;
+        let mut inline_blocks = Vec::new();
+        for id in inline_blocks_ids {
+            inline_blocks.push(block_map.get_inline_block(id)?);
+        }
+        return Ok(inline_blocks)
     }
 }
 

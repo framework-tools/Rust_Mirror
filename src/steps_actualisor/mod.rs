@@ -9,7 +9,7 @@ use crate::steps_generator::selection::{Selection};
 use crate::{step::Step, blocks::BlockMap, steps_generator::StepError};
 use crate::steps_actualisor::actualise_mark_steps::actualise_mark_step;
 
-use self::actualise_shortcuts::actualise_copy;
+use self::actualise_shortcuts::{actualise_copy, actualise_paste};
 use self::actualise_toggle_completed::actualise_toggle_completed;
 use self::actualise_turn_into::actualise_turn_into_step;
 use self::actualise_add_block::actualise_add_block;
@@ -88,12 +88,12 @@ pub fn actualise_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewI
             Step::TurnInto(turn_into_step) => actualise_turn_into_step(turn_into_step, updated_state.block_map, updated_state.blocks_to_update)?,
             Step::ToggleCompleted(_id) => actualise_toggle_completed(_id, updated_state.block_map, updated_state.blocks_to_update)?,
             Step::Copy(from, to) => {
-                updated_state = actualise_copy(copy, from, to, updated_state.block_map, new_ids)?;
+                updated_state = actualise_copy(copy, from, to, updated_state.block_map, new_ids, updated_state.blocks_to_update)?;
                 copy = updated_state.copy.unwrap();
                 updated_state.copy = None;
                 updated_state
             },
-            Step::Paste(from, to) => unimplemented!(),
+            Step::Paste(from, to) => actualise_paste(copy.clone(), from, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
         };
     }
     return Ok(updated_state)

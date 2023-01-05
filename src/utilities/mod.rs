@@ -13,6 +13,7 @@ pub enum BlocksBetween {
     Tree(Tree)
 }
 
+#[derive(Debug, Clone)]
 pub struct Tree {
     pub top_blocks: Vec<StandardBlock>,
     pub block_map: BlockMap
@@ -171,4 +172,37 @@ fn split_edge_block_inline_blocks(
         new_block_map.update_block(Block::InlineBlock(first_half), &mut Vec::new())?;
     }
     return Ok(current_node.update_block_content(ContentBlock { inline_blocks })?)
+}
+
+pub fn get_all_blocks(top_blocks: Vec<String>, block_map: &BlockMap) -> Result<Vec<StandardBlock>, StepError> {
+    let mut standard_blocks: Vec<StandardBlock> = Vec::new();
+
+    let mut current_node = block_map.get_standard_block(&top_blocks[0])?;
+
+    let mut current_top_block_i = 0;
+
+    loop {
+        let next_node;
+        if current_node.children.len() > 0 { // has children
+            next_node = block_map.get_standard_block(&current_node.children[0])?;
+        } else if current_node.next_sibling(block_map)?.is_some() {
+            next_node = current_node.next_sibling(block_map)?.unwrap();
+        } else {
+            next_node = match current_node.parents_next_sibling(block_map) {
+                Ok(Some(sib)) => sib,
+                _ => {
+                    current_top_block_i += 1;
+                    match top_blocks.get(current_top_block_i) {
+                        Some(id) => block_map.get_standard_block(id)?,
+                        None => break,
+                    }
+                }
+            };
+        }
+
+        standard_blocks.push(current_node);
+        current_node = next_node;
+    }
+
+    return Ok(standard_blocks)
 }

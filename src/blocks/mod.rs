@@ -394,6 +394,7 @@ impl RootBlock {
 }
 
 /// HashMap<Id, JSON (as str)>
+#[derive(Debug, Clone)]
 pub enum BlockMap {
     Js(Map),
     Rust(HashMap<String, String>)
