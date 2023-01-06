@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{steps_generator::{selection::SubSelection, StepError}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block, inline_blocks::{InlineBlock, text_block::StringUTF16}}, steps_actualisor::actualise_mark_steps::{actualise_across_std_blocks::split_edge_inline_blocks, create_before_middle_after_blocks_with_new_text_and_mark}, new_ids::NewIds};
+pub mod update_state_tools;
 
 #[derive(PartialEq)]
 pub enum BlockStructure {

@@ -14,7 +14,7 @@ steps_actualisor::{UpdatedState, clean_block_after_transform}};
 //-------------------------------------------------------------
 // The function replace_selected_across_inline_blocks takes in an 
 // - InlineBlock, 
-// - aBlockMap, 
+// - a BlockMap, 
 // - a ReplaceStep, 
 // - a mutable vector of Strings representing blocks to update. 
 //It returns a Result with an UpdatedState on success or a StepError on failure.
