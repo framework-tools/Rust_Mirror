@@ -532,6 +532,26 @@ impl BlockMap {
         }
     }
 
+    /// iterate through block map to add and use "update block" on self for each block
+    pub fn add_block_map(&mut self, block_map_to_add: BlockMap) -> Result<(), StepError> {
+        match block_map_to_add {
+            BlockMap::Rust(rust_map) => {
+                for (_, block_as_json) in rust_map {
+                    let block = Block::from_json(&block_as_json)?;
+                    self.update_block(block, &mut vec![])?;
+                }
+            },
+            BlockMap::Js(js_map) => {
+                for block_as_js in js_map.values() {
+                    let block = Block::from_js_obj(&block_as_js.unwrap())?;
+                    self.update_block(block, &mut vec![])?;
+                }
+            }
+        }
+
+        return Ok(())
+    }
+
     /// Utility for tests
     pub fn get_newly_added_blocks(&self, previously_used_ids: Vec<String>) -> Result<Vec<Block>, StepError> {
         let mut newly_added_blocks = vec![];

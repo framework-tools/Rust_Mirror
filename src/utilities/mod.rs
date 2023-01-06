@@ -35,6 +35,66 @@ impl Tree {
         }
     }
 
+    /// We need to reassign every id in the blockmap
+    /// We need to map top blocks to also contain the new top blocks
+    /// We need to ensure the each inline block is changed on it's standard block, and each inline block's
+    /// parent is changed to the new id
+    /// We need to ensure children are changed both on the parent and the child's parent is updated
+    pub fn reassign_ids(&mut self, new_ids: &mut NewIds) -> Result<(), StepError> {
+        let all_new_std_blocks = get_all_blocks(
+            self.top_blocks.iter().map(|x| x.id()).collect(),
+            &self.block_map
+        )?;
+
+        let mut new_blocks: HashMap<String, Block> = HashMap::new();
+        let mut new_top_blocks = Vec::new();
+        for mut block in all_new_std_blocks {
+            let new_std_block_id = new_ids.get_id()?;
+            let old_id = block.id();
+            block._id = new_std_block_id.clone();
+            if self.top_blocks.iter().any(|x| x.id() == old_id) {
+                new_top_blocks.push(block.clone());
+            } else { // else must be a child
+                let old_parent_id = block.parent.clone();
+                let mut parent = new_blocks.get(&old_parent_id).unwrap().clone();
+                block.parent = parent.id();
+                let parent_children = parent.children()?.iter().map(|x| {
+                    if x == &old_id {
+                        return new_std_block_id.clone()
+                    }
+                    return x.clone()
+                }).collect();
+                parent.update_children(parent_children)?;
+                new_blocks.insert(old_parent_id, parent);
+            }
+
+            let inline_blocks = &block.content_block()?.inline_blocks;
+            let mut new_inline_blocks = Vec::new();
+            for old_inline_id in inline_blocks {
+                let new_inline_block_id = new_ids.get_id()?;
+                let mut inline_block = self.block_map.get_inline_block(old_inline_id)?;
+                inline_block.parent = new_std_block_id.clone();
+                new_inline_blocks.push(new_inline_block_id);
+                new_blocks.insert(old_inline_id.clone(), Block::InlineBlock(inline_block));
+            }
+
+            block = block.update_block_content(ContentBlock { inline_blocks: new_inline_blocks })?;
+
+
+            new_blocks.insert(old_id, Block::StandardBlock(block));
+        }
+
+        let mut new_block_map = BlockMap::Rust(HashMap::new());
+        for (_id, block) in new_blocks.into_iter() {
+            new_block_map.update_block(block, &mut Vec::new())?;
+        }
+
+        self.top_blocks = new_top_blocks;
+        self.block_map = new_block_map;
+
+        return Ok(())
+    }
+
 }
 
 /// Goes through and gets every standard block that is selected (even partially)
