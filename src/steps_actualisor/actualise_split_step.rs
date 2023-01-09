@@ -11,25 +11,25 @@ use super::{UpdatedState, clean_block_after_transform};
 /// -> move children from "from" block to new block
 //-----------------------------------------------------
 
-// This function seems to be implementing a "split block" operation. 
-//It takes a SplitStep struct as input, 
+// This function seems to be implementing a "split block" operation.
+//It takes a SplitStep struct as input,
 //which includes a SubSelection field that specifies where in the block the split should occur.
 
-// The function starts by retrieving the InlineBlock specified by the SubSelection, 
-//and then splits it into two blocks at the specified offset using the split method. 
+// The function starts by retrieving the InlineBlock specified by the SubSelection,
+//and then splits it into two blocks at the specified offset using the split method.
 //If the second half of the split is empty (i.e., has no text), it removes any marks from it.
 
-// Next, the function retrieves the parent of the first half of the split InlineBlock. 
-//It creates a new block of the same type as the parent, 
-//and pushes the second half of the split InlineBlock into it. 
-//Then, it uses the split method on the parent to split it into two blocks 
-//at the position of the first half of the split InlineBlock, 
-//resulting in an updated parent block and a new block. 
-//The new block has its children's parent fields updated to point to it, 
+// Next, the function retrieves the parent of the first half of the split InlineBlock.
+//It creates a new block of the same type as the parent,
+//and pushes the second half of the split InlineBlock into it.
+//Then, it uses the split method on the parent to split it into two blocks
+//at the position of the first half of the split InlineBlock,
+//resulting in an updated parent block and a new block.
+//The new block has its children's parent fields updated to point to it,
 //and the new block is inserted into the parent block's list of children after the updated parent block.
 
-// Finally, the function updates the blocks in the block_map and returns an UpdatedState struct 
-//with the modified block_map, a new selection (at the start of the new block), 
+// Finally, the function updates the blocks in the block_map and returns an UpdatedState struct
+//with the modified block_map, a new selection (at the start of the new block),
 //and updated lists of blocks to update and remove.
 pub fn actualise_split_step(
     split_step: SplitStep,
@@ -71,12 +71,12 @@ pub fn actualise_split_step(
     })
 }
 
-// This function appears to be creating a new block of the same type as block_type, 
-//with an empty inline_blocks field in its ContentBlock. 
+// This function appears to be creating a new block of the same type as block_type,
+//with an empty inline_blocks field in its ContentBlock.
 //If block_type is not a block that can be "entered", it returns an error.
 
-// The get_new_enter_block_type function is used in the actualise_split_step function 
-//to create a new block to place the second half of a split block into. 
+// The get_new_enter_block_type function is used in the actualise_split_step function
+//to create a new block to place the second half of a split block into.
 //This allows the user to continue editing after they have split a block.
 fn get_new_enter_block_type(block_type: &StandardBlockType) -> Result<StandardBlockType, StepError> {
     return match block_type {
@@ -86,7 +86,7 @@ fn get_new_enter_block_type(block_type: &StandardBlockType) -> Result<StandardBl
         StandardBlockType::DotPointList(_) => Ok(StandardBlockType::DotPointList(ListBlock { content: ContentBlock { inline_blocks: vec![] }, completed: false })),
         StandardBlockType::NumberedList(_) => Ok(StandardBlockType::NumberedList(ListBlock { content: ContentBlock { inline_blocks: vec![] }, completed: false })),
         StandardBlockType::ArrowList(_) => Ok(StandardBlockType::ArrowList(ListBlock { content: ContentBlock { inline_blocks: vec![] }, completed: false })),
-        //block_type => return Err(StepError(format!("Cannot enter on block type {:?}", block_type)))
+        block_type => return Err(StepError(format!("Cannot enter on block type {:?}", block_type)))
     }
 }
 

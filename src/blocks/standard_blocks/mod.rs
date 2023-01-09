@@ -6,12 +6,13 @@ use wasm_bindgen::JsValue;
 
 use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection, selection::SubSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string, step::AddBlockStep, steps_actualisor::clean_block_after_transform};
 
-use self::{content_block::ContentBlock, list_block::ListBlock};
+use self::{content_block::ContentBlock, list_block::ListBlock, page_block::PageBlock};
 
 use super::{inline_blocks::InlineBlock, BlockMap, Block, vec_string_to_arr};
 
 pub mod content_block;
 pub mod list_block;
+pub mod page_block;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct StandardBlock {
@@ -360,6 +361,8 @@ pub enum StandardBlockType {
     DotPointList(ListBlock),
     NumberedList(ListBlock),
     ArrowList(ListBlock),
+    InlinePage(PageBlock),
+    SquarePage(PageBlock),
 }
 
 impl StandardBlockType {
@@ -375,6 +378,8 @@ impl StandardBlockType {
             "dotpoint list" => Ok(StandardBlockType::DotPointList(ListBlock::from_js_block(obj)?)),
             "numbered list" => Ok(StandardBlockType::NumberedList(ListBlock::from_js_block(obj)?)),
             "arrow list" => Ok(StandardBlockType::ArrowList(ListBlock::from_js_block(obj)?)),
+            "inline page block" => Ok(StandardBlockType::InlinePage(PageBlock::from_js_block(obj)?)),
+            "square page block" => Ok(StandardBlockType::SquarePage(PageBlock::from_js_block(obj)?)),
             _type => Err(StepError(format!("Block type '{}' not found", _type)))
         }
     }
@@ -390,6 +395,8 @@ impl StandardBlockType {
             "dotpoint list" => Ok(StandardBlockType::DotPointList(ListBlock::from_json(json)?)),
             "numbered list" => Ok(StandardBlockType::NumberedList(ListBlock::from_json(json)?)),
             "arrow list" => Ok(StandardBlockType::ArrowList(ListBlock::from_json(json)?)),
+            "inline page block" => Ok(StandardBlockType::InlinePage(PageBlock::from_json(json)?)),
+            "square page block" => Ok(StandardBlockType::SquarePage(PageBlock::from_json(json)?)),
             _ => Err(StepError(format!("Block type {} not found", block_type)))
         }
     }
@@ -464,6 +471,22 @@ impl StandardBlockType {
                     }
                 })
             },
+            StandardBlockType::InlinePage(block) => {
+                json!({
+                    "_type": "inline page block",
+                    "content": {
+                        "page_id": block.page_id
+                    }
+                })
+            },
+            StandardBlockType::SquarePage(block) => {
+                json!({
+                    "_type": "square page block",
+                    "content": {
+                        "page_id": block.page_id
+                    }
+                })
+            },
         }
     }
 
@@ -477,6 +500,8 @@ impl StandardBlockType {
             StandardBlockType::DotPointList(_) => return Ok("dotpoint list".to_string()),
             StandardBlockType::NumberedList(_) => return Ok("numbered list".to_string()),
             StandardBlockType::ArrowList(_) => return Ok("arrow list".to_string()),
+            StandardBlockType::InlinePage(_) => return Ok("inline page block".to_string()),
+            StandardBlockType::SquarePage(_) => return Ok("square page block".to_string()),
         }
     }
 
@@ -493,6 +518,9 @@ impl StandardBlockType {
                 => {
                     js_sys::Reflect::set(&content, &JsValue::from_str("inline_blocks"), &vec_string_to_arr(&list_block.content.inline_blocks)?.into()).unwrap();
                     js_sys::Reflect::set(&content, &JsValue::from_str("completed"), &JsValue::from(list_block.completed)).unwrap();
+            },
+            StandardBlockType::InlinePage(page_block) | StandardBlockType::SquarePage(page_block) => {
+                js_sys::Reflect::set(&content, &JsValue::from_str("page_id"), &JsValue::from_str(&page_block.page_id)).unwrap();
             }
         }
         return Ok(content.into())
@@ -520,6 +548,7 @@ impl StandardBlockType {
                 content: content_block,
                 completed: list_block.completed
             })),
+            block => Err(StepError(format!("This block type does not have 'content': {:#?}", block)))
         }
     }
 
@@ -569,6 +598,7 @@ impl StandardBlockType {
                     completed: list_block.completed
                 }))
             },
+            block => Err(StepError(format!("This block type does not have 'content': {:#?}", block)))
         }
     }
 }
