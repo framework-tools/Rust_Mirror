@@ -87,7 +87,18 @@ pub fn actualise_paste(
             &mut block_map
         )?;
 
+        let mut raw_selection = SubSelection::from("".to_string(), 0, None);
+        if paste_only_inline_blocks {
+            raw_selection = selection.clone().unwrap().anchor.to_raw_selection(&block_map)?;
+        }
         block_map = clean_block_after_transform(insertion_std_block, block_map, &mut blocks_to_update)?;
+        if paste_only_inline_blocks {
+            let new_subselection = raw_selection.real_selection_from_raw(&block_map)?;
+            selection = Some(Selection {
+                anchor: new_subselection.clone(),
+                head: new_subselection,
+            });
+        }
     }
 
     return Ok(UpdatedState {
