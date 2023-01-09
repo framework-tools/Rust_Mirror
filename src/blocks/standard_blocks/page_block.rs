@@ -9,6 +9,10 @@ pub struct PageBlock {
 }
 
 impl PageBlock {
+    pub fn new() -> Self {
+        PageBlock { page_id: String::new() }
+    }
+
     pub fn from_js_block(obj: &JsValue) -> Result<Self, StepError> {
         let content = get_js_field(obj, "content")?;
         let page_id = get_js_field_as_string(&content, "page_id")?;

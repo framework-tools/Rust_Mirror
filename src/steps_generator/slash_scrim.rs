@@ -1,4 +1,4 @@
-use crate::{step::{Step, ReplaceStep, ReplaceSlice, AddBlockStep, TurnInto}, blocks::{BlockMap, Block, standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock, StandardBlock}}};
+use crate::{step::{Step, ReplaceStep, ReplaceSlice, AddBlockStep, TurnInto}, blocks::{BlockMap, Block, standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock, StandardBlock, page_block::PageBlock}}};
 
 use super::{StepError, event::SlashScrimEvent, selection::SubSelection};
 
@@ -39,7 +39,9 @@ pub fn generate_slash_scrim_steps(
         "to-do list" => StandardBlockType::TodoList(ListBlock::new()),
         "numbered list" => StandardBlockType::NumberedList(ListBlock::new()),
         "dotpoint list" => StandardBlockType::DotPointList(ListBlock::new()),
-        "arrow list" => StandardBlockType::ArrowList(ListBlock::new()),
+        "inline page block" => StandardBlockType::InlinePage(PageBlock::new()),
+        "square page block" => StandardBlockType::SquarePage(PageBlock::new()),
+
         block_type => return Err(StepError(format!("There is no valid block type: {}", block_type)))
     };
 
