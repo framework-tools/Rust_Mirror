@@ -378,8 +378,8 @@ impl StandardBlockType {
             "dotpoint list" => Ok(StandardBlockType::DotPointList(ListBlock::from_js_block(obj)?)),
             "numbered list" => Ok(StandardBlockType::NumberedList(ListBlock::from_js_block(obj)?)),
             "arrow list" => Ok(StandardBlockType::ArrowList(ListBlock::from_js_block(obj)?)),
-            "inline page block" => Ok(StandardBlockType::InlinePage(PageBlock::from_js_block(obj)?)),
-            "square page block" => Ok(StandardBlockType::SquarePage(PageBlock::from_js_block(obj)?)),
+            "inline page" => Ok(StandardBlockType::InlinePage(PageBlock::from_js_block(obj)?)),
+            "square page" => Ok(StandardBlockType::SquarePage(PageBlock::from_js_block(obj)?)),
             _type => Err(StepError(format!("Block type '{}' not found", _type)))
         }
     }
@@ -395,8 +395,8 @@ impl StandardBlockType {
             "dotpoint list" => Ok(StandardBlockType::DotPointList(ListBlock::from_json(json)?)),
             "numbered list" => Ok(StandardBlockType::NumberedList(ListBlock::from_json(json)?)),
             "arrow list" => Ok(StandardBlockType::ArrowList(ListBlock::from_json(json)?)),
-            "inline page block" => Ok(StandardBlockType::InlinePage(PageBlock::from_json(json)?)),
-            "square page block" => Ok(StandardBlockType::SquarePage(PageBlock::from_json(json)?)),
+            "inline page" => Ok(StandardBlockType::InlinePage(PageBlock::from_json(json)?)),
+            "square page" => Ok(StandardBlockType::SquarePage(PageBlock::from_json(json)?)),
             _ => Err(StepError(format!("Block type {} not found", block_type)))
         }
     }
@@ -473,7 +473,7 @@ impl StandardBlockType {
             },
             StandardBlockType::InlinePage(block) => {
                 json!({
-                    "_type": "inline page block",
+                    "_type": "inline page",
                     "content": {
                         "page_id": block.page_id
                     }
@@ -481,7 +481,7 @@ impl StandardBlockType {
             },
             StandardBlockType::SquarePage(block) => {
                 json!({
-                    "_type": "square page block",
+                    "_type": "square page",
                     "content": {
                         "page_id": block.page_id
                     }
@@ -500,8 +500,8 @@ impl StandardBlockType {
             StandardBlockType::DotPointList(_) => return Ok("dotpoint list".to_string()),
             StandardBlockType::NumberedList(_) => return Ok("numbered list".to_string()),
             StandardBlockType::ArrowList(_) => return Ok("arrow list".to_string()),
-            StandardBlockType::InlinePage(_) => return Ok("inline page block".to_string()),
-            StandardBlockType::SquarePage(_) => return Ok("square page block".to_string()),
+            StandardBlockType::InlinePage(_) => return Ok("inline page".to_string()),
+            StandardBlockType::SquarePage(_) => return Ok("square page".to_string()),
         }
     }
 
