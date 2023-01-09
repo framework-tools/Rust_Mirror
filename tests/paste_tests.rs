@@ -113,6 +113,11 @@ mod tests {
         assert_eq!(inline8.text()?.clone().to_string(), "world ".to_string());
         assert_eq!(inline8.parent, p_id.clone());
 
+        let new_selection = updated_state.selection.unwrap();
+        assert_eq!(new_selection.anchor.block_id, inline8.id());
+        assert_eq!(new_selection.anchor.offset, 0);
+        assert_eq!(new_selection.anchor.subselection, None);
+
         return Ok(())
     }
 
