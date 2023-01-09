@@ -32,6 +32,10 @@ impl StandardBlock {
         return self.parent.clone()
     }
 
+    pub fn has_content(&self) -> bool {
+        self.content_block().is_ok()
+    }
+
     pub fn from(content: StandardBlockType, parent: String, new_ids: &mut NewIds) -> Result<Self, StepError> {
         return Ok(Self {
             _id: new_ids.get_id()?,
@@ -599,6 +603,14 @@ impl StandardBlockType {
                 }))
             },
             block => Err(StepError(format!("This block type does not have 'content': {:#?}", block)))
+        }
+    }
+
+    pub fn has_content(&self) -> bool {
+        match self {
+            Self::Paragraph(_) | Self::H1(_) | Self::H2(_) | Self::H3(_) |
+            Self::DotPointList(_) | Self::NumberedList(_) | Self::ArrowList(_) | Self::TodoList(_) => true,
+            _ => false
         }
     }
 }

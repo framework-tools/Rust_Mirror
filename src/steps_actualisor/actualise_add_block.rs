@@ -4,16 +4,16 @@ use super::UpdatedState;
 
 // This function appears to implement the logic for adding a new block to a document.
 
-// The AddBlockStep struct specifies the type of block to add, 
-//the ID of the parent block it should be added to, 
+// The AddBlockStep struct specifies the type of block to add,
+//the ID of the parent block it should be added to,
 //and the offset of the new block within the parent block's list of children.
 
-// The function first retrieves the parent block 
-//from the block_map and generates a new ID for the new block. 
-//Then, it creates a new inline block and sets the new standard block's content to be this inline block. 
-//The new standard block is then inserted into the parent block's list of children at the specified offset. 
-//Finally, the inline and standard blocks, as well as the updated parent block, 
-//are added to the block_map and the function returns an UpdatedState object 
+// The function first retrieves the parent block
+//from the block_map and generates a new ID for the new block.
+//Then, it creates a new inline block and sets the new standard block's content to be this inline block.
+//The new standard block is then inserted into the parent block's list of children at the specified offset.
+//Finally, the inline and standard blocks, as well as the updated parent block,
+//are added to the block_map and the function returns an UpdatedState object
 //with the updated block_map and a new selection.
 pub fn actualise_add_block(
     add_block_step: AddBlockStep,
@@ -25,9 +25,12 @@ pub fn actualise_add_block(
     let new_std_block_id = new_ids.get_id()?;
     let new_inline_block = InlineBlock::new(new_ids, new_std_block_id.clone())?;
 
-    let new_block_type = add_block_step.block_type.update_block_content(
-        ContentBlock { inline_blocks: vec![new_inline_block.id()] }
-    )?;
+    let new_block_type = match add_block_step.block_type.has_content() {
+        true => add_block_step.block_type.update_block_content(
+            ContentBlock { inline_blocks: vec![new_inline_block.id()] }
+        )?,
+        false => add_block_step.block_type,
+    };
     let new_std_block = StandardBlock {
         _id: new_std_block_id,
         content: new_block_type,
