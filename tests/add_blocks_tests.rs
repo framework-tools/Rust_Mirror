@@ -8,9 +8,9 @@ mod tests {
     fn can_handle_slash_scrim_add_block() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
-        let inline_block_id = new_ids.get_id().unwrap();
-        let paragraph_block_id = new_ids.get_id().unwrap();
-        let root_block_id = new_ids.get_id().unwrap();
+        let inline_block_id = "Inline".to_string();
+        let paragraph_block_id = "Paragraph".to_string();
+        let root_block_id = "Root".to_string();
 
         let inline_block = json!({
             "_id": inline_block_id.clone(),

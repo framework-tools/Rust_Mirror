@@ -47,16 +47,18 @@ pub fn actualise_paste(
     let mut copy_tree = copy.to_tree()?;
     copy_tree.reassign_ids(new_ids)?;
     let last_block = copy_tree.get_last_block()?;
+    
     block_map.add_block_map(copy_tree.block_map)?;
+    
     let mut selection = None;
     if copy_tree.top_blocks.len() > 0 {
         selection = Some(Selection { 
             anchor: SubSelection::at_end_of_block(&last_block._id, &block_map)?, 
             head: SubSelection::at_end_of_block(&last_block._id, &block_map)? 
         });
-
+        
         let insertion_std_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
-
+        
         let mut insertion_std_block = paste_inline_blocks(
             insertion_std_block, 
             from.get_deepest_subselection().clone(), 

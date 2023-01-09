@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, thread::current};
 
 use crate::{steps_generator::{selection::SubSelection, StepError}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block, inline_blocks::{InlineBlock, text_block::StringUTF16}}, steps_actualisor::actualise_mark_steps::{actualise_across_std_blocks::split_edge_inline_blocks, create_before_middle_after_blocks_with_new_text_and_mark}, new_ids::NewIds};
 pub mod update_state_tools;
@@ -22,7 +22,12 @@ pub struct Tree {
 
 impl Tree {
     pub fn get_last_block(&self) -> Result<InlineBlock, StepError> {
-        let mut current_block = self.block_map.get_standard_block(&self.top_blocks.last().unwrap()._id)?;
+        let mut current_block = self.top_blocks[self.top_blocks.len() - 1].clone();
+        if current_block.children.len() > 0{
+            current_block = self.block_map.get_standard_block(&current_block.children[0])?;
+        } else {
+            return current_block.get_last_inline_block(&self.block_map)
+        }
         loop {
             let next_sibling = current_block.next_sibling(&self.block_map)?;
             if next_sibling.is_some() {
@@ -42,7 +47,7 @@ impl Tree {
     /// We need to ensure children are changed both on the parent and the child's parent is updated
     pub fn reassign_ids(&mut self, new_ids: &mut NewIds) -> Result<(), StepError> {
         let all_new_std_blocks = get_all_blocks(
-            self.top_blocks.iter().map(|x| x.id()).collect(),
+            &self.top_blocks,
             &self.block_map
         )?;
 
@@ -73,6 +78,7 @@ impl Tree {
             for old_inline_id in inline_blocks {
                 let new_inline_block_id = new_ids.get_id()?;
                 let mut inline_block = self.block_map.get_inline_block(old_inline_id)?;
+                inline_block._id = new_inline_block_id.clone();
                 inline_block.parent = new_std_block_id.clone();
                 new_inline_blocks.push(new_inline_block_id);
                 new_blocks.insert(old_inline_id.clone(), Block::InlineBlock(inline_block));
@@ -89,7 +95,12 @@ impl Tree {
             new_block_map.update_block(block, &mut Vec::new())?;
         }
 
-        self.top_blocks = new_top_blocks;
+        let mut updated_new_top_blocks = Vec::new();
+        for block in new_top_blocks{
+            updated_new_top_blocks.push(new_block_map.get_standard_block(&block.id())?);
+        }
+
+        self.top_blocks = updated_new_top_blocks;
         self.block_map = new_block_map;
 
         return Ok(())
@@ -263,10 +274,10 @@ fn split_edge_block_inline_blocks(
     return Ok(current_node.update_block_content(ContentBlock { inline_blocks })?)
 }
 
-pub fn get_all_blocks(top_blocks: Vec<String>, block_map: &BlockMap) -> Result<Vec<StandardBlock>, StepError> {
+pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> Result<Vec<StandardBlock>, StepError> {
     let mut standard_blocks: Vec<StandardBlock> = Vec::new();
 
-    let mut current_node = block_map.get_standard_block(&top_blocks[0])?;
+    let mut current_node = top_blocks[0].clone();
 
     let mut current_top_block_i = 0;
 
@@ -274,20 +285,24 @@ pub fn get_all_blocks(top_blocks: Vec<String>, block_map: &BlockMap) -> Result<V
         let next_node;
         if current_node.children.len() > 0 { // has children
             next_node = block_map.get_standard_block(&current_node.children[0])?;
-        } else if current_node.next_sibling(block_map)?.is_some() {
-            next_node = current_node.next_sibling(block_map)?.unwrap();
         } else {
-            next_node = match current_node.parents_next_sibling(block_map) {
-                Ok(Some(sib)) => sib,
-                _ => {
-                    current_top_block_i += 1;
-                    match top_blocks.get(current_top_block_i) {
-                        Some(id) => block_map.get_standard_block(id)?,
-                        None => break,
-                    }
+            next_node = match current_node.next_sibling(block_map) {
+                Ok(Some(sibling)) => sibling,
+                _ => match current_node.parents_next_sibling(block_map) {
+                    Ok(Some(sib)) => sib,
+                    _ => {
+                        current_top_block_i += 1;
+                        match top_blocks.get(current_top_block_i) {
+                            Some(_) => top_blocks[current_top_block_i].clone(),
+                            None => {
+                                standard_blocks.push(current_node);
+                                break;
+                            },
+                        }
+                    }                    
                 }
-            };
-        }
+            }
+        } 
 
         standard_blocks.push(current_node);
         current_node = next_node;
