@@ -300,6 +300,7 @@ mod tests {
         let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
+        println!("{:#?}", steps);
         actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
     }
 }
