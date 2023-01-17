@@ -61,11 +61,21 @@ pub fn generate_slash_scrim_steps(
         steps.push(Step::ReplaceStep(replace_step));
     }
 
+    let add_paragraph_block_below_new_block = !new_block_type.has_content();
+
     steps.push(Step::AddBlock(AddBlockStep {
         block_id: nearest_standard_block.parent.clone(),
         child_offset: nearest_standard_block.index(block_map)? + 1,
         block_type: new_block_type
     }));
+    if add_paragraph_block_below_new_block {
+        steps.push(Step::AddBlock(AddBlockStep {
+            block_id: nearest_standard_block.parent.clone(),
+            child_offset: nearest_standard_block.index(block_map)? + 2,
+            block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![]))
+        }));
+    }
+
     return Ok(steps)
 }
 
