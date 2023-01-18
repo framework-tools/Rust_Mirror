@@ -2,7 +2,7 @@
 use wasm_bindgen::JsValue;
 
 use crate::{steps_generator::{event::Event, selection::Selection, generate_steps, StepError},
-new_ids::NewIds, blocks::BlockMap, steps_actualisor::{actualise_steps, UpdatedState}, custom_copy::CustomCopy};
+new_ids::NewIds, blocks::{BlockMap, standard_blocks::StandardBlockType}, steps_actualisor::{actualise_steps, UpdatedState}, custom_copy::CustomCopy};
 
 pub fn actualise_event(
     selection_js: js_sys::Object,
@@ -101,4 +101,20 @@ pub fn get_js_field_as_bool(obj: &JsValue, field: &str) -> Result<bool, StepErro
             format!("Failed to get field: '{}' from js obj", field),
         ))
     }
+}
+
+pub fn get_number_of_numbered_list_block(block_map_js: js_sys::Map, block_id: String) -> u64 {
+    let block_map = BlockMap::from_js_map(block_map_js);
+    let block = block_map.get_standard_block(&block_id).unwrap();
+    let mut number_of_list_blocks = 1;
+    let mut option_previous_block = block.get_previous(&block_map).unwrap();
+    while option_previous_block.is_some() {
+        let previous_block = option_previous_block.unwrap();
+        match previous_block.content {
+            StandardBlockType::NumberedList(_) => number_of_list_blocks += 1,
+            _ => break
+        };
+        option_previous_block = block.get_previous(&block_map).unwrap();
+    }
+    return number_of_list_blocks
 }
