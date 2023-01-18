@@ -169,16 +169,26 @@ pub fn get_blocks_between(
             break;
         }
 
-        let next_node;
+        let mut next_node;
         if current_node.children.len() > 0 { // has children
             next_node = block_map.get_standard_block(&current_node.children[0])?;
         } else if current_node.next_sibling(block_map)?.is_some() {
             next_node = current_node.next_sibling(block_map)?.unwrap();
         } else {
-            next_node = match current_node.parents_next_sibling(block_map)? {
-                Some(sib) => sib,
-                None => return Err(StepError("No next node but have not yet reached final node".to_string()))
-            };
+            next_node = current_node.clone();
+            loop {
+                match next_node.parents_next_sibling(block_map)? {
+                    Some(parents_sib) => {
+                        next_node = parents_sib;
+                        break;
+                    },
+                    None => {}
+                };
+                next_node = match next_node.get_parent(block_map)? {
+                    Block::StandardBlock(block) => block,
+                    _ => return Err(StepError("No next node but have not yet reached final node".to_string()))
+                };
+            }
             if current_node.depth_from_root(block_map)? == 0 {
                 depth_from_root = 0;
             }
@@ -288,7 +298,22 @@ pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> 
         } else {
             next_node = match current_node.next_sibling(block_map) {
                 Ok(Some(sibling)) => sibling,
-                _ => match current_node.parents_next_sibling(block_map) {
+                _ =>
+            //     next_node = current_node.clone();
+            // loop {
+            //     match next_node.parents_next_sibling(block_map)? {
+            //         Some(parents_sib) => {
+            //             next_node = parents_sib;
+            //             break;
+            //         },
+            //         None => {}
+            //     };
+            //     next_node = match next_node.get_parent(block_map)? {
+            //         Block::StandardBlock(block) => block,
+            //         _ => return Err(StepError("No next node but have not yet reached final node".to_string()))
+            //     };
+            // }
+                match current_node.parents_next_sibling(block_map) {
                     Ok(Some(sib)) => sib,
                     _ => {
                         current_top_block_i += 1;
@@ -299,10 +324,10 @@ pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> 
                                 break;
                             },
                         }
-                    }                    
+                    }
                 }
             }
-        } 
+        }
 
         standard_blocks.push(current_node);
         current_node = next_node;

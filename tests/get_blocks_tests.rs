@@ -1724,4 +1724,190 @@ mod tests {
             _ => panic!("Expected tree"),
         }
     }
+
+    /// <1> *selection starts here*
+    ///     <2>
+    ///         <3>
+    ///             <4>
+    /// <5> *selection ends here*
+    #[test]
+    fn get_blocks_test7() -> Result<(), StepError> {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id()?;
+        let p_id1 = "1".to_string();
+        let p_id2 = "2".to_string();
+        let p_id3 = "3".to_string();
+        let p_id4 = "4".to_string();
+        let p_id5 = "5".to_string();
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block_id2 = new_ids.get_id()?;
+        let inline_block_id3 = new_ids.get_id()?;
+        let inline_block_id3b = new_ids.get_id()?;
+        let inline_block_id4 = new_ids.get_id()?;
+        let inline_block_id4b = new_ids.get_id()?;
+        let inline_block_id5 = new_ids.get_id()?;
+        let p1 = json!({
+            "_id": p_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [p_id2.clone()],
+            "marks": [],
+            "parent": root_block_id.to_string()
+        });
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "A"
+            },
+            "marks": [],
+            "parent": p_id1.clone()
+        });
+        let p2 = json!({
+            "_id": p_id2.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [p_id3.clone()],
+            "marks": [],
+            "parent": p_id1.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "B"
+            },
+            "marks": [],
+            "parent": p_id2.clone()
+        });
+        let p3 = json!({
+            "_id": p_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id3.clone(), inline_block_id3b.clone()]
+            },
+            "children": [p_id4.clone()],
+            "marks": [],
+            "parent": p_id2.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Ccc"
+            },
+            "marks": ["italic"],
+            "parent": p_id3.clone()
+        });
+        let inline_block3b = json!({
+            "_id": inline_block_id3b.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "lololololol"
+            },
+            "marks": ["bold"],
+            "parent": p_id3.clone()
+        });
+        let p4 = json!({
+            "_id": p_id4.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id4.clone(), inline_block_id4b.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": p_id3.clone()
+        });
+        let inline_block4 = json!({
+            "_id": inline_block_id4.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "hehehehehe"
+            },
+            "marks": ["bold"],
+            "parent": p_id4.clone()
+        });
+        let inline_block4b = json!({
+            "_id": inline_block_id4b.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "abc"
+            },
+            "marks": [],
+            "parent": p_id4.clone()
+        });
+        let p5 = json!({
+            "_id": p_id5.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id5.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let inline_block5 = json!({
+            "_id": inline_block_id5.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "E"
+            },
+            "marks": [],
+            "parent": p_id5.clone()
+        });
+
+        let root_block = RootBlock::json_from(
+            root_block_id.clone(),
+            vec![p_id1.clone(), p_id5.clone()]
+        );
+
+        let block_map = BlockMap::from(
+            vec![
+                root_block.to_string(),
+                p1.to_string(), inline_block1.to_string(),
+                p2.to_string(), inline_block2.to_string(),
+                p3.to_string(), inline_block3.to_string(), inline_block3b.to_string(),
+                p4.to_string(), inline_block4.to_string(), inline_block4b.to_string(),
+                p5.to_string(), inline_block5.to_string(),
+            ]
+        ).unwrap();
+
+        let sub_selection_from = SubSelection {
+                block_id: p_id1.clone(),
+                offset: 0,
+                subselection: Some(Box::new(SubSelection::from(inline_block_id1.clone(), 0, None)))
+        };
+        let sub_selection_to = SubSelection {
+            block_id: p_id5.clone(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection::from(inline_block_id5.clone(), 0, None)))
+        };
+
+        get_blocks_between(
+            BlockStructure::Tree,
+            &sub_selection_from,
+            &sub_selection_to,
+            &block_map,
+            &mut new_ids
+        ).unwrap();
+        return Ok(())
+    }
+
 }
