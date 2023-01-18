@@ -102,19 +102,3 @@ pub fn get_js_field_as_bool(obj: &JsValue, field: &str) -> Result<bool, StepErro
         ))
     }
 }
-
-pub fn get_number_of_numbered_list_block(block_map_js: js_sys::Map, block_id: String) -> u64 {
-    let block_map = BlockMap::from_js_map(block_map_js);
-    let block = block_map.get_standard_block(&block_id).unwrap();
-    let mut number_of_list_blocks = 1;
-    let mut option_previous_block = block.get_previous(&block_map).unwrap();
-    while option_previous_block.is_some() {
-        let previous_block = option_previous_block.unwrap();
-        match previous_block.content {
-            StandardBlockType::NumberedList(_) => number_of_list_blocks += 1,
-            _ => break
-        };
-        option_previous_block = block.get_previous(&block_map).unwrap();
-    }
-    return number_of_list_blocks
-}
