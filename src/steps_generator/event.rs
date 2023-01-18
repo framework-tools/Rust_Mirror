@@ -11,6 +11,7 @@ pub enum Event {
     SlashScrim(SlashScrimEvent),
     ToggleCompleted(String), //block id
     ContextMenu(ContextMenuEvent),
+    DropBlock(DropBlockEvent),
 }
 
 impl Event {
@@ -22,6 +23,7 @@ impl Event {
             "slash_scrim" => Ok(Event::SlashScrim(SlashScrimEvent::from_js_obj(obj)?)),
             "toggle_completed" => Ok(Event::ToggleCompleted(get_js_field_as_string(&JsValue::from(&obj), "value")?)),
             "context_menu" => Ok(Event::ContextMenu(ContextMenuEvent::from_js_obj(obj)?)),
+            "drop_block" => Ok(Event::DropBlock(DropBlockEvent::from_js_obj(obj)?)),
             _type => Err(StepError(format!("Expected event _type. Got: {}", _type)))
         }
     }
@@ -181,6 +183,47 @@ impl ContextMenuEvent {
             "cut" => Ok(Self::Cut),
             "paste" => Ok(Self::Paste),
             value => Err(StepError(format!("Expected valid context menu event. Got: {}", value))),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct DropBlockEvent {
+    pub drag_block_id: String,
+    pub drop_block_id: String,
+    pub side_dropped: Side
+}
+impl DropBlockEvent {
+    pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
+        let obj = get_js_field(&obj, "value")?;
+        let drag_block_id = get_js_field_as_string(&obj, "drag_block_id")?;
+        let drop_block_id = get_js_field_as_string(&obj, "drop_block_id")?;
+        let side_dropped = get_js_field_as_string(&obj, "side_dropped")?;
+        let side_dropped = Side::from_str(&side_dropped)?;
+        return Ok(Self {
+            drag_block_id,
+            drop_block_id,
+            side_dropped
+        })
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Side {
+    Top,
+    Bottom,
+    Left,
+    Right
+}
+
+impl Side {
+    pub fn from_str(string: &str) -> Result<Self, StepError> {
+        return match string {
+            "top" => Ok(Self::Top),
+            "left" => Ok(Self::Left),
+            "right" => Ok(Self::Right),
+            "bottom" => Ok(Self::Bottom),
+            side => Err(StepError(format!("Not a valid side: {}", side))),
         }
     }
 }

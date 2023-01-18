@@ -34,7 +34,8 @@ pub fn generate_steps(event: &Event, block_map: &BlockMap, selection: Selection)
             ContextMenuEvent::Paste => generate_paste_steps(from, to, block_map),
         },
         Event::SlashScrim(slash_scrim_event) => generate_slash_scrim_steps(slash_scrim_event, from, to, block_map),
-        Event::ToggleCompleted(_id) => Ok(vec![Step::ToggleCompleted(_id.clone())])
+        Event::ToggleCompleted(_id) => Ok(vec![Step::ToggleCompleted(_id.clone())]),
+        Event::DropBlock(drop_block_event) => Ok(vec![Step::DropBlock(drop_block_event.clone())]),
     }
 }
 

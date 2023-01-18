@@ -1,5 +1,5 @@
 
-use crate::{steps_generator::selection::{SubSelection, Selection}, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
+use crate::{steps_generator::{selection::{SubSelection, Selection}, event::DropBlockEvent}, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
 
 
 #[derive(Debug, PartialEq, Clone)]
@@ -15,6 +15,7 @@ pub enum Step {
     ToggleCompleted(String), //block id
     Copy(SubSelection, SubSelection),
     Paste(SubSelection, SubSelection),
+    DropBlock(DropBlockEvent),
     //ReplaceAroundStep
 }
 
