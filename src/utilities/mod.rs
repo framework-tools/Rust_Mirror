@@ -291,39 +291,40 @@ pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> 
 
     let mut current_top_block_i = 0;
 
+    let mut got_all_blocks = false;
     loop {
-        let next_node;
+        if got_all_blocks {
+            break;
+        }
+        let mut next_node;
         if current_node.children.len() > 0 { // has children
             next_node = block_map.get_standard_block(&current_node.children[0])?;
         } else {
-            next_node = match current_node.next_sibling(block_map) {
-                Ok(Some(sibling)) => sibling,
-                _ =>
-            //     next_node = current_node.clone();
-            // loop {
-            //     match next_node.parents_next_sibling(block_map)? {
-            //         Some(parents_sib) => {
-            //             next_node = parents_sib;
-            //             break;
-            //         },
-            //         None => {}
-            //     };
-            //     next_node = match next_node.get_parent(block_map)? {
-            //         Block::StandardBlock(block) => block,
-            //         _ => return Err(StepError("No next node but have not yet reached final node".to_string()))
-            //     };
-            // }
-                match current_node.parents_next_sibling(block_map) {
-                    Ok(Some(sib)) => sib,
-                    _ => {
-                        current_top_block_i += 1;
-                        match top_blocks.get(current_top_block_i) {
-                            Some(_) => top_blocks[current_top_block_i].clone(),
-                            None => {
-                                standard_blocks.push(current_node);
+            match current_node.next_sibling(block_map) {
+                Ok(Some(sibling)) => next_node = sibling,
+                _ => {
+                    next_node = current_node.clone();
+                    loop {
+                        match next_node.parents_next_sibling(block_map)? {
+                            Some(parents_sib) => {
+                                next_node = parents_sib;
                                 break;
                             },
-                        }
+                            None => {}
+                        };
+                        next_node = match next_node.get_parent(block_map)? {
+                            Block::StandardBlock(block) => block,
+                            _ => {
+                                current_top_block_i += 1;
+                                match top_blocks.get(current_top_block_i) {
+                                    Some(_) => top_blocks[current_top_block_i].clone(),
+                                    None => {
+                                        got_all_blocks = true;
+                                        break;
+                                    },
+                                }
+                            }
+                        };
                     }
                 }
             }
