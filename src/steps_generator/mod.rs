@@ -36,6 +36,7 @@ pub fn generate_steps(event: &Event, block_map: &BlockMap, selection: Selection)
         Event::SlashScrim(slash_scrim_event) => generate_slash_scrim_steps(slash_scrim_event, from, to, block_map),
         Event::ToggleCompleted(_id) => Ok(vec![Step::ToggleCompleted(_id.clone())]),
         Event::DropBlock(drop_block_event) => Ok(vec![Step::DropBlock(drop_block_event.clone())]),
+        Event::DeleteBlock(block_id) => Ok(vec![Step::DeleteBlock(block_id.clone())]),
     }
 }
 

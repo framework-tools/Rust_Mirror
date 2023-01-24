@@ -600,6 +600,17 @@ impl BlockMap {
             Self::Rust(rs_map) => rs_map.contains_key(key)
         }
     }
+
+    pub fn only_one_std_block(&self, any_std_block_id: &str) -> Result<bool, StepError> {
+        let block = self.get_standard_block(any_std_block_id)?;
+        let parent = block.get_parent(self)?;
+        match parent {
+            Block::Root(root_block) => {
+                return Ok(root_block.children.len() == 1 && block.children.len() == 0)
+            },
+            _ => return Ok(false)
+        }
+    }
 }
 
 pub fn id_from_json_block(json: &Value) -> Result<String, StepError> {

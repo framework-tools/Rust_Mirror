@@ -16,6 +16,7 @@ pub enum Step {
     Copy(SubSelection, SubSelection),
     Paste(SubSelection, SubSelection),
     DropBlock(DropBlockEvent),
+    DeleteBlock(String), //ID
     //ReplaceAroundStep
 }
 

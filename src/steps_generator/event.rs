@@ -12,6 +12,7 @@ pub enum Event {
     ToggleCompleted(String), //block id
     ContextMenu(ContextMenuEvent),
     DropBlock(DropBlockEvent),
+    DeleteBlock(String)
 }
 
 impl Event {
@@ -24,6 +25,7 @@ impl Event {
             "toggle_completed" => Ok(Event::ToggleCompleted(get_js_field_as_string(&JsValue::from(&obj), "value")?)),
             "context_menu" => Ok(Event::ContextMenu(ContextMenuEvent::from_js_obj(obj)?)),
             "drop_block" => Ok(Event::DropBlock(DropBlockEvent::from_js_obj(obj)?)),
+            "delete_block" => Ok(Event::DeleteBlock(get_js_field_as_string(&obj, "value")?)),
             _type => Err(StepError(format!("Expected event _type. Got: {}", _type)))
         }
     }
