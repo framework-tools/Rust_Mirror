@@ -6,13 +6,14 @@ use wasm_bindgen::JsValue;
 
 use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection, selection::SubSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string, step::AddBlockStep, steps_actualisor::clean_block_after_transform};
 
-use self::{content_block::ContentBlock, list_block::ListBlock, page_block::PageBlock};
+use self::{content_block::ContentBlock, list_block::ListBlock, page_block::PageBlock, layout_block::LayoutBlock};
 
 use super::{inline_blocks::InlineBlock, BlockMap, Block, vec_string_to_arr};
 
 pub mod content_block;
 pub mod list_block;
 pub mod page_block;
+pub mod layout_block;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct StandardBlock {
@@ -367,6 +368,7 @@ pub enum StandardBlockType {
     ArrowList(ListBlock),
     InlinePage(PageBlock),
     SquarePage(PageBlock),
+    Layout(LayoutBlock),
 }
 
 impl StandardBlockType {
@@ -384,6 +386,7 @@ impl StandardBlockType {
             "arrow list" => Ok(StandardBlockType::ArrowList(ListBlock::from_js_block(obj)?)),
             "inline page" => Ok(StandardBlockType::InlinePage(PageBlock::from_js_block(obj)?)),
             "square page" => Ok(StandardBlockType::SquarePage(PageBlock::from_js_block(obj)?)),
+            "layout" => Ok(StandardBlockType::Layout(LayoutBlock::from_js_block(obj)?)),
             _type => Err(StepError(format!("Block type '{}' not found", _type)))
         }
     }
@@ -401,6 +404,7 @@ impl StandardBlockType {
             "arrow list" => Ok(StandardBlockType::ArrowList(ListBlock::from_json(json)?)),
             "inline page" => Ok(StandardBlockType::InlinePage(PageBlock::from_json(json)?)),
             "square page" => Ok(StandardBlockType::SquarePage(PageBlock::from_json(json)?)),
+            "layout" => Ok(StandardBlockType::Layout(LayoutBlock::from_json(json)?)),
             _ => Err(StepError(format!("Block type {} not found", block_type)))
         }
     }
@@ -491,6 +495,15 @@ impl StandardBlockType {
                     }
                 })
             },
+            StandardBlockType::Layout(block) => {
+                json!({
+                    "_type": "layout",
+                    "content": {
+                        "blocks": block.blocks,
+                        "horizontal": block.horizontal
+                    }
+                })
+            },
         }
     }
 
@@ -506,6 +519,7 @@ impl StandardBlockType {
             StandardBlockType::ArrowList(_) => return Ok("arrow list".to_string()),
             StandardBlockType::InlinePage(_) => return Ok("inline page".to_string()),
             StandardBlockType::SquarePage(_) => return Ok("square page".to_string()),
+            StandardBlockType::Layout(_) => return Ok("layout".to_string()),
         }
     }
 
@@ -525,7 +539,12 @@ impl StandardBlockType {
             },
             StandardBlockType::InlinePage(page_block) | StandardBlockType::SquarePage(page_block) => {
                 js_sys::Reflect::set(&content, &JsValue::from_str("page_id"), &JsValue::from_str(&page_block.page_id)).unwrap();
+            },
+            StandardBlockType::Layout(layout_block) => {
+                js_sys::Reflect::set(&content, &JsValue::from_str("blocks"), &vec_string_to_arr(&layout_block.blocks)?.into()).unwrap();
+                js_sys::Reflect::set(&content, &JsValue::from_str("horizontal"), &JsValue::from(layout_block.horizontal)).unwrap();
             }
+
         }
         return Ok(content.into())
     }
