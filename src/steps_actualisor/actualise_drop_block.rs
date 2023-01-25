@@ -1,4 +1,4 @@
-use crate::{steps_generator::{StepError, event::{DropBlockEvent, Side}}, blocks::{BlockMap, Block, standard_blocks::{StandardBlock, StandardBlockType, layout_block::LayoutBlock}}, new_ids::NewIds, utilities::update_state_tools};
+use crate::{steps_generator::{StepError, event::{DropBlockEvent, Side}}, blocks::{BlockMap, Block, standard_blocks::{StandardBlock, StandardBlockType, layout_block::LayoutBlock}}, new_ids::NewIds, utilities::update_state_tools, step::Step};
 
 use super::UpdatedState;
 
@@ -17,7 +17,7 @@ pub fn actualise_drop_block(
     block_map.update_block(drag_parent, &mut blocks_to_update)?;
 
     let mut drop_block = block_map.get_standard_block(&drop_block_event.drop_block_id)?;
-    let drop_parent = drop_block.get_parent(&block_map)?;
+    let mut drop_parent = drop_block.get_parent(&block_map)?;
     let drop_parent_id = drop_parent.id();
     match drop_block_event.side_dropped {
         Side::Top | Side::Bottom => {
@@ -37,9 +37,20 @@ pub fn actualise_drop_block(
             block_map.update_block(Block::StandardBlock(drag_block), &mut blocks_to_update)?;
         },
         Side::Left | Side::Right => {
-            let mut is_layout_block_or_is_inside_layout_block = false;
-            if is_layout_block_or_is_inside_layout_block {
-
+            if is_layout_block_or_is_inside_layout_block(&drop_block, &drop_parent)? {
+                add_drag_block_to_layout_block(
+                    &mut drop_block, 
+                    &mut drop_parent, 
+                    &drop_block_event.side_dropped, 
+                    &drag_block._id, 
+                    &block_map
+                )?;
+                
+                drag_block.parent = drop_parent_id;
+                block_map.update_blocks(vec![
+                    Block::StandardBlock(drag_block), 
+                    drop_parent
+                ], &mut blocks_to_update)?;
             } else {
                 // create new layout block
                 // insert the dragged block and the block we dropped on inside this layout block
@@ -82,4 +93,60 @@ pub fn actualise_drop_block(
         blocks_to_remove: vec![],
         copy: None
     })
+}
+
+fn is_layout_block_or_is_inside_layout_block(
+    drop_block: &StandardBlock,
+    drop_parent: &Block
+) -> Result<bool, StepError> {
+    match drop_block.content {
+        StandardBlockType::Layout(_) => return Ok(true),
+        _ => {}
+    };
+    match drop_parent{
+        Block::StandardBlock(parent) => {
+            match &parent.content {
+                StandardBlockType::Layout(block) => return Ok(block.blocks.contains(&drop_block._id)),
+                _ => return Ok(false)
+            }
+        }
+        _ => return Ok(false)
+    }
+}
+
+fn add_drag_block_to_layout_block(
+    drop_block: StandardBlock, 
+    drop_parent: Block,
+    side_dropped: &Side,
+    drag_block_id: &str,
+    block_map: &BlockMap
+) -> Result<((StandardBlock, Block)), StepError> {
+    let edited_drop_block = false;
+    match &drop_block.content {
+        StandardBlockType::Layout(mut layout_block) => {
+            edited_drop_block = true;
+            if *side_dropped == Side::Left {
+                layout_block.blocks.insert(0, drag_block_id.to_string());
+                layout_block.blocks.clone()
+            } else {
+                layout_block.blocks.push(drag_block_id.to_string());
+                layout_block.blocks.clone()
+            }
+            
+        },
+        _ => {
+            match &drop_parent {
+                Block::StandardBlock(StandardBlock { content: StandardBlockType::Layout(mut layout_block), .. }) => {
+                    let mut index = drop_block.index(&block_map)?;
+                    if *side_dropped == Side::Right {
+                        index += 1;
+                    }
+                    layout_block.blocks.splice(index..index, vec![drop_block.id()]);
+                    layout_block.blocks.clone()
+                },
+                _ => unreachable!()
+            }
+        }
+    };
+    return Ok((drop_block, drop_parent))
 }
