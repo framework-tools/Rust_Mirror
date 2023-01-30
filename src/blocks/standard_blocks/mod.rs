@@ -354,6 +354,16 @@ impl StandardBlock {
         }
         return Ok(inline_blocks)
     }
+
+    pub fn new_layout_block(_id: String, horizontal: bool, children: Vec<String>, parent: String) -> Result<StandardBlock, StepError> {
+        return Ok(Self {
+            _id,
+            content: StandardBlockType::Layout(LayoutBlock { horizontal }),
+            children,
+            parent,
+            marks: vec![]
+        })
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -499,7 +509,6 @@ impl StandardBlockType {
                 json!({
                     "_type": "layout",
                     "content": {
-                        "blocks": block.blocks,
                         "horizontal": block.horizontal
                     }
                 })
@@ -541,7 +550,6 @@ impl StandardBlockType {
                 js_sys::Reflect::set(&content, &JsValue::from_str("page_id"), &JsValue::from_str(&page_block.page_id)).unwrap();
             },
             StandardBlockType::Layout(layout_block) => {
-                js_sys::Reflect::set(&content, &JsValue::from_str("blocks"), &vec_string_to_arr(&layout_block.blocks)?.into()).unwrap();
                 js_sys::Reflect::set(&content, &JsValue::from_str("horizontal"), &JsValue::from(layout_block.horizontal)).unwrap();
             }
 
