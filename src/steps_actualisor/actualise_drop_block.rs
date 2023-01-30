@@ -24,7 +24,7 @@ pub fn actualise_drop_block(
             drop_block_top_or_bottom(drag_block, drop_block, drop_parent, drop_block_event, &mut block_map, &mut blocks_to_update)?;
         },
         Side::Left | Side::Right => {
-            if is_layout_block_or_is_inside_layout_block(&drop_block, &drop_parent)? {
+            if is_layout_block_or_is_inside_layout_block(&drop_block, &drop_parent) {
                 // (drop_block, drop_parent) = add_drag_block_to_layout_block(
                 //     drop_block,
                 //     drop_parent,
@@ -65,21 +65,19 @@ pub fn actualise_drop_block(
 fn is_layout_block_or_is_inside_layout_block(
     drop_block: &StandardBlock,
     drop_parent: &Block
-) -> Result<bool, StepError> {
-    return Ok(false)
-    // match drop_block.content {
-    //     StandardBlockType::Layout(_) => return Ok(true),
-    //     _ => {}
-    // };
-    // match drop_parent{
-    //     Block::StandardBlock(parent) => {
-    //         match &parent.content {
-    //             StandardBlockType::Layout(block) => return Ok(block.children.contains(&drop_block._id)),
-    //             _ => return Ok(false)
-    //         }
-    //     }
-    //     _ => return Ok(false)
-    // }
+) -> bool {
+    return match drop_block.content {
+        StandardBlockType::Layout(_) => true,
+        _ => match drop_parent{
+            Block::StandardBlock(parent) => {
+                match &parent.content {
+                    StandardBlockType::Layout(_) => true,
+                    _ => false
+                }
+            }
+            _ => return false
+        }
+    }
 }
 
 fn drop_block_top_or_bottom(
