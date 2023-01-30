@@ -1,4 +1,6 @@
-use crate::{steps_generator::{StepError, event::{DropBlockEvent, Side}}, blocks::{BlockMap, Block, standard_blocks::{StandardBlock, StandardBlockType, layout_block::LayoutBlock}}, new_ids::NewIds, utilities::update_state_tools, step::Step};
+use crate::{steps_generator::{StepError, event::{DropBlockEvent, Side}},
+blocks::{BlockMap, Block, standard_blocks::{StandardBlock, StandardBlockType, layout_block::LayoutBlock}},
+new_ids::NewIds, utilities::update_state_tools};
 
 use super::UpdatedState;
 
@@ -16,29 +18,36 @@ pub fn actualise_drop_block(
     drag_parent = drag_parent.remove_child_from_id(&drag_block._id)?;
     block_map.update_block(drag_parent, &mut blocks_to_update)?;
 
-    let mut drop_block = block_map.get_standard_block(&drop_block_event.drop_block_id)?;
-    let mut drop_parent = drop_block.get_parent(&block_map)?;
-    let drop_parent_id = drop_parent.id();
+    let drop_block = block_map.get_standard_block(&drop_block_event.drop_block_id)?;
+    let drop_parent = drop_block.get_parent(&block_map)?;
     match drop_block_event.side_dropped {
         Side::Top | Side::Bottom => {
             drop_block_top_or_bottom(drag_block, drop_block, drop_parent, drop_block_event, &mut block_map, &mut blocks_to_update)?;
         },
         Side::Left | Side::Right => {
             if is_layout_block_or_is_inside_layout_block(&drop_block, &drop_parent) {
-                // (drop_block, drop_parent) = add_drag_block_to_layout_block(
-                //     drop_block,
-                //     drop_parent,
-                //     &drop_block_event.side_dropped,
-                //     &drag_block._id,
-                //     &block_map
-                // )?;
+                let new_column_id = new_ids.get_id()?;
+                let horizontal_layout_id = get_horizontal_layout_id(&drop_block, &block_map)?;
+                let new_column_layout = StandardBlock::new_layout_block(
+                    new_column_id.clone(),
+                    false,
+                    vec![drag_block.id()],
+                    horizontal_layout_id.clone()
+                )?;
+                drag_block.parent = new_column_id.clone();
+                block_map.update_blocks(vec![
+                    Block::StandardBlock(drag_block), Block::StandardBlock(new_column_layout)
+                ], &mut blocks_to_update)?;
 
-                // drag_block.parent = drop_parent_id;
-                // block_map.update_blocks(vec![
-                //     Block::StandardBlock(drag_block),
-                //     Block::StandardBlock(drop_block),
-                //     drop_parent
-                // ], &mut blocks_to_update)?;
+                let new_column_index = get_index_of_new_layout_column(&drop_block, &drop_block_event.side_dropped, &block_map)?;
+                let horizontal_layout_block = block_map.get_block(&horizontal_layout_id)?;
+                update_state_tools::splice_children(
+                    horizontal_layout_block,
+                    new_column_index..new_column_index,
+                    vec![new_column_id],
+                    &mut blocks_to_update,
+                    &mut block_map
+                )?;
             } else {
                 create_new_horizontal_layout_block(
                     drag_block,
@@ -189,54 +198,41 @@ fn create_horizontal_layout_children(
     return Ok(vec![left_column_id, right_column_id])
 }
 
-fn add_drag_block_to_layout_block(
-    mut drop_block: StandardBlock,
-    mut drop_parent: Block,
-    side_dropped: &Side,
-    drag_block_id: &str,
-    block_map: &BlockMap
-) -> Result<(StandardBlock, Block), StepError> {
-    // let mut drop_block_is_layout_block = false;
-    // let mut new_layout_blocks;
-    // match &drop_block.content {
-    //     StandardBlockType::Layout(layout_block) => {
-    //         drop_block_is_layout_block = true;
-    //         if *side_dropped == Side::Left {
-    //             new_layout_blocks = layout_block.blocks.clone();
-    //             new_layout_blocks.insert(0, drag_block_id.to_string());
-    //         } else {
-    //             new_layout_blocks = layout_block.blocks.clone();
-    //             new_layout_blocks.push(drag_block_id.to_string());
-    //         }
-    //     },
-    //     _ => {
-    //         match &drop_parent {
-    //             Block::StandardBlock(StandardBlock { content: StandardBlockType::Layout(layout_block), .. }) => {
-    //                 let mut index = drop_block.index(&block_map)?;
-    //                 if *side_dropped == Side::Right {
-    //                     index += 1;
-    //                 }
-    //                 new_layout_blocks = layout_block.blocks.clone();
-    //                 new_layout_blocks.splice(index..index, vec![drop_block.id()]);
-    //             },
-    //             _ => unreachable!()
-    //         }
-    //     }
-    // };
+fn get_horizontal_layout_id(drop_block: &StandardBlock, block_map: &BlockMap) -> Result<String, StepError> {
+    match &drop_block.content {
+        StandardBlockType::Layout(LayoutBlock { horizontal: true }) => return Ok(drop_block.id()),
+        StandardBlockType::Layout(LayoutBlock { horizontal: false }) => return Ok(drop_block.parent.clone()),
+        _ => {
+            let parent = block_map.get_standard_block(&drop_block.parent)?;
+            return Ok(parent.parent.clone())
+        }
+    }
+}
 
-    // if drop_block_is_layout_block {
-    //     drop_block.content = StandardBlockType::Layout(LayoutBlock {
-    //         blocks: new_layout_blocks,
-    //         horizontal: true,
-    //     });
-    // } else {
-    //     let mut std_drop_parent = block_map.get_standard_block(&drop_parent.id())?;
-    //     std_drop_parent.content = StandardBlockType::Layout(LayoutBlock {
-    //         blocks: new_layout_blocks,
-    //         horizontal: true,
-    //     });
-    //     drop_parent = Block::StandardBlock(std_drop_parent);
-    // }
-
-    return Ok((drop_block, drop_parent))
+/// 3 cases: horizontal layout, vertical layout (column), not a layout block (inside a layout block)
+fn get_index_of_new_layout_column(drop_block: &StandardBlock, side_dropped: &Side, block_map: &BlockMap) -> Result<usize, StepError> {
+    return match &drop_block.content {
+        StandardBlockType::Layout(LayoutBlock { horizontal: true }) => {
+            if *side_dropped == Side::Left {
+                Ok(0)
+            } else {
+                Ok(drop_block.children.len())
+            }
+        },
+        StandardBlockType::Layout(LayoutBlock { horizontal: false }) => {
+            if *side_dropped == Side::Left {
+                drop_block.index(&block_map)
+            } else {
+                Ok(drop_block.index(&block_map)? + 1)
+            }
+        },
+        _ => {
+            let parent = block_map.get_standard_block(&drop_block.parent)?;
+            if *side_dropped == Side::Left {
+                parent.index(&block_map)
+            } else {
+                Ok(parent.index(&block_map)? + 1)
+            }
+        }
+    }
 }
