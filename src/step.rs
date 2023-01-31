@@ -1,5 +1,5 @@
 
-use crate::{steps_generator::{selection::{SubSelection, Selection}, event::DropBlockEvent}, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
+use crate::{steps_generator::{selection::{SubSelection}, event::DropBlockEvent}, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
 
 
 #[derive(Debug, PartialEq, Clone)]
