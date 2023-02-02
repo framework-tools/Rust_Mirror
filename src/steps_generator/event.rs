@@ -239,7 +239,7 @@ pub struct ReplaceWithChildrenEvent {
 
 impl ReplaceWithChildrenEvent {
     pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
-        let block_id = get_js_field_as_string(&obj, "from_block_id")?;
+        let block_id = get_js_field_as_string(&obj, "block_id")?;
         return Ok(Self {
             block_id
         })
