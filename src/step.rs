@@ -1,5 +1,5 @@
 
-use crate::{steps_generator::{selection::{SubSelection}, event::DropBlockEvent}, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
+use crate::{steps_generator::{selection::{SubSelection}, event::{DropBlockEvent, ReplaceWithChildrenEvent}}, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
 
 
 #[derive(Debug, PartialEq, Clone)]
@@ -17,6 +17,7 @@ pub enum Step {
     Paste(SubSelection, SubSelection),
     DropBlock(DropBlockEvent),
     DeleteBlock(String), //ID
+    ReplaceWithChildren(ReplaceWithChildrenEvent)
     //ReplaceAroundStep
 }
 

@@ -12,7 +12,8 @@ pub enum Event {
     ToggleCompleted(String), //block id
     ContextMenu(ContextMenuEvent),
     DropBlock(DropBlockEvent),
-    DeleteBlock(String)
+    DeleteBlock(String),
+    ReplaceWithChildren(ReplaceWithChildrenEvent)
 }
 
 impl Event {
@@ -26,6 +27,7 @@ impl Event {
             "context_menu" => Ok(Event::ContextMenu(ContextMenuEvent::from_js_obj(obj)?)),
             "drop_block" => Ok(Event::DropBlock(DropBlockEvent::from_js_obj(obj)?)),
             "delete_block" => Ok(Event::DeleteBlock(get_js_field_as_string(&obj, "value")?)),
+            "change_block" => Ok(Event::ReplaceWithChildren(ReplaceWithChildrenEvent::from_js_obj(obj)?)),
             _type => Err(StepError(format!("Expected event _type. Got: {}", _type)))
         }
     }
@@ -227,5 +229,21 @@ impl Side {
             "bottom" => Ok(Self::Bottom),
             side => Err(StepError(format!("Not a valid side: {}", side))),
         }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ReplaceWithChildrenEvent {
+    pub block_id: String
+}
+
+impl ReplaceWithChildrenEvent {
+    pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
+        let value_obj = get_js_field(&obj, "value")?;
+        let block_id = get_js_field_as_string(&value_obj, "from_block_id")?;
+
+        return Ok(Self {
+            block_id
+        })
     }
 }
