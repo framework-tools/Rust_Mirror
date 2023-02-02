@@ -197,10 +197,10 @@ pub struct DropBlockEvent {
 }
 impl DropBlockEvent {
     pub fn from_js_obj(obj: js_sys::Object) -> Result<Self, StepError> {
-        let obj = get_js_field(&obj, "value")?;
-        let drag_block_id = get_js_field_as_string(&obj, "drag_block_id")?;
-        let drop_block_id = get_js_field_as_string(&obj, "drop_block_id")?;
-        let side_dropped = get_js_field_as_string(&obj, "side_dropped")?;
+        let value_obj = get_js_field(&obj, "value")?;
+        let drag_block_id = get_js_field_as_string(&value_obj, "drag_block_id")?;
+        let drop_block_id = get_js_field_as_string(&value_obj, "drop_block_id")?;
+        let side_dropped = get_js_field_as_string(&value_obj, "side_dropped")?;
         let side_dropped = Side::from_str(&side_dropped)?;
         return Ok(Self {
             drag_block_id,

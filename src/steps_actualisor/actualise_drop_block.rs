@@ -13,54 +13,54 @@ pub fn actualise_drop_block(
     new_ids: &mut NewIds
 ) -> Result<UpdatedState, StepError> {
     // remove drag block from current place
-    let mut drag_block = block_map.get_standard_block(&drop_block_event.drag_block_id)?;
-    let mut drag_parent = drag_block.get_parent(&block_map)?;
-    drag_parent = drag_parent.remove_child_from_id(&drag_block._id)?;
-    block_map.update_block(drag_parent, &mut blocks_to_update)?;
+    // let mut drag_block = block_map.get_standard_block(&drop_block_event.drag_block_id)?;
+    // let mut drag_parent = drag_block.get_parent(&block_map)?;
+    // drag_parent = drag_parent.remove_child_from_id(&drag_block._id)?;
+    // block_map.update_block(drag_parent, &mut blocks_to_update)?;
 
-    let drop_block = block_map.get_standard_block(&drop_block_event.drop_block_id)?;
-    let drop_parent = drop_block.get_parent(&block_map)?;
-    match drop_block_event.side_dropped {
-        Side::Top | Side::Bottom => {
-            drop_block_top_or_bottom(drag_block, drop_block, drop_parent, drop_block_event, &mut block_map, &mut blocks_to_update)?;
-        },
-        Side::Left | Side::Right => {
-            if is_layout_block_or_is_inside_layout_block(&drop_block, &drop_parent) {
-                let new_column_id = new_ids.get_id()?;
-                let horizontal_layout_id = get_horizontal_layout_id(&drop_block, &block_map)?;
-                let new_column_layout = StandardBlock::new_layout_block(
-                    new_column_id.clone(),
-                    false,
-                    vec![drag_block.id()],
-                    horizontal_layout_id.clone()
-                )?;
-                drag_block.parent = new_column_id.clone();
-                block_map.update_blocks(vec![
-                    Block::StandardBlock(drag_block), Block::StandardBlock(new_column_layout)
-                ], &mut blocks_to_update)?;
+    // let drop_block = block_map.get_standard_block(&drop_block_event.drop_block_id)?;
+    // let drop_parent = drop_block.get_parent(&block_map)?;
+    // match drop_block_event.side_dropped {
+    //     Side::Top | Side::Bottom => {
+    //         drop_block_top_or_bottom(drag_block, drop_block, drop_parent, drop_block_event, &mut block_map, &mut blocks_to_update)?;
+    //     },
+    //     Side::Left | Side::Right => {
+    //         if is_layout_block_or_is_inside_layout_block(&drop_block, &drop_parent) {
+    //             let new_column_id = new_ids.get_id()?;
+    //             let horizontal_layout_id = get_horizontal_layout_id(&drop_block, &block_map)?;
+    //             let new_column_layout = StandardBlock::new_layout_block(
+    //                 new_column_id.clone(),
+    //                 false,
+    //                 vec![drag_block.id()],
+    //                 horizontal_layout_id.clone()
+    //             )?;
+    //             drag_block.parent = new_column_id.clone();
+    //             block_map.update_blocks(vec![
+    //                 Block::StandardBlock(drag_block), Block::StandardBlock(new_column_layout)
+    //             ], &mut blocks_to_update)?;
 
-                let new_column_index = get_index_of_new_layout_column(&drop_block, &drop_block_event.side_dropped, &block_map)?;
-                let horizontal_layout_block = block_map.get_block(&horizontal_layout_id)?;
-                update_state_tools::splice_children(
-                    horizontal_layout_block,
-                    new_column_index..new_column_index,
-                    vec![new_column_id],
-                    &mut blocks_to_update,
-                    &mut block_map
-                )?;
-            } else {
-                create_new_horizontal_layout_block(
-                    drag_block,
-                    drop_block,
-                    drop_parent,
-                    drop_block_event,
-                    &mut block_map,
-                    &mut blocks_to_update,
-                    new_ids
-                )?;
-            }
-        },
-    };
+    //             let new_column_index = get_index_of_new_layout_column(&drop_block, &drop_block_event.side_dropped, &block_map)?;
+    //             let horizontal_layout_block = block_map.get_block(&horizontal_layout_id)?;
+    //             update_state_tools::splice_children(
+    //                 horizontal_layout_block,
+    //                 new_column_index..new_column_index,
+    //                 vec![new_column_id],
+    //                 &mut blocks_to_update,
+    //                 &mut block_map
+    //             )?;
+    //         } else {
+    //             create_new_horizontal_layout_block(
+    //                 drag_block,
+    //                 drop_block,
+    //                 drop_parent,
+    //                 drop_block_event,
+    //                 &mut block_map,
+    //                 &mut blocks_to_update,
+    //                 new_ids
+    //             )?;
+    //         }
+    //     },
+    // };
 
     return Ok(UpdatedState {
         block_map,
