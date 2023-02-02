@@ -27,7 +27,7 @@ impl Event {
             "context_menu" => Ok(Event::ContextMenu(ContextMenuEvent::from_js_obj(obj)?)),
             "drop_block" => Ok(Event::DropBlock(DropBlockEvent::from_js_obj(obj)?)),
             "delete_block" => Ok(Event::DeleteBlock(get_js_field_as_string(&obj, "value")?)),
-            "change_block" => Ok(Event::ReplaceWithChildren(ReplaceWithChildrenEvent::from_js_obj(obj)?)),
+            "replace_with_children" => Ok(Event::ReplaceWithChildren(ReplaceWithChildrenEvent::from_js_obj(obj)?)),
             _type => Err(StepError(format!("Expected event _type. Got: {}", _type)))
         }
     }
