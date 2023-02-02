@@ -12,9 +12,11 @@ pub fn actualise_drop_block(
     mut blocks_to_update: Vec<String>,
     new_ids: &mut NewIds
 ) -> Result<UpdatedState, StepError> {
-    remove_drag_block_from_current_place(&mut block_map, &drop_block_event, &mut blocks_to_update)?;
-
     let mut drag_block = block_map.get_standard_block(&drop_block_event.drag_block_id)?;
+    if drag_block.get_parent(&block_map).is_ok() {
+        remove_drag_block_from_current_place(&mut block_map, &drop_block_event, &mut blocks_to_update)?;
+    }
+
     let drop_block = block_map.get_standard_block(&drop_block_event.drop_block_id)?;
     let drop_parent = drop_block.get_parent(&block_map)?;
 
