@@ -102,14 +102,13 @@ fn is_layout_block_or_is_inside_layout_block(
 }
 
 fn drop_block_top_or_bottom(
-    mut drag_block: StandardBlock,
+    drag_block: StandardBlock,
     drop_block: StandardBlock,
     drop_parent: Block,
     drop_block_event: DropBlockEvent,
     block_map: &mut BlockMap,
-    mut blocks_to_update: &mut Vec<String>
+    blocks_to_update: &mut Vec<String>
 ) -> Result<(), StepError> {
-    let drop_parent_id = drop_parent.id();
     // add dragged block to new position
     let mut insertion_index = drop_block.index(&block_map)?;
     if drop_block_event.side_dropped == Side::Bottom {
@@ -122,8 +121,6 @@ fn drop_block_top_or_bottom(
         blocks_to_update,
         block_map
     )?;
-    drag_block.parent = drop_parent_id;
-    block_map.update_block(Block::StandardBlock(drag_block), &mut blocks_to_update)?;
 
     return Ok(())
 }
