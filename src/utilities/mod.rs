@@ -50,6 +50,8 @@ impl Tree {
             &self.top_blocks,
             &self.block_map
         )?;
+        println!("got here");
+
 
         let mut new_blocks: HashMap<String, Block> = HashMap::new();
         let mut new_top_blocks = Vec::new();
@@ -305,15 +307,15 @@ pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> 
                 _ => {
                     next_node = current_node.clone();
                     loop {
-                        match next_node.parents_next_sibling(block_map)? {
-                            Some(parents_sib) => {
+                        match next_node.parents_next_sibling(block_map) {
+                            Ok(Some(parents_sib)) => {
                                 next_node = parents_sib;
                                 break;
                             },
-                            None => {}
+                            _ => {}
                         };
-                        next_node = match next_node.get_parent(block_map)? {
-                            Block::StandardBlock(block) => block,
+                        next_node = match next_node.get_parent(block_map) {
+                            Ok(Block::StandardBlock(block)) => block,
                             _ => {
                                 current_top_block_i += 1;
                                 match top_blocks.get(current_top_block_i) {

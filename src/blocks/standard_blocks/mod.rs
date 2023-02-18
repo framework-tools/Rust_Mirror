@@ -97,7 +97,7 @@ impl StandardBlock {
     pub fn index_of_child(&self, id: &str) -> Result<usize, StepError> {
         match self.children.iter().position(|block_id| *block_id == id) {
             Some(index) => Ok(index),
-            None => Err(StepError("Block not found".to_string()))
+            None => Err(StepError("Child Block not found".to_string()))
         }
     }
 

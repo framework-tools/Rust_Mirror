@@ -3,9 +3,9 @@ use std::ops::Range;
 use crate::{blocks::{Block, BlockMap, inline_blocks::{self, InlineBlock, text_block::StringUTF16}, standard_blocks::{StandardBlock, content_block::ContentBlock}}, steps_generator::StepError, mark::Mark, new_ids};
 
 pub fn splice_children(
-    mut block: Block, 
-    range: Range<usize>, 
-    new_children: Vec<String>, 
+    mut block: Block,
+    range: Range<usize>,
+    new_children: Vec<String>,
     blocks_to_update: &mut Vec<String>,
     block_map: &mut BlockMap,
 ) -> Result<(), StepError> {
@@ -18,13 +18,13 @@ pub fn splice_children(
     children.splice(range, new_children);
     block.update_children(children)?;
     block_map.update_block(block.clone(), blocks_to_update)?;
-    return Ok(())    
+    return Ok(())
 }
 
 pub fn splice_children_on_std_block(
-    mut block: &mut StandardBlock, 
-    range: Range<usize>, 
-    new_children: Vec<String>, 
+    mut block: &mut StandardBlock,
+    range: Range<usize>,
+    new_children: Vec<String>,
     blocks_to_update: &mut Vec<String>,
     block_map: &mut BlockMap,
 ) -> Result<(), StepError> {
@@ -37,13 +37,13 @@ pub fn splice_children_on_std_block(
     children.splice(range, new_children);
     block.children = children;
     block_map.update_block(Block::StandardBlock(block.clone()), blocks_to_update)?;
-    return Ok(())    
+    return Ok(())
 }
 
 pub fn splice_inline_blocks(
-    mut block: StandardBlock, 
-    range: Range<usize>, 
-    new_inline_blocks: Vec<String>, 
+    mut block: StandardBlock,
+    range: Range<usize>,
+    new_inline_blocks: Vec<String>,
     blocks_to_update: &mut Vec<String>,
     block_map: &mut BlockMap,
 ) -> Result<StandardBlock, StepError> {
@@ -60,31 +60,31 @@ pub fn splice_inline_blocks(
 }
 
 pub fn update_text(
-    mut inline_block: InlineBlock, 
-    new_text: StringUTF16, 
+    mut inline_block: InlineBlock,
+    new_text: StringUTF16,
     blocks_to_update: &mut Vec<String>,
     block_map: &mut BlockMap,
 ) -> Result<(), StepError> {
     inline_block = inline_block.update_text(new_text)?;
     block_map.update_block(Block::InlineBlock(inline_block.clone()), blocks_to_update)?;
-    return Ok(())    
+    return Ok(())
 }
 
 pub fn update_mark(
-    mut inline_block: InlineBlock, 
-    mark: Mark, 
+    mut inline_block: InlineBlock,
+    mark: Mark,
     add_mark: bool,
     blocks_to_update: &mut Vec<String>,
     block_map: &mut BlockMap,
 ) -> Result<(), StepError> {
     inline_block = inline_block.apply_mark(mark, add_mark);
     block_map.update_block(Block::InlineBlock(inline_block.clone()), blocks_to_update)?;
-    return Ok(())    
+    return Ok(())
 }
 
 pub fn split_inline_block(
-    inline_block: InlineBlock, 
-    offset: usize, 
+    inline_block: InlineBlock,
+    offset: usize,
     blocks_to_update: &mut Vec<String>,
     block_map: &mut BlockMap,
     new_ids: &mut new_ids::NewIds,
@@ -92,5 +92,5 @@ pub fn split_inline_block(
     let (left, right) = inline_block.split(offset, new_ids)?;
     block_map.update_block(Block::InlineBlock(left.clone()), blocks_to_update)?;
     block_map.update_block(Block::InlineBlock(right.clone()), blocks_to_update)?;
-    return Ok((left, right))  
+    return Ok((left, right))
 }
