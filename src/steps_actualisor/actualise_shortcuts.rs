@@ -45,18 +45,21 @@ pub fn actualise_paste(
     mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let mut copy_tree = copy.to_tree()?;
+    // println!("copy tree top blocks length: {}", copy_tree.top_blocks.len());
     copy_tree.reassign_ids(new_ids)?;
     let last_block = copy_tree.get_last_block()?;
-
+    println!("copy tree top blocks length: {}", copy_tree.top_blocks.len());
     block_map.add_block_map(copy_tree.block_map)?;
 
     let mut selection = None;
-    let paste_only_inline_blocks = copy_tree.top_blocks.len() == 1 && copy_tree.top_blocks[0].children.len() == 0;
+    // only std block
+    let only_one_std_block = copy_tree.top_blocks.len() == 1 && copy_tree.top_blocks[0].children.len() == 0;
     if copy_tree.top_blocks.len() > 0 {
         selection = Some(Selection {
             anchor: SubSelection::at_end_of_block(&last_block._id, &block_map)?,
             head: SubSelection::at_end_of_block(&last_block._id, &block_map)?
         });
+        // println!("copy tree top blocks length: {}", copy_tree.top_blocks.len());
 
         let insertion_std_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
 
@@ -67,9 +70,10 @@ pub fn actualise_paste(
             &mut block_map,
             new_ids,
             &mut blocks_to_update,
-            paste_only_inline_blocks,
+            only_one_std_block,
             &mut selection
         )?;
+        // println!("copy tree top blocks length: {}", copy_tree.top_blocks.len());
         update_state_tools::splice_children_on_std_block(
             &mut insertion_std_block,
             0..0,
@@ -79,6 +83,8 @@ pub fn actualise_paste(
         )?;
         let parent = insertion_std_block.get_parent(&block_map)?;
         copy_tree.top_blocks.remove(0);
+
+        // println!("copy tree top blocks length: {}", copy_tree.top_blocks.len());
         update_state_tools::splice_children(
             parent,
             insertion_std_block.index(&block_map)? + 1..insertion_std_block.index(&block_map)? + 1,
@@ -88,11 +94,11 @@ pub fn actualise_paste(
         )?;
 
         let mut raw_selection = SubSelection::from("".to_string(), 0, None);
-        if paste_only_inline_blocks {
+        if only_one_std_block {
             raw_selection = selection.clone().unwrap().anchor.to_raw_selection(&block_map)?;
         }
         block_map = clean_block_after_transform(insertion_std_block, block_map, &mut blocks_to_update)?;
-        if paste_only_inline_blocks {
+        if only_one_std_block {
             let new_subselection = raw_selection.real_selection_from_raw(&block_map)?;
             selection = Some(Selection {
                 anchor: new_subselection.clone(),
