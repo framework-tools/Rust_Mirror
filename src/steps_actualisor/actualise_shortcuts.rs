@@ -45,10 +45,8 @@ pub fn actualise_paste(
     mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let mut copy_tree = copy.to_tree()?;
-    // println!("copy tree top blocks length: {}", copy_tree.top_blocks.len());
-    copy_tree.reassign_ids(new_ids)?;
+    copy_tree.reassign_ids(new_ids, &mut blocks_to_update)?;
     let last_block = copy_tree.get_last_block()?;
-    println!("copy tree top blocks length: {}", copy_tree.top_blocks.len());
     block_map.add_block_map(copy_tree.block_map)?;
 
     let mut selection = None;
@@ -59,7 +57,6 @@ pub fn actualise_paste(
             anchor: SubSelection::at_end_of_block(&last_block._id, &block_map)?,
             head: SubSelection::at_end_of_block(&last_block._id, &block_map)?
         });
-        // println!("copy tree top blocks length: {}", copy_tree.top_blocks.len());
 
         let insertion_std_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
 
@@ -73,7 +70,6 @@ pub fn actualise_paste(
             only_one_std_block,
             &mut selection
         )?;
-        // println!("copy tree top blocks length: {}", copy_tree.top_blocks.len());
         update_state_tools::splice_children_on_std_block(
             &mut insertion_std_block,
             0..0,
@@ -84,7 +80,6 @@ pub fn actualise_paste(
         let parent = insertion_std_block.get_parent(&block_map)?;
         copy_tree.top_blocks.remove(0);
 
-        // println!("copy tree top blocks length: {}", copy_tree.top_blocks.len());
         update_state_tools::splice_children(
             parent,
             insertion_std_block.index(&block_map)? + 1..insertion_std_block.index(&block_map)? + 1,

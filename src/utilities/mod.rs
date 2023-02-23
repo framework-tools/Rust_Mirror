@@ -45,13 +45,11 @@ impl Tree {
     /// We need to ensure the each inline block is changed on it's standard block, and each inline block's
     /// parent is changed to the new id
     /// We need to ensure children are changed both on the parent and the child's parent is updated
-    pub fn reassign_ids(&mut self, new_ids: &mut NewIds) -> Result<(), StepError> {
+    pub fn reassign_ids(&mut self, new_ids: &mut NewIds, blocks_to_update: &mut Vec<String>) -> Result<(), StepError> {
         let all_new_std_blocks = get_all_blocks(
             &self.top_blocks,
             &self.block_map
         )?;
-
-        println!("all_new_std_blocks: {:#?}", all_new_std_blocks);
 
 
         let mut new_blocks: HashMap<String, Block> = HashMap::new();
@@ -61,7 +59,6 @@ impl Tree {
             let old_id = block.id();
             block._id = new_std_block_id.clone();
             if self.top_blocks.iter().any(|x| x.id() == old_id) {
-                println!("is top block");
                 new_top_blocks.push(block.clone());
             } else { // else must be a child
                 let old_parent_id = block.parent.clone();
@@ -96,7 +93,7 @@ impl Tree {
 
         let mut new_block_map = BlockMap::Rust(HashMap::new());
         for (_id, block) in new_blocks.into_iter() {
-            new_block_map.update_block(block, &mut Vec::new())?;
+            new_block_map.update_block(block, blocks_to_update)?;
         }
 
         let mut updated_new_top_blocks = Vec::new();
@@ -310,7 +307,6 @@ pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> 
                             Ok(Block::StandardBlock(block)) if !standard_blocks.contains(&block) => next_node = block,
                             _ => {
                                 current_top_block_i += 1;
-                                println!("current_top_block_i: {}", current_top_block_i);
                                 match top_blocks.get(current_top_block_i) {
                                     Some(_) => next_node = top_blocks[current_top_block_i].clone(),
                                     None => {
