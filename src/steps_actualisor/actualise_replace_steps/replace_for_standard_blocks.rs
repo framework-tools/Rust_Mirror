@@ -41,7 +41,7 @@ use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_
 // - copy information.
 //If an error occurs, the Result object will contain a StepError variant
 pub fn replace_selected_across_standard_blocks(
-    mut from_block: StandardBlock,
+    from_block: StandardBlock,
     mut block_map: BlockMap,
     mut replace_step: ReplaceStep,
     mut blocks_to_update: Vec<String>
@@ -51,24 +51,11 @@ pub fn replace_selected_across_standard_blocks(
         return Err(StepError("Expected from_block and to_block to have the same parent".to_string()))
     }
 
-    let mut parent_block = block_map.get_block(&from_block.parent)?;
-    let mut to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
-    parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
-    block_map.update_block(parent_block, &mut blocks_to_update)?;
-
-    replace_step.from = replace_step.from.get_two_deepest_layers()?;
-    from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
-    replace_step.to = replace_step.to.get_two_deepest_layers()?;
-    to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
+    remove_any_blocks_between_from_and_to_incl_to(&mut block_map, &from_block, &to_block, &mut blocks_to_update)?;
+    let (mut from_block, to_block) = get_deepest_std_blocks_in_selection(&mut replace_step, &block_map)?;
 
     if !to_block.parent_is_root(&block_map) {
-        let siblings_after_to_block = to_block.get_siblings_after(&block_map)?;
-        let mut from_parent = from_block.get_parent(&block_map)?;
-        let mut from_siblings = from_parent.children()?.clone();
-        from_siblings.splice(from_block.index(&block_map)? + 1..from_block.index(&block_map)? + 1, siblings_after_to_block);
-        from_parent.set_children(from_siblings)?;
-        from_parent.set_new_parent_of_children(&mut block_map, &mut blocks_to_update)?;
-        block_map.update_block(from_parent, &mut blocks_to_update)?;
+        move_to_block_children_to_from_block_children(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
     }
 
     match &replace_step.from.subselection {
@@ -98,6 +85,36 @@ pub fn replace_selected_across_standard_blocks(
         None => return replace_across_standard_blocks_no_subselection(from_block, block_map, replace_step, blocks_to_update)
     }
 }
+
+fn remove_any_blocks_between_from_and_to_incl_to(block_map: &mut BlockMap, from_block: &StandardBlock, to_block: &StandardBlock, mut blocks_to_update: &mut Vec<String>) -> Result<(), StepError> {
+    let mut parent_block = block_map.get_block(&from_block.parent)?;
+    parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
+    block_map.update_block(parent_block, &mut blocks_to_update)?;
+    return Ok(())
+}
+
+fn get_deepest_std_blocks_in_selection(replace_step: &mut ReplaceStep, block_map: &BlockMap) -> Result<(StandardBlock, StandardBlock), StepError> {
+    replace_step.from = replace_step.from.clone().get_two_deepest_layers()?;
+    replace_step.to = replace_step.to.clone().get_two_deepest_layers()?;
+    return Ok((block_map.get_standard_block(&replace_step.from.block_id)?, block_map.get_standard_block(&replace_step.to.block_id)?))
+}
+
+fn move_to_block_children_to_from_block_children(
+    from_block: &StandardBlock,
+    to_block: &StandardBlock,
+    block_map: &mut BlockMap,
+    blocks_to_update: &mut Vec<String>
+) -> Result<(), StepError> {
+    let siblings_after_to_block = to_block.get_siblings_after(&block_map)?;
+    let mut from_parent = from_block.get_parent(&block_map)?;
+    let mut from_siblings = from_parent.children()?.clone();
+    from_siblings.splice(from_block.index(&block_map)? + 1..from_block.index(&block_map)? + 1, siblings_after_to_block);
+    from_parent.set_children(from_siblings)?;
+    from_parent.set_new_parent_of_children(block_map, blocks_to_update)?;
+    block_map.update_block(from_parent, blocks_to_update)?;
+    return Ok(())
+}
+
 // This function updates the text of the inline block
 //that corresponds to the from position of the replace_step operation.
 
