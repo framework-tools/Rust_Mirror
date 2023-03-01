@@ -59,20 +59,11 @@ pub fn replace_selected_across_standard_blocks(
     }
 
     match &replace_step.from.subselection {
-        Some(from_inner_subselection) => {
-            let to_inner_subselection = replace_step.to.get_child_subselection()?;
-            let inner_from_index = from_block.index_of(&from_inner_subselection.block_id)?;
-            let inner_to_index = to_block.index_of(&to_inner_subselection.block_id)?;
-
+        Some(_) => {
             from_block.children = to_block.children.clone();
             from_block.set_new_parent_of_children(&mut block_map, &mut blocks_to_update)?;
 
-            let from_block_with_updated_text = merge_blocks_inline_blocks(from_block, to_block, inner_from_index, inner_to_index)?;
-            let block_map = from_block_with_updated_text.set_as_parent_for_all_inline_blocks(block_map, &mut blocks_to_update)?;
-
-            let block_map = update_from_subselection_inline_block_text(block_map, &replace_step, &mut blocks_to_update)?;
-            let block_map = update_to_subselection_inline_block_text(block_map, &replace_step,&from_block_with_updated_text._id, &mut blocks_to_update)?;
-            let block_map = clean_block_after_transform(from_block_with_updated_text, block_map, &mut blocks_to_update)?;
+            let block_map = replace_inline_blocks_text(&replace_step, from_block, to_block, block_map, &mut blocks_to_update)?;
 
             return Ok(UpdatedState {
                 block_map,
@@ -113,6 +104,25 @@ fn move_to_block_children_to_from_block_children(
     from_parent.set_new_parent_of_children(block_map, blocks_to_update)?;
     block_map.update_block(from_parent, blocks_to_update)?;
     return Ok(())
+}
+
+fn replace_inline_blocks_text(
+    replace_step: &ReplaceStep,
+    from_block: StandardBlock,
+    to_block: StandardBlock,
+    block_map: BlockMap,
+    blocks_to_update: &mut Vec<String>
+) -> Result<BlockMap, StepError> {
+    let inner_from_index = from_block.index_of(&replace_step.from.get_child_subselection()?.block_id)?;
+    let inner_to_index = to_block.index_of(&replace_step.to.get_child_subselection()?.block_id)?;
+
+    let from_block_with_updated_text = merge_blocks_inline_blocks(from_block, to_block, inner_from_index, inner_to_index)?;
+    let block_map = from_block_with_updated_text.set_as_parent_for_all_inline_blocks(block_map, blocks_to_update)?;
+
+    let block_map = update_from_subselection_inline_block_text(block_map, &replace_step, blocks_to_update)?;
+    let block_map = update_to_subselection_inline_block_text(block_map, &replace_step,&from_block_with_updated_text._id, blocks_to_update)?;
+    let block_map = clean_block_after_transform(from_block_with_updated_text, block_map, blocks_to_update)?;
+    return Ok(block_map)
 }
 
 // This function updates the text of the inline block
