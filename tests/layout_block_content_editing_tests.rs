@@ -5,7 +5,7 @@ mod tests {
 
     /// <LayoutBlock> <Column><p1/><p2/></Column> <Column><p1/><p2/></Column> </LayoutBlock>
     #[test]
-    fn can_handle_slash_scrim_add_block() {
+    fn can_handle_editing_across_2_layout_columns() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let inline_block_id1 = "Inline1".to_string();

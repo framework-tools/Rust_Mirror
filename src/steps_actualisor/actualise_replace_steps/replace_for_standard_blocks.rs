@@ -55,7 +55,7 @@ pub fn replace_selected_across_standard_blocks(
     let (mut from_block, to_block) = get_deepest_std_blocks_in_selection(&mut replace_step, &block_map)?;
 
     if !to_block.parent_is_root(&block_map) {
-        move_to_block_children_to_from_block_children(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
+        move_to_block_children_to_new_location(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
     }
 
     match &replace_step.from.subselection {
@@ -90,7 +90,7 @@ fn get_deepest_std_blocks_in_selection(replace_step: &mut ReplaceStep, block_map
     return Ok((block_map.get_standard_block(&replace_step.from.block_id)?, block_map.get_standard_block(&replace_step.to.block_id)?))
 }
 
-fn move_to_block_children_to_from_block_children(
+fn move_to_block_children_to_new_location(
     from_block: &StandardBlock,
     to_block: &StandardBlock,
     block_map: &mut BlockMap,
@@ -99,7 +99,11 @@ fn move_to_block_children_to_from_block_children(
     let siblings_after_to_block = to_block.get_siblings_after(&block_map)?;
     let mut from_parent = from_block.get_parent(&block_map)?;
     let mut from_siblings = from_parent.children()?.clone();
-    from_siblings.splice(from_block.index(&block_map)? + 1..from_block.index(&block_map)? + 1, siblings_after_to_block);
+    if from_parent.is_root() {
+        from_siblings.splice(from_block.index(&block_map)? + 1..from_block.index(&block_map)? + 1, siblings_after_to_block);
+    } else {
+        from_siblings.splice(from_block.index(&block_map)? + 1.., siblings_after_to_block);
+    }
     from_parent.set_children(from_siblings)?;
     from_parent.set_new_parent_of_children(block_map, blocks_to_update)?;
     block_map.update_block(from_parent, blocks_to_update)?;
