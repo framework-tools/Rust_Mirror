@@ -588,6 +588,7 @@ mod tests {
     /// <1>Hello |world</1>
     ///     <2/>
     ///     <3/>
+    ///
     /// <4/>
     /// <5>a b c</5>
     ///     <6>Good|bye world</6>
@@ -998,7 +999,6 @@ mod tests {
             anchor: SubSelection { block_id: inline_block_id1.clone(), offset: 5, subselection: None },
             head: SubSelection { block_id: inline_block_id1.clone(), offset: 5, subselection: None }
         }))
-
     }
 
     #[test]
@@ -1128,4 +1128,14 @@ mod tests {
 //         let updated_inline_block1 = updated_block_map.get_inline_block(&inline_block_id1).unwrap();
 //         assert_eq!(updated_inline_block1.text().unwrap(), "Hello World!");
 //     }
+
+    /// Input:
+    /// <1></1>
+    ///     <2/>
+    ///     <3>Hello| World<3/>
+    ///     <4/>
+    /// <5/>
+    ///     <6/>
+    ///     <7>Good|bye<7/>
+    ///     <8/>
 }

@@ -173,10 +173,11 @@ mod tests {
         let updated_column1 = updated_state.block_map.get_standard_block(&layout_column_id1).unwrap();
         assert_eq!(updated_column1.children, vec![paragraph_block_id1.clone(), paragraph_block_id4.clone()]);
 
+        let updated_inline1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
+        assert_eq!(updated_inline1.text().unwrap().clone().to_string(), "heodbye".to_string());
+
         let updated_column2 = updated_state.block_map.get_standard_block(&layout_column_id2).unwrap();
         assert_eq!(updated_column2.children.len(), 0);
 
-        let updated_inline1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
-        assert_eq!(updated_inline1.text().unwrap().clone().to_string(), "Heodbye".to_string());
     }
 }

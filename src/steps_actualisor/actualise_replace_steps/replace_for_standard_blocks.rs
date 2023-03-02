@@ -55,7 +55,7 @@ pub fn replace_selected_across_standard_blocks(
     let (mut from_block, to_block) = get_deepest_std_blocks_in_selection(&mut replace_step, &block_map)?;
 
     if !to_block.parent_is_root(&block_map) {
-        move_to_block_children_to_new_location(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
+        move_to_blocks_younger_siblings_after_from_block(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
     }
 
     match &replace_step.from.subselection {
@@ -90,7 +90,7 @@ fn get_deepest_std_blocks_in_selection(replace_step: &mut ReplaceStep, block_map
     return Ok((block_map.get_standard_block(&replace_step.from.block_id)?, block_map.get_standard_block(&replace_step.to.block_id)?))
 }
 
-fn move_to_block_children_to_new_location(
+fn move_to_blocks_younger_siblings_after_from_block(
     from_block: &StandardBlock,
     to_block: &StandardBlock,
     block_map: &mut BlockMap,
