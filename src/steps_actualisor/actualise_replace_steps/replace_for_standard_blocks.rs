@@ -1,5 +1,5 @@
 use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, inline_blocks::InlineBlock, Block},
-steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}, utilities::{get_blocks_between, BlockStructure}};
+steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}, utilities::{get_blocks_between, BlockStructure, get_next_block_in_tree}};
 
 use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_inline_block_text};
 
@@ -107,17 +107,19 @@ fn replace_from_block_siblings_after_with_to_block_siblings_after(
     return Ok(())
 }
 
-fn move_descendant_blocks_in_top_to_std_block_to_root_block(
-
-) {
-    // let blocks_after_selection = get_blocks_between(
-    //     BlockStructure::Tree, 
-    //     from, // from is next block after "to block" in selection
-    //     to, // to is last block inside parent of "to block"
-    //     block_map, 
-    //     new_ids
-    // )?;
-}
+// fn move_descendant_blocks_in_top_to_std_block_to_root_block(
+//     to_block: &StandardBlock,
+//     block_map: &BlockMap,
+// ) {
+//     let block_after_to_block = get_next_block_in_tree(to_block, block_map, &mut 0)?;
+//     let blocks_after_selection = get_blocks_between(
+//         BlockStructure::Tree, 
+//         block_after_to_block, // from is next block after "to block" in selection
+//         to, // to is last block inside parent of "to block"
+//         block_map, 
+//         new_ids
+//     )?;
+// }
 
 fn replace_inline_blocks_text(
     replace_step: &ReplaceStep,

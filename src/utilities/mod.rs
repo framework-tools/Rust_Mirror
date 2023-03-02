@@ -217,7 +217,7 @@ pub fn get_blocks_between(
     }
 }
 
-fn get_next_block_in_tree(current_node: &StandardBlock, block_map: &BlockMap, depth_from_root: &mut usize) -> Result<StandardBlock, StepError> {
+pub fn get_next_block_in_tree(current_node: &StandardBlock, block_map: &BlockMap, depth_from_root: &mut usize) -> Result<StandardBlock, StepError> {
     if current_node.children.len() > 0 { // has children
         return block_map.get_standard_block(&current_node.children[0])
     } else if current_node.next_sibling(block_map)?.is_some() {
