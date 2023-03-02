@@ -99,11 +99,11 @@ fn move_to_blocks_younger_siblings_after_from_block(
     let siblings_after_to_block = to_block.get_siblings_after(&block_map)?;
     let mut from_parent = from_block.get_parent(&block_map)?;
     let mut from_siblings = from_parent.children()?.clone();
-    if from_parent.is_root() {
+    // if from_parent.is_root() {
         from_siblings.splice(from_block.index(&block_map)? + 1..from_block.index(&block_map)? + 1, siblings_after_to_block);
-    } else {
-        from_siblings.splice(from_block.index(&block_map)? + 1.., siblings_after_to_block);
-    }
+    // } else {
+        // from_siblings.splice(from_block.index(&block_map)? + 1.., siblings_after_to_block);
+    // }
     from_parent.set_children(from_siblings)?;
     from_parent.set_new_parent_of_children(block_map, blocks_to_update)?;
     block_map.update_block(from_parent, blocks_to_update)?;
