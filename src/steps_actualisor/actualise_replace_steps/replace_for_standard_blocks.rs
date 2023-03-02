@@ -1,5 +1,5 @@
 use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, inline_blocks::InlineBlock, Block},
-steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}};
+steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}, utilities::{get_blocks_between, BlockStructure}};
 
 use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_inline_block_text};
 
@@ -56,7 +56,7 @@ pub fn replace_selected_across_standard_blocks(
     let (mut from_block, to_block) = get_deepest_std_blocks_in_selection(&mut replace_step, &block_map)?;
 
     if !to_block.parent_is_root(&block_map) {
-        move_to_blocks_younger_siblings_after_from_block(&from_block, &to_block, &mut block_map, &mut blocks_to_update, all_inside_single_std_block)?;
+        replace_from_block_siblings_after_with_to_block_siblings_after(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
     }
 
     match &replace_step.from.subselection {
@@ -91,25 +91,32 @@ fn get_deepest_std_blocks_in_selection(replace_step: &mut ReplaceStep, block_map
     return Ok((block_map.get_standard_block(&replace_step.from.block_id)?, block_map.get_standard_block(&replace_step.to.block_id)?))
 }
 
-fn move_to_blocks_younger_siblings_after_from_block(
+fn replace_from_block_siblings_after_with_to_block_siblings_after(
     from_block: &StandardBlock,
     to_block: &StandardBlock,
     block_map: &mut BlockMap,
     blocks_to_update: &mut Vec<String>,
-    all_inside_single_std_block: bool
 ) -> Result<(), StepError> {
     let siblings_after_to_block = to_block.get_siblings_after(&block_map)?;
     let mut from_parent = from_block.get_parent(&block_map)?;
     let mut from_siblings = from_parent.children()?.clone();
-    if all_inside_single_std_block {
-        from_siblings.splice(from_block.index(&block_map)? + 1..from_block.index(&block_map)? + 1, siblings_after_to_block);
-    } else {
-        from_siblings.splice(from_block.index(&block_map)? + 1.., siblings_after_to_block);
-    }
+    from_siblings.splice(from_block.index(&block_map)? + 1.., siblings_after_to_block);
     from_parent.set_children(from_siblings)?;
     from_parent.set_new_parent_of_children(block_map, blocks_to_update)?;
     block_map.update_block(from_parent, blocks_to_update)?;
     return Ok(())
+}
+
+fn move_descendant_blocks_in_top_to_std_block_to_root_block(
+
+) {
+    // let blocks_after_selection = get_blocks_between(
+    //     BlockStructure::Tree, 
+    //     from, // from is next block after "to block" in selection
+    //     to, // to is last block inside parent of "to block"
+    //     block_map, 
+    //     new_ids
+    // )?;
 }
 
 fn replace_inline_blocks_text(

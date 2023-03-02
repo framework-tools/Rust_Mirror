@@ -1,5 +1,7 @@
 use std::{collections::HashMap, thread::current};
 
+use serde::__private::de;
+
 use crate::{steps_generator::{selection::SubSelection, StepError}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block, inline_blocks::{InlineBlock, text_block::StringUTF16}}, steps_actualisor::actualise_mark_steps::{actualise_across_std_blocks::split_edge_inline_blocks, create_before_middle_after_blocks_with_new_text_and_mark}, new_ids::NewIds};
 pub mod update_state_tools;
 
@@ -170,30 +172,7 @@ pub fn get_blocks_between(
             break;
         }
 
-        let mut next_node;
-        if current_node.children.len() > 0 { // has children
-            next_node = block_map.get_standard_block(&current_node.children[0])?;
-        } else if current_node.next_sibling(block_map)?.is_some() {
-            next_node = current_node.next_sibling(block_map)?.unwrap();
-        } else {
-            next_node = current_node.clone();
-            loop {
-                match next_node.parents_next_sibling(block_map)? {
-                    Some(parents_sib) => {
-                        next_node = parents_sib;
-                        break;
-                    },
-                    None => {}
-                };
-                next_node = match next_node.get_parent(block_map)? {
-                    Block::StandardBlock(block) => block,
-                    _ => return Err(StepError("No next node but have not yet reached final node".to_string()))
-                };
-            }
-            if current_node.depth_from_root(block_map)? == 0 {
-                depth_from_root = 0;
-            }
-        }
+        let mut next_node = get_next_block_in_tree(&current_node, block_map, &mut depth_from_root)?;
 
         if block_structure == BlockStructure::Tree {
             add_block_and_inline_blocks_to_new_block_map(block_map, &mut new_block_map, current_node.clone())?;
@@ -235,6 +214,33 @@ pub fn get_blocks_between(
     return match block_structure {
         BlockStructure::Tree => Ok(BlocksBetween::Tree(Tree { top_blocks: blocks, block_map: new_block_map })),
         BlockStructure::Flat => Ok(BlocksBetween::Flat(blocks))
+    }
+}
+
+fn get_next_block_in_tree(current_node: &StandardBlock, block_map: &BlockMap, depth_from_root: &mut usize) -> Result<StandardBlock, StepError> {
+    if current_node.children.len() > 0 { // has children
+        return block_map.get_standard_block(&current_node.children[0])
+    } else if current_node.next_sibling(block_map)?.is_some() {
+        return Ok(current_node.next_sibling(block_map)?.unwrap())
+    } else {
+        let mut next_node = current_node.clone();
+        loop {
+            match next_node.parents_next_sibling(block_map)? {
+                Some(parents_sib) => {
+                    next_node = parents_sib;
+                    break;
+                },
+                None => {}
+            };
+            next_node = match next_node.get_parent(block_map)? {
+                Block::StandardBlock(block) => block,
+                _ => return Err(StepError("No next node but have not yet reached final node".to_string()))
+            };
+        }
+        if current_node.depth_from_root(block_map)? < *depth_from_root {
+            *depth_from_root = current_node.depth_from_root(block_map)?;
+        }
+        return Ok(next_node)
     }
 }
 
