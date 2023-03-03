@@ -59,7 +59,6 @@ pub fn replace_selected_across_standard_blocks(
     let highest_from_block = block_map.get_standard_block(&highest_from.block_id)?;
     let highest_to_block = block_map.get_standard_block(&highest_to.block_id)?;
 
-    // TODO: THIS BOOLEAN IS NOT YET FULLY ACCURATE BUT TESTING WITH THIS FOR NOW
     let selection_is_inside_single_std_block = !(
         highest_from_block.parent_is_root(&block_map) && highest_to_block.parent_is_root(&block_map)
         && highest_from_block._id != highest_to_block._id
