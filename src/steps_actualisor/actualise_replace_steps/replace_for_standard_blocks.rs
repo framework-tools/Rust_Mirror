@@ -1,4 +1,4 @@
-use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, inline_blocks::InlineBlock, Block},
+use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock, StandardBlockType}, BlockMap, inline_blocks::InlineBlock, Block},
 steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}, utilities::{get_blocks_between, BlockStructure, get_next_block_in_tree, BlocksBetween, update_state_tools}, new_ids::{self, NewIds}};
 
 use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_inline_block_text};
@@ -51,7 +51,6 @@ pub fn replace_selected_across_standard_blocks(
     if from_block.parent != to_block.parent {
         return Err(StepError("Expected from_block and to_block to have the same parent".to_string()))
     }
-
 
     remove_all_selected_blocks_between_from_and_to(&mut block_map, &replace_step, &mut blocks_to_update, new_ids)?;
     let highest_from = replace_step.from.clone();
@@ -125,9 +124,13 @@ fn remove_all_selected_blocks_between_from_and_to(
     let mut i = 0;
     let len = selected_blocks.len();
     for block in selected_blocks {
-        if i != 0 && i != len - 1 {
-            block.drop(block_map, blocks_to_update)?;
-        }
+        match block.content {
+            StandardBlockType::Layout(_) => {},
+            _ if i != 0 && i != len - 1 => {
+                block.drop(block_map, blocks_to_update)?;
+            },
+            _ => {}
+        };
         i += 1;
     }
     return Ok(())
