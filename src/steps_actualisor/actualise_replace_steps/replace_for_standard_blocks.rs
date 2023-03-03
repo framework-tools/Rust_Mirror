@@ -52,30 +52,46 @@ pub fn replace_selected_across_standard_blocks(
         return Err(StepError("Expected from_block and to_block to have the same parent".to_string()))
     }
 
+
     remove_all_selected_blocks_between_from_and_to(&mut block_map, &replace_step, &mut blocks_to_update, new_ids)?;
     let highest_from = replace_step.from.clone();
     let highest_to = replace_step.to.clone();
+    let highest_from_block = block_map.get_standard_block(&highest_from.block_id)?;
+    let highest_to_block = block_map.get_standard_block(&highest_to.block_id)?;
+
+    // TODO: THIS BOOLEAN IS NOT YET FULLY ACCURATE BUT TESTING WITH THIS FOR NOW
+    let selection_is_inside_single_std_block = !(
+        highest_from_block.parent_is_root(&block_map) && highest_to_block.parent_is_root(&block_map)
+        && highest_from_block._id != highest_to_block._id
+    );
+
     let (from_block, to_block) = get_deepest_std_blocks_in_selection(&mut replace_step, &block_map)?;
-    move_to_block_children_to_from_block(from_block, to_block, &mut block_map, &mut blocks_to_update)?;
-    
+    if !selection_is_inside_single_std_block {
+        move_to_block_children_to_from_block(from_block, to_block, &mut block_map, &mut blocks_to_update)?;
+    }
+
     let from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
     let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
-    
-    if !to_block.parent_is_root(&block_map) {
+
+    if !to_block.parent_is_root(&block_map) && !selection_is_inside_single_std_block {
         move_to_block_siblings_after_from_block(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
     }
     to_block.drop(&mut block_map, &mut blocks_to_update)?;
+    // need to re-get from block as it to_block drop may have removed it from "from" block
+    let from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
 
-    let highest_from_block = block_map.get_standard_block(&highest_from.block_id)?;
-    let highest_from_parent = block_map.get_block(&highest_from_block.parent)?;
-    let highest_to_block = block_map.get_standard_block(&highest_to.block_id)?;
-    update_state_tools::splice_children( // move any remaining children from highest "to" block to root
-        highest_from_parent, 
-        highest_from_block.index(&block_map)? + 1..highest_from_block.index(&block_map)? + 1,
-        highest_to_block.children,
-        &mut blocks_to_update,
-        &mut block_map
-    )?;
+    if !selection_is_inside_single_std_block {
+        let highest_from_block = block_map.get_standard_block(&highest_from.block_id)?;
+        let highest_from_parent = block_map.get_block(&highest_from_block.parent)?;
+        let highest_to_block = block_map.get_standard_block(&highest_to.block_id)?;
+        update_state_tools::splice_children( // move any remaining children from highest "to" block to root
+            highest_from_parent,
+            highest_from_block.index(&block_map)? + 1..highest_from_block.index(&block_map)? + 1,
+            highest_to_block.children,
+            &mut blocks_to_update,
+            &mut block_map
+        )?;
+    }
 
     match &replace_step.from.subselection {
         Some(_) => {
@@ -94,16 +110,16 @@ pub fn replace_selected_across_standard_blocks(
 }
 
 fn remove_all_selected_blocks_between_from_and_to(
-    block_map: &mut BlockMap, 
+    block_map: &mut BlockMap,
     replace_step: &ReplaceStep,
     blocks_to_update: &mut Vec<String>,
     new_ids: &mut NewIds
 ) -> Result<(), StepError> {
     let selected_blocks = match get_blocks_between(
-        BlockStructure::Flat, 
-        &replace_step.from, 
-        &replace_step.to, 
-        block_map, 
+        BlockStructure::Flat,
+        &replace_step.from,
+        &replace_step.to,
+        block_map,
         new_ids
     )? {
         BlocksBetween::Flat(blocks) => blocks,
@@ -138,9 +154,9 @@ fn move_to_block_siblings_after_from_block(
     let from_parent = from_block.get_parent(&block_map)?;
     let from_siblings = from_parent.children()?.clone();
     update_state_tools::splice_children(
-        from_parent, 
-        from_block.index(&block_map)? + 1..from_siblings.len(), 
-        siblings_after_to_block, 
+        from_parent,
+        from_block.index(&block_map)? + 1..from_siblings.len(),
+        siblings_after_to_block,
         blocks_to_update,
         block_map
     )?;
@@ -166,10 +182,10 @@ fn move_to_block_children_to_from_block(
 // ) {
 //     let block_after_to_block = get_next_block_in_tree(to_block, block_map, &mut 0)?;
 //     let blocks_after_selection = get_blocks_between(
-//         BlockStructure::Tree, 
+//         BlockStructure::Tree,
 //         block_after_to_block, // from is next block after "to block" in selection
 //         to, // to is last block inside parent of "to block"
-//         block_map, 
+//         block_map,
 //         new_ids
 //     )?;
 // }

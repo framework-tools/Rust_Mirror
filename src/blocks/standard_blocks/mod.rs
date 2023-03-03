@@ -270,10 +270,10 @@ impl StandardBlock {
         let parent = self.get_parent(block_map)?;
         let len = parent.children()?.len();
         update_state_tools::splice_children(
-            parent, 
-            self.index(block_map)? + 1.. len, 
-            vec![], 
-            blocks_to_update, 
+            parent,
+            self.index(block_map)? + 1.. len,
+            vec![],
+            blocks_to_update,
             block_map
         )?;
         return Ok(())
@@ -377,9 +377,9 @@ impl StandardBlock {
             marks: vec![]
         })
     }
-    
-    /// Removes this block from it's parents children
-    /// This drops this block from the tree hierarchy
+
+    /// Removes this block from it's parent's children.
+    /// This drops this block from the tree hierarchy.
     pub fn drop(
         &self,
         block_map: &mut BlockMap,
@@ -387,10 +387,10 @@ impl StandardBlock {
     ) -> Result<(), StepError>{
         let parent = block_map.get_block(&self.parent)?;
         update_state_tools::splice_children(
-            parent, 
-            self.index(block_map)?..self.index(block_map)? + 1, 
-            vec![], 
-            blocks_to_update, 
+            parent,
+            self.index(block_map)?..self.index(block_map)? + 1,
+            vec![],
+            blocks_to_update,
             block_map
         )?;
         return Ok(())
