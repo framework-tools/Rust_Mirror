@@ -4,7 +4,7 @@ use std::ops::Index;
 use serde_json::json;
 use wasm_bindgen::JsValue;
 
-use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection, selection::SubSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string, step::AddBlockStep, steps_actualisor::clean_block_after_transform};
+use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection, selection::SubSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string, step::AddBlockStep, steps_actualisor::clean_block_after_transform, utilities::update_state_tools};
 
 use self::{content_block::ContentBlock, list_block::ListBlock, page_block::PageBlock, layout_block::LayoutBlock};
 
@@ -363,6 +363,24 @@ impl StandardBlock {
             parent,
             marks: vec![]
         })
+    }
+    
+    /// Removes this block from it's parents children
+    /// This drops this block from the tree hierarchy
+    pub fn drop(
+        &self,
+        block_map: &mut BlockMap,
+        blocks_to_update: &mut Vec<String>
+    ) -> Result<(), StepError>{
+        let parent = block_map.get_block(&self.parent)?;
+        update_state_tools::splice_children(
+            parent, 
+            self.index(block_map)?..self.index(block_map)? + 1, 
+            vec![], 
+            blocks_to_update, 
+            block_map
+        )?;
+        return Ok(())
     }
 }
 

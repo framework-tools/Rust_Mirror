@@ -1,5 +1,5 @@
 use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, inline_blocks::InlineBlock, Block},
-steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}, utilities::{get_blocks_between, BlockStructure, get_next_block_in_tree}};
+steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}, utilities::{get_blocks_between, BlockStructure, get_next_block_in_tree, BlocksBetween}, new_ids::{self, NewIds}};
 
 use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_inline_block_text};
 
@@ -44,15 +44,16 @@ pub fn replace_selected_across_standard_blocks(
     from_block: StandardBlock,
     mut block_map: BlockMap,
     mut replace_step: ReplaceStep,
-    mut blocks_to_update: Vec<String>
+    mut blocks_to_update: Vec<String>,
+    new_ids: &mut NewIds
 ) -> Result<UpdatedState, StepError> {
     let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
     if from_block.parent != to_block.parent {
         return Err(StepError("Expected from_block and to_block to have the same parent".to_string()))
     }
 
-    remove_any_blocks_between_from_and_to_incl_to(&mut block_map, &from_block, &to_block, &mut blocks_to_update)?;
-    let all_inside_single_std_block = replace_step.from.block_id == replace_step.to.block_id;
+    remove_all_selected_blocks_except_from(&mut block_map, &replace_step, &mut blocks_to_update, new_ids)?;
+    println!("got here");
     let (mut from_block, to_block) = get_deepest_std_blocks_in_selection(&mut replace_step, &block_map)?;
 
     if !to_block.parent_is_root(&block_map) {
@@ -78,10 +79,27 @@ pub fn replace_selected_across_standard_blocks(
     }
 }
 
-fn remove_any_blocks_between_from_and_to_incl_to(block_map: &mut BlockMap, from_block: &StandardBlock, to_block: &StandardBlock, mut blocks_to_update: &mut Vec<String>) -> Result<(), StepError> {
-    let mut parent_block = block_map.get_block(&from_block.parent)?;
-    parent_block.splice_children(from_block.index(&block_map)? + 1, to_block.index(&block_map)? + 1, vec![])?;
-    block_map.update_block(parent_block, &mut blocks_to_update)?;
+fn remove_all_selected_blocks_except_from(
+    block_map: &mut BlockMap, 
+    replace_step: &ReplaceStep,
+    blocks_to_update: &mut Vec<String>,
+    new_ids: &mut NewIds
+) -> Result<(), StepError> {
+    let selected_blocks = match get_blocks_between(
+        BlockStructure::Flat, 
+        &replace_step.from, 
+        &replace_step.to, 
+        block_map, 
+        new_ids
+    )? {
+        BlocksBetween::Flat(blocks) => blocks,
+        _ => return Err(StepError("Expected BlocksBetween::Flat".to_string()))
+    };
+    for block in selected_blocks {
+        if block._id != replace_step.from.block_id {
+            block.drop(block_map, blocks_to_update)?;
+        }
+    }
     return Ok(())
 }
 

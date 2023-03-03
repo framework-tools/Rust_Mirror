@@ -84,7 +84,7 @@ pub fn actualise_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewI
     let mut updated_state = UpdatedState::new(block_map);
     for step in steps {
         updated_state = match step {
-            Step::ReplaceStep(replace_step) => actualise_replace_step(replace_step, updated_state.block_map, updated_state.selection, updated_state.blocks_to_update)?,
+            Step::ReplaceStep(replace_step) => actualise_replace_step(replace_step, updated_state.block_map, updated_state.selection, updated_state.blocks_to_update, new_ids)?,
             Step::SplitStep(split_step) => actualise_split_step(split_step, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
             Step::AddMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, true, new_ids, updated_state.blocks_to_update)?,
             Step::RemoveMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, false, new_ids, updated_state.blocks_to_update)?,

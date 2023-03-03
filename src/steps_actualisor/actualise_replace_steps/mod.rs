@@ -1,6 +1,6 @@
 
 
-use crate::{step::{ReplaceStep, ReplaceSlice}, blocks::{BlockMap, Block, inline_blocks::InlineBlock}, steps_generator::{StepError, selection::{Selection, SubSelection}}};
+use crate::{step::{ReplaceStep, ReplaceSlice}, blocks::{BlockMap, Block, inline_blocks::InlineBlock}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::{self, NewIds}};
 
 use self::{replace_for_inline_blocks::replace_selected_across_inline_blocks, replace_for_standard_blocks::replace_selected_across_standard_blocks};
 
@@ -34,12 +34,13 @@ pub fn actualise_replace_step(
     replace_step: ReplaceStep,
     block_map: BlockMap,
     current_updated_selection: Option<Selection>,
-    mut blocks_to_update: Vec<String>
+    mut blocks_to_update: Vec<String>,
+    new_ids: &mut NewIds,
 ) -> Result<UpdatedState, StepError> {
     let from_block = block_map.get_block(&replace_step.from.block_id)?;
     return match from_block {
         Block::InlineBlock(from_block) => replace_selected_across_inline_blocks(from_block, block_map, replace_step, blocks_to_update),
-        Block::StandardBlock(from_block) => replace_selected_across_standard_blocks(from_block, block_map, replace_step, blocks_to_update),
+        Block::StandardBlock(from_block) => replace_selected_across_standard_blocks(from_block, block_map, replace_step, blocks_to_update, new_ids),
         Block::Root(root_block) => replace_selected_across_blocks_children(
             Block::Root(root_block),
             block_map,
@@ -70,7 +71,7 @@ pub fn replace_selected_across_blocks_children(
     to: SubSelection,
     slice: ReplaceSlice,
     current_updated_selection: Option<Selection>,
-    mut blocks_to_update: Vec<String>
+    mut blocks_to_update: Vec<String>,
 ) -> Result<UpdatedState, StepError> {
     let blocks_to_add = match slice {
         ReplaceSlice::Blocks(blocks) => blocks,
