@@ -2021,7 +2021,7 @@ mod tests {
 
     
     #[test]
-    fn test() {
+    fn internal_test1() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
@@ -2175,7 +2175,7 @@ mod tests {
     /// <10/>
 
     #[test]
-    fn test2() {
+    fn external_where_from_is_shallower_than_to() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
     
         let root_block_id = new_ids.get_id().unwrap();
