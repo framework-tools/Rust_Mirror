@@ -266,6 +266,19 @@ impl StandardBlock {
         return Ok(children_after.to_vec())
     }
 
+    pub fn remove_siblings_after(&self, block_map: &mut BlockMap, blocks_to_update: &mut Vec<String>) -> Result<(), StepError> {
+        let parent = self.get_parent(block_map)?;
+        let len = parent.children()?.len();
+        update_state_tools::splice_children(
+            parent, 
+            self.index(block_map)? + 1.. len, 
+            vec![], 
+            blocks_to_update, 
+            block_map
+        )?;
+        return Ok(())
+    }
+
     pub fn parents_next_sibling(&self, block_map: &BlockMap) -> Result<Option<StandardBlock>, StepError> {
         let parent = block_map.get_standard_block(&self.parent)?;
         let grand_parent = parent.get_parent(block_map)?;

@@ -248,14 +248,14 @@ mod tests {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
-        let std_block_id1 = new_ids.get_id().unwrap();
         let inline_block_id1 = new_ids.get_id().unwrap();
-        let std_block_id2 = new_ids.get_id().unwrap();
         let inline_block_id2 = new_ids.get_id().unwrap();
         let inline_block_id3 = new_ids.get_id().unwrap();
-        let std_block_id3 = new_ids.get_id().unwrap();
-        let std_block_id4 = new_ids.get_id().unwrap();
-        let std_block_id5 = new_ids.get_id().unwrap();
+        let std_block_id1 = "1".to_string();
+        let std_block_id2 = "2".to_string();
+        let std_block_id3 = "3".to_string();
+        let std_block_id4 = "4".to_string();
+        let std_block_id5 = "5".to_string();
 
         let inline_block1 = json!({
             "_id": inline_block_id1.clone(),
@@ -606,17 +606,17 @@ mod tests {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
-        let std_block_id1 = new_ids.get_id().unwrap();
         let inline_block_id1 = new_ids.get_id().unwrap();
-        let std_block_id2 = new_ids.get_id().unwrap();
         let inline_block_id2 = new_ids.get_id().unwrap();
         let inline_block_id3 = new_ids.get_id().unwrap();
-        let std_block_id3 = new_ids.get_id().unwrap();
-        let std_block_id4 = new_ids.get_id().unwrap();
-        let std_block_id5 = new_ids.get_id().unwrap();
-        let std_block_id6 = new_ids.get_id().unwrap();
-        let std_block_id7 = new_ids.get_id().unwrap();
-        let std_block_id8 = new_ids.get_id().unwrap();
+        let std_block_id1 = "1".to_string();
+        let std_block_id2 = "2".to_string();
+        let std_block_id3 = "3".to_string();
+        let std_block_id4 = "4".to_string();
+        let std_block_id5 = "5".to_string();
+        let std_block_id6 = "6".to_string();
+        let std_block_id7 = "7".to_string();
+        let std_block_id8 = "8".to_string();
 
         let inline_block1 = json!({
             "_id": inline_block_id1.clone(),
@@ -1145,7 +1145,264 @@ mod tests {
     ///    <3>Hellobye<3/>
     ///    <8/>
     #[test]
-    pub fn testing_from_child_to_child_parents_on_root_layer() {
+    pub fn testing_from_child_to_child_parents_on_root_layer_external() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+    
+        let root_block_id = new_ids.get_id().unwrap();
+        let paragraph_block_id1 = new_ids.get_id().unwrap();
+        let paragraph_block_id2 = new_ids.get_id().unwrap();
+        let paragraph_block_id3 = new_ids.get_id().unwrap();
+        let paragraph_block_id4 = new_ids.get_id().unwrap();
+        let paragraph_block_id5 = new_ids.get_id().unwrap();
+        let paragraph_block_id6 = new_ids.get_id().unwrap();
+        let paragraph_block_id7 = new_ids.get_id().unwrap();
+        let paragraph_block_id8 = new_ids.get_id().unwrap();
+        let inline_block_id1 = new_ids.get_id().unwrap();
+        let inline_block_id2 = new_ids.get_id().unwrap();
+        let inline_block_id3 = new_ids.get_id().unwrap();
+        let inline_block_id4 = new_ids.get_id().unwrap();
+        let inline_block_id5 = new_ids.get_id().unwrap();
+        let inline_block_id6 = new_ids.get_id().unwrap();
+        let inline_block_id7 = new_ids.get_id().unwrap();
+        let inline_block_id8 = new_ids.get_id().unwrap();
+
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": ""
+            },
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": ""
+            },
+            "marks": [],
+            "parent": paragraph_block_id2.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello World"
+            },
+            "marks": [],
+            "parent": paragraph_block_id3.clone()
+        });
+        let inline_block4 = json!({
+            "_id": inline_block_id4.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": ""
+            },
+            "marks": [],
+            "parent": paragraph_block_id4.clone()
+        });
+        let inline_block5 = json!({
+            "_id": inline_block_id5.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": ""
+            },
+            "marks": [],
+            "parent": paragraph_block_id5.clone()
+        });
+        let inline_block6 = json!({
+            "_id": inline_block_id6.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": ""
+            },
+            "marks": [],
+            "parent": paragraph_block_id6.clone()
+        });
+        let inline_block7 = json!({
+            "_id": inline_block_id7.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Goodbye"
+            },
+            "marks": [],
+            "parent": paragraph_block_id7.clone()
+        });
+        let inline_block8 = json!({
+            "_id": inline_block_id8.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": ""
+            },
+            "marks": [],
+            "parent": paragraph_block_id8.clone()
+        });
+        let paragraph_block1 = json!({
+            "_id": paragraph_block_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [paragraph_block_id2.clone(), paragraph_block_id3.clone(), paragraph_block_id4.clone()],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let paragraph_block2 = json!({
+            "_id": paragraph_block_id2.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let paragraph_block3 = json!({
+            "_id": paragraph_block_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id3.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let paragraph_block4 = json!({
+            "_id": paragraph_block_id4.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id4.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let paragraph_block5 = json!({
+            "_id": paragraph_block_id5.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id5.clone()]
+            },
+            "children": [paragraph_block_id6.clone(), paragraph_block_id7.clone(), paragraph_block_id8.clone()],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let paragraph_block6 = json!({
+            "_id": paragraph_block_id6.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id6.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id5.clone()
+        });
+        let paragraph_block7 = json!({
+            "_id": paragraph_block_id7.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id7.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id5.clone()
+        });
+        let paragraph_block8 = json!({
+            "_id": paragraph_block_id8.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id8.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id5.clone()
+        });
+
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id1.clone(), paragraph_block_id5.clone()]);
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), inline_block4.to_string(),
+            inline_block5.to_string(), inline_block6.to_string(), inline_block7.to_string(), inline_block8.to_string(),
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), 
+            paragraph_block4.to_string(),paragraph_block5.to_string(), paragraph_block6.to_string(), 
+            paragraph_block7.to_string(), paragraph_block8.to_string(), root_block.to_string()
+        ]).unwrap();
+        let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
+        let selection = Selection {
+            anchor: SubSelection {
+                block_id: paragraph_block_id1.clone(),
+                offset: 0,
+                subselection: Some(Box::new(SubSelection {
+                    block_id: paragraph_block_id3.clone(),
+                    offset: 0,
+                    subselection: Some(Box::new(SubSelection {
+                        block_id: inline_block_id3.clone(),
+                        offset: 5,
+                        subselection: None,
+                    }))
+                }))},
+            head: SubSelection {
+            block_id: paragraph_block_id5.clone(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection {
+                block_id: paragraph_block_id7.clone(),
+                offset: 0,
+                subselection: Some(Box::new(SubSelection {
+                    block_id: inline_block_id7.clone(),
+                    offset: 4,
+                    subselection: None,
+                }))
+            }))},
+        };
+
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
+
+        let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
+        assert_eq!(updated_root_block.children, vec![paragraph_block_id1.clone()]);
+
+        let updated_paragraph_block1 = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
+        assert_eq!(updated_paragraph_block1.children, vec![paragraph_block_id2.clone(), paragraph_block_id3.clone(), paragraph_block_id8.clone()]);
+
+    }
+
+    /// Input:
+    /// <1></1>
+    ///     <2/>
+    ///     <3>Hello| World<3/> selection starts here
+    ///     <4/>
+    /// <5/>
+    ///     <6/>
+    ///         <7>Good|bye<7/> ends here
+    ///             <8/>
+    ///         <9/>
+    ///     <10/>
+    /// 
+    /// Output:
+    /// <1></1>
+    ///    <2/>
+    ///    <3>Hellobye<3/>
+    ///        <8/>
+    ///   <9/>
+    /// <10/>
+    #[test]
+    pub fn testing_from_child_to_child_where_from_is_shallow_than_to_external() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
     
         let root_block_id = new_ids.get_id().unwrap();
