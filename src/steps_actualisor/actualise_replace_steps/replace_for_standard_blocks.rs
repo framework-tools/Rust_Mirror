@@ -66,9 +66,7 @@ pub fn replace_selected_across_standard_blocks(
     );
 
     let (mut from_block, to_block) = get_deepest_std_blocks_in_selection(&mut replace_step, &block_map)?;
-    // if !selection_is_inside_single_std_block {
-        move_to_block_children_to_from_block(&mut from_block, to_block, &mut block_map, &mut blocks_to_update)?;
-    // }
+    move_to_block_children_to_from_block(&mut from_block, to_block, &mut block_map, &mut blocks_to_update)?;
 
     let from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
     let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
