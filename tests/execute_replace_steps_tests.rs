@@ -1138,7 +1138,7 @@ mod tests {
     ///     <6/>
     ///     <7>Good|bye<7/>
     ///     <8/>
-    /// 
+    ///
     /// Output:
     /// <1></1>
     ///    <2/>
@@ -1147,7 +1147,7 @@ mod tests {
     #[test]
     pub fn testing_from_child_to_child_parents_on_root_layer_external() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
-    
+
         let root_block_id = new_ids.get_id().unwrap();
         let paragraph_block_id1 = new_ids.get_id().unwrap();
         let paragraph_block_id2 = new_ids.get_id().unwrap();
@@ -1339,8 +1339,8 @@ mod tests {
         let block_map = BlockMap::from(vec![
             inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), inline_block4.to_string(),
             inline_block5.to_string(), inline_block6.to_string(), inline_block7.to_string(), inline_block8.to_string(),
-            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), 
-            paragraph_block4.to_string(),paragraph_block5.to_string(), paragraph_block6.to_string(), 
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(),
+            paragraph_block4.to_string(),paragraph_block5.to_string(), paragraph_block6.to_string(),
             paragraph_block7.to_string(), paragraph_block8.to_string(), root_block.to_string()
         ]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
@@ -1393,7 +1393,7 @@ mod tests {
     ///             <8/>
     ///         <9/>
     ///     <10/>
-    /// 
+    ///
     /// Output:
     /// <1></1>
     ///    <2/>
@@ -1404,7 +1404,7 @@ mod tests {
     #[test]
     pub fn testing_from_child_to_child_where_from_is_shallow_than_to_external() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
-    
+
         let root_block_id = new_ids.get_id().unwrap();
         let paragraph_block_id1 = "1".to_string();
         let paragraph_block_id2 = "2".to_string();
@@ -1643,9 +1643,9 @@ mod tests {
             inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), inline_block4.to_string(),
             inline_block5.to_string(), inline_block6.to_string(), inline_block7.to_string(), inline_block8.to_string(),
             inline_block9.to_string(), inline_block10.to_string(),
-            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), 
-            paragraph_block4.to_string(),paragraph_block5.to_string(), paragraph_block6.to_string(), 
-            paragraph_block7.to_string(), paragraph_block8.to_string(),paragraph_block9.to_string(), 
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(),
+            paragraph_block4.to_string(),paragraph_block5.to_string(), paragraph_block6.to_string(),
+            paragraph_block7.to_string(), paragraph_block8.to_string(),paragraph_block9.to_string(),
             paragraph_block10.to_string(), root_block.to_string()
         ]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
@@ -1705,7 +1705,7 @@ mod tests {
     ///             <8/>
     ///         <9/>
     ///     <10/>
-    /// 
+    ///
     /// Output:
     /// <1></1>
     ///    <2/>
@@ -1717,7 +1717,7 @@ mod tests {
     #[test]
     pub fn testing_from_child_to_child_where_from_is_deeper_than_to_external() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
-    
+
         let root_block_id = new_ids.get_id().unwrap();
         let paragraph_block_id1 = "1".to_string();
         let paragraph_block_id2 = "2".to_string();
@@ -1956,9 +1956,9 @@ mod tests {
             inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), inline_block4.to_string(),
             inline_block5.to_string(), inline_block6.to_string(), inline_block7.to_string(), inline_block8.to_string(),
             inline_block9.to_string(), inline_block10.to_string(),
-            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), 
-            paragraph_block4.to_string(),paragraph_block5.to_string(), paragraph_block6.to_string(), 
-            paragraph_block7.to_string(), paragraph_block8.to_string(),paragraph_block9.to_string(), 
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(),
+            paragraph_block4.to_string(),paragraph_block5.to_string(), paragraph_block6.to_string(),
+            paragraph_block7.to_string(), paragraph_block8.to_string(),paragraph_block9.to_string(),
             paragraph_block10.to_string(), root_block.to_string()
         ]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
@@ -2003,7 +2003,7 @@ mod tests {
 
         let updated_paragraph_block3 = updated_state.block_map.get_standard_block(&paragraph_block_id3).unwrap();
         assert_eq!(updated_paragraph_block3.children, vec![paragraph_block_id7.clone(), paragraph_block_id9.clone()]);
-    
+
         let updated_paragraph_block7 = updated_state.block_map.get_standard_block(&paragraph_block_id7).unwrap();
         assert_eq!(updated_paragraph_block7.children, vec![paragraph_block_id8.clone()]);
 
@@ -2014,12 +2014,12 @@ mod tests {
     ///     <2/>
     ///     <3>Hello| World<3/>
     ///     <4/>
-    /// 
+    ///
     /// Output:
     /// <1>Hello World</1>
     ///    <4/>
 
-    
+
     #[test]
     fn internal_test1() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
@@ -2122,7 +2122,7 @@ mod tests {
         let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id1.clone()]);
         let block_map = BlockMap::from(vec![
             inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), inline_block4.to_string(),
-            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), 
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(),
             paragraph_block4.to_string(), root_block.to_string()
         ]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
@@ -2167,7 +2167,7 @@ mod tests {
     ///         <8/> selection ends inside here
     ///    <9/>
     ///    <10/>
-    /// 
+    ///
     /// Output:
     /// <1></1>
     ///     <2/>
@@ -2177,7 +2177,7 @@ mod tests {
     #[test]
     fn external_where_from_is_shallower_than_to() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
-    
+
         let root_block_id = new_ids.get_id().unwrap();
         let paragraph_block_id1 = new_ids.get_id().unwrap();
         let paragraph_block_id2 = new_ids.get_id().unwrap();
@@ -2416,9 +2416,9 @@ mod tests {
             inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), inline_block4.to_string(),
             inline_block5.to_string(), inline_block6.to_string(), inline_block7.to_string(), inline_block8.to_string(),
             inline_block9.to_string(), inline_block10.to_string(),
-            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(), 
-            paragraph_block4.to_string(),paragraph_block5.to_string(), paragraph_block6.to_string(), 
-            paragraph_block7.to_string(), paragraph_block8.to_string(), paragraph_block9.to_string(), 
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(),
+            paragraph_block4.to_string(),paragraph_block5.to_string(), paragraph_block6.to_string(),
+            paragraph_block7.to_string(), paragraph_block8.to_string(), paragraph_block9.to_string(),
             paragraph_block10.to_string(), root_block.to_string()
         ]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));

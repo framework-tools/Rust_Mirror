@@ -65,10 +65,10 @@ pub fn replace_selected_across_standard_blocks(
         && highest_from_block._id != highest_to_block._id
     );
 
-    let (from_block, to_block) = get_deepest_std_blocks_in_selection(&mut replace_step, &block_map)?;
-    if !selection_is_inside_single_std_block {
-        move_to_block_children_to_from_block(from_block, to_block, &mut block_map, &mut blocks_to_update)?;
-    }
+    let (mut from_block, to_block) = get_deepest_std_blocks_in_selection(&mut replace_step, &block_map)?;
+    // if !selection_is_inside_single_std_block {
+        move_to_block_children_to_from_block(&mut from_block, to_block, &mut block_map, &mut blocks_to_update)?;
+    // }
 
     let from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
     let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
@@ -164,15 +164,21 @@ fn move_to_block_siblings_after_from_block(
 }
 
 fn move_to_block_children_to_from_block(
-    mut from_block: StandardBlock,
+    mut from_block: &mut StandardBlock,
     mut to_block: StandardBlock,
     block_map: &mut BlockMap,
     blocks_to_update: &mut Vec<String>,
 ) -> Result<(), StepError> {
-    from_block.children = to_block.children.clone();
+    update_state_tools::splice_children_on_std_block(
+        from_block,
+        0..0,
+        to_block.children,
+        blocks_to_update,
+        block_map
+    )?;
     from_block.set_new_parent_of_children(block_map, blocks_to_update)?;
     to_block.children = vec![];
-    block_map.update_blocks(vec![Block::StandardBlock(to_block), Block::StandardBlock(from_block)], blocks_to_update)?;
+    block_map.update_blocks(vec![Block::StandardBlock(to_block)], blocks_to_update)?;
     return Ok(())
 }
 
