@@ -422,7 +422,11 @@ mod tests {
         assert_eq!(updated_column2.children.len(), 0);
 
     }
-    /// <LayoutBlock> <Column><p1/><p2/></Column> <Column><p1/><p2/></Column> </LayoutBlock>
+    /// * = selection start or end
+    /// Input:
+    /// <LayoutBlock> <C1></p1></p2></C1> <C2></p3*></p4></C2> <C3></p5></p6></C3> <C4></p7*></p8></C4> </LayoutBlock>
+    /// Output:
+    /// <LayoutBlock> <C1></p1></p2></C1> <C2></p3></C2> <C3></C3> <C4><</p8></C4> </LayoutBlock>
     #[test]
     fn can_handle_editing_across_3_layout_columns_with_4_total_layout_columns() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
@@ -677,9 +681,9 @@ mod tests {
         let root_block = RootBlock::json_from(root_block_id.clone(), vec![layout_block_id.clone()]).to_string();
 
         let block_map = BlockMap::from(vec![
-            inline_block1, inline_block2, inline_block3, inline_block4, inline_block5, inline_block6,
-            paragraph1, paragraph2, paragraph3, paragraph4, paragraph5, paragraph6,
-            layout_block, layout_column1, layout_column2, layout_column3, root_block,
+            inline_block1, inline_block2, inline_block3, inline_block4, inline_block5, inline_block6, inline_block7, inline_block8,
+            paragraph1, paragraph2, paragraph3, paragraph4, paragraph5, paragraph6, paragraph7, paragraph8,
+            layout_block, layout_column1, layout_column2, layout_column3, layout_column4, root_block,
         ]).unwrap();
         let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
         let anchor = SubSelection {
@@ -706,16 +710,18 @@ mod tests {
         let steps = generate_steps(&event, &block_map, selection).unwrap();
         let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
-        // let updated_column1 = updated_state.block_map.get_standard_block(&layout_column_id1).unwrap();
-        // assert_eq!(updated_column1.children, vec![paragraph_block_id1.clone(), paragraph_block_id2.clone()]);
+        let updated_column1 = updated_state.block_map.get_standard_block(&layout_column_id1).unwrap();
+        assert_eq!(updated_column1.children, vec![paragraph_block_id1.clone(), paragraph_block_id2.clone()]);
 
-        // let updated_inline1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
-        // assert_eq!(updated_inline1.text().unwrap().clone().to_string(), "heodbye".to_string());
 
-        // let updated_column2 = updated_state.block_map.get_standard_block(&layout_column_id2).unwrap();
-        // assert_eq!(updated_column2.children.len(), 0);
-        // let updated_column3 = updated_state.block_map.get_standard_block(&layout_column_id3).unwrap();
-        // assert_eq!(updated_column3.children.len(), 2);
+        let updated_column2 = updated_state.block_map.get_standard_block(&layout_column_id2).unwrap();
+        assert_eq!(updated_column2.children, vec![paragraph_block_id3.clone()]);
+
+        let updated_column3 = updated_state.block_map.get_standard_block(&layout_column_id3).unwrap();
+        assert_eq!(updated_column3.children.len(), 0);
+
+        let updated_column4 = updated_state.block_map.get_standard_block(&layout_column_id4).unwrap();
+        assert_eq!(updated_column4.children, vec![paragraph_block_id8]);
     }
 
     // TODO:
