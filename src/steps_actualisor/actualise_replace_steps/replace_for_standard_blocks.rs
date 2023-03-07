@@ -1,4 +1,4 @@
-use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock, StandardBlockType}, BlockMap, inline_blocks::InlineBlock, Block},
+use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock, StandardBlockType, layout_block::LayoutBlock}, BlockMap, inline_blocks::InlineBlock, Block},
 steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}, utilities::{get_blocks_between, BlockStructure, get_next_block_in_tree, BlocksBetween, update_state_tools}, new_ids::{self, NewIds}};
 
 use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_inline_block_text};
@@ -70,7 +70,15 @@ pub fn replace_selected_across_standard_blocks(
     let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
 
     if !to_block.parent_is_root(&block_map) && !selection_is_inside_single_std_block {
-        move_to_block_siblings_after_from_block(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
+        let to_block_parent = to_block.get_parent(&block_map)?;
+        let parent_is_layout_block = match to_block_parent {
+            Block::StandardBlock(StandardBlock { content: StandardBlockType::Layout(_), .. }) => true,
+            _ => false
+        };
+
+        if !parent_is_layout_block {
+            move_to_block_siblings_after_from_block(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
+        }
     }
     to_block.drop(&mut block_map, &mut blocks_to_update)?;
     // need to re-get from block as it to_block drop may have removed it from "from" block
@@ -80,13 +88,17 @@ pub fn replace_selected_across_standard_blocks(
         let highest_from_block = block_map.get_standard_block(&highest_from.block_id)?;
         let highest_from_parent = block_map.get_block(&highest_from_block.parent)?;
         let highest_to_block = block_map.get_standard_block(&highest_to.block_id)?;
-        update_state_tools::splice_children( // move any remaining children from highest "to" block to root
-            highest_from_parent,
-            highest_from_block.index(&block_map)? + 1..highest_from_block.index(&block_map)? + 1,
-            highest_to_block.children,
-            &mut blocks_to_update,
-            &mut block_map
-        )?;
+
+        let one_of_highest_blocks_is_a_layout_block = highest_from_block.is_horizontal_layout() || highest_to_block.is_horizontal_layout();
+        if !one_of_highest_blocks_is_a_layout_block {
+            update_state_tools::splice_children( // move any remaining children from highest "to" block to root
+                highest_from_parent,
+                highest_from_block.index(&block_map)? + 1..highest_from_block.index(&block_map)? + 1,
+                highest_to_block.children,
+                &mut blocks_to_update,
+                &mut block_map
+            )?;
+        }
     }
 
     match &replace_step.from.subselection {
@@ -164,7 +176,7 @@ fn move_to_block_siblings_after_from_block(
 }
 
 fn move_to_block_children_to_from_block(
-    mut from_block: &mut StandardBlock,
+    from_block: &mut StandardBlock,
     mut to_block: StandardBlock,
     block_map: &mut BlockMap,
     blocks_to_update: &mut Vec<String>,

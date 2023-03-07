@@ -395,6 +395,13 @@ impl StandardBlock {
         )?;
         return Ok(())
     }
+
+    pub fn is_horizontal_layout(&self) -> bool {
+        return match &self.content {
+            StandardBlockType::Layout(LayoutBlock { horizontal: true }) => true,
+            _ => false
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
