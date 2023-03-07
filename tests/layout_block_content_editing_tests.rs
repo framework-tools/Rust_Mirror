@@ -245,7 +245,11 @@ mod tests {
         assert_eq!(updated_column3.children, vec![paragraph_block_id5.clone(), paragraph_block_id6.clone()]);
     }
 
-    /// <LayoutBlock> <Column><p1/><p2/></Column> <Column><p1/><p2/></Column> </LayoutBlock>
+    /// * = selection start or end
+    /// Input:
+    /// <LayoutBlock> <C1><p1*/><p2/></C1> <C2><p3*/><p4/></C2> </LayoutBlock>
+    /// Output:
+    /// <LayoutBlock> <C1></p1></C1> <C2></p4></C2> </LayoutBlock>
     #[test]
     fn can_handle_editing_across_2_layout_columns_with_only_2_layout_columns() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
@@ -413,15 +417,13 @@ mod tests {
         let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_column1 = updated_state.block_map.get_standard_block(&layout_column_id1).unwrap();
-        assert_eq!(updated_column1.children, vec![paragraph_block_id1.clone(), paragraph_block_id4.clone()]);
-
-        let updated_inline1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
-        assert_eq!(updated_inline1.text().unwrap().clone().to_string(), "heodbye".to_string());
+        assert_eq!(updated_column1.children, vec![paragraph_block_id1.clone()]);
 
         let updated_column2 = updated_state.block_map.get_standard_block(&layout_column_id2).unwrap();
-        assert_eq!(updated_column2.children.len(), 0);
+        assert_eq!(updated_column2.children, vec![paragraph_block_id4.clone()]);
 
     }
+
     /// * = selection start or end
     /// Input:
     /// <LayoutBlock> <C1></p1></p2></C1> <C2></p3*></p4></C2> <C3></p5></p6></C3> <C4></p7*></p8></C4> </LayoutBlock>
