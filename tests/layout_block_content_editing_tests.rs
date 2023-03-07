@@ -3,8 +3,13 @@ mod tests {
     use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap}, steps_generator::{event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps}, steps_actualisor::actualise_steps, custom_copy::CustomCopy};
     use serde_json::json;
 
+    /// * = selection start or end
+    /// Input:
+    /// <LayoutBlock> <C1></p1*></p2></C1> <C2></p3*></p4></C2> <C3></p5></p6></C3> </LayoutBlock>
+    /// Output:
+    /// <LayoutBlock> <C1></p1></C1> <C2></p4></C2> <C3></p5></p6></C3> </LayoutBlock>
     #[test]
-    fn can_handle_editing_across_2_layout_columns_with_3_layout_columns() {
+    fn can_handle_editing_selection_across_2_layout_columns_with_total_3_layout_columns() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let inline_block_id1 = "Inline1".to_string();
@@ -229,15 +234,15 @@ mod tests {
         let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_column1 = updated_state.block_map.get_standard_block(&layout_column_id1).unwrap();
-        assert_eq!(updated_column1.children, vec![paragraph_block_id1.clone(), paragraph_block_id4.clone()]);
+        assert_eq!(updated_column1.children, vec![paragraph_block_id1.clone()]);
 
         let updated_inline1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
         assert_eq!(updated_inline1.text().unwrap().clone().to_string(), "heodbye".to_string());
 
         let updated_column2 = updated_state.block_map.get_standard_block(&layout_column_id2).unwrap();
-        assert_eq!(updated_column2.children.len(), 0);
+        assert_eq!(updated_column2.children, vec![paragraph_block_id4.clone()]);
         let updated_column3 = updated_state.block_map.get_standard_block(&layout_column_id3).unwrap();
-        assert_eq!(updated_column3.children.len(), 2);
+        assert_eq!(updated_column3.children, vec![paragraph_block_id5.clone(), paragraph_block_id6.clone()]);
     }
 
     /// <LayoutBlock> <Column><p1/><p2/></Column> <Column><p1/><p2/></Column> </LayoutBlock>
@@ -712,4 +717,9 @@ mod tests {
         // let updated_column3 = updated_state.block_map.get_standard_block(&layout_column_id3).unwrap();
         // assert_eq!(updated_column3.children.len(), 2);
     }
+
+    // TODO:
+    // layout block entirely selected
+    // partial selection with external block above
+    // partial selection with external block below
 }
