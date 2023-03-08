@@ -50,15 +50,18 @@ pub fn generate_slash_scrim_steps(
     if replace_slash_scrim_text_step.is_some() {
         let replace_step = replace_slash_scrim_text_step.unwrap();
         if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? && new_block_type.has_content() {
+            return Ok(vec![
+                Step::ReplaceStep(replace_step),
+                Step::TurnInto(TurnInto {
+                    block_id: nearest_standard_block.id(),
+                    new_block_type
+                })
+            ])
+        } else if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? {
+            steps.push(Step::DeleteBlock(nearest_standard_block.id()));
+        } else {
             steps.push(Step::ReplaceStep(replace_step));
-            steps.push(Step::TurnInto(TurnInto {
-                block_id: nearest_standard_block.id(),
-                new_block_type: new_block_type
-            }));
-            return Ok(steps)
         }
-
-        steps.push(Step::ReplaceStep(replace_step));
     }
 
     let add_paragraph_block_below_new_block = !new_block_type.has_content();
