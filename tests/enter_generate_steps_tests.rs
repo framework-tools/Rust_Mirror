@@ -3,7 +3,7 @@ mod tests {
     use rust_mirror::{blocks::{BlockMap, Block, standard_blocks::StandardBlockType,
         inline_blocks::{InlineBlockType, text_block::TextBlock}, RootBlock},
         steps_generator::{event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps, StepError},
-        step::{Step, ReplaceStep, ReplaceSlice, SplitStep}, mark::Mark, new_ids::NewIds};
+        step::{Step, ReplaceStep, ReplaceSlice, SplitStep, AddBlockStep}, mark::Mark, new_ids::NewIds};
 
     use serde_json::json;
 
@@ -371,6 +371,66 @@ mod tests {
                 assert_eq!(split_step.subselection, SubSelection::from(inline_block_id1.clone(), 1, None));
             },
             _ => panic!("Expected Split step")
+        };
+        return Ok(())
+    }
+
+    #[test]
+    fn enter_at_start_of_block_edge_case_should_add_paragraph_block_above() -> Result<(), StepError> {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let inline_block_id1 = new_ids.get_id()?;
+        let paragraph_block_id1 = new_ids.get_id()?;
+        let root_block_id = new_ids.get_id()?;
+
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello World"
+            },
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let paragraph_block1 = json!({
+            "_id": paragraph_block_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![
+            paragraph_block_id1.clone(),
+        ]);
+
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(),
+            paragraph_block1.to_string(),
+            root_block.to_string()
+        ]).unwrap();
+
+        let event = Event::KeyPress(KeyPress::new(Key::Enter, None));
+        let sub_selection = SubSelection::from(inline_block_id1.clone(), 0, None);
+        let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
+
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
+
+        assert_eq!(steps.len(), 1);
+        match &steps[0] {
+            Step::AddBlock(AddBlockStep { block_id, child_offset, block_type  }) => {
+                assert_eq!(*block_id, root_block_id.clone());
+                assert_eq!(*child_offset, 0);
+                match block_type {
+                    StandardBlockType::Paragraph(_) => {},
+                    _ => panic!("Expected block type to be paragraph")
+                }
+            },
+            _ => panic!("Expected AddBlock step")
         };
         return Ok(())
     }

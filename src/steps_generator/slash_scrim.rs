@@ -27,7 +27,7 @@ pub fn generate_slash_scrim_steps(
                 });
             }
         },
-        Block::StandardBlock(std_block) => {},
+        Block::StandardBlock(_) => {},
         Block::Root(_) => return Err(StepError("Cannot perform slash scrim event directly on root block".to_string()))
     }
 

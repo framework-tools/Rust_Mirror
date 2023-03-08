@@ -942,6 +942,7 @@ mod tests {
         let updated_column2 = updated_state.block_map.get_standard_block(&layout_column_id2).unwrap();
         assert_eq!(updated_column2.children, vec![paragraph_block_id3.clone(), paragraph_block_id4.clone()]);
     }
+
     /// * = selection start or end
     /// Input:
     /// <p5*/>
