@@ -31,10 +31,21 @@ pub fn actualise_add_block(
             let mut new_inline_block = InlineBlock::new(new_ids, new_std_block_id.clone())?;
             new_inline_block._id = new_inline_block_id.clone();
             block_map.update_block(Block::InlineBlock(new_inline_block), &mut blocks_to_update)?;
-            selection = Some(Selection {
-                anchor: SubSelection { block_id: new_inline_block_id.clone(), offset: 0, subselection: None },
-                head: SubSelection { block_id: new_inline_block_id.clone(), offset: 0, subselection: None },
-            });
+
+            if add_block_step.focus_block_below {
+                let focus_std_block = block_map.get_standard_block(&parent.get_child_from_index(add_block_step.child_offset)?)?;
+                let inline_block_id = focus_std_block.get_inline_block_from_index(0)?;
+                selection = Some(Selection {
+                    anchor: SubSelection { block_id: inline_block_id.clone(), offset: 0, subselection: None },
+                    head: SubSelection { block_id: inline_block_id.clone(), offset: 0, subselection: None },
+                });
+            } else {
+                selection = Some(Selection {
+                    anchor: SubSelection { block_id: new_inline_block_id.clone(), offset: 0, subselection: None },
+                    head: SubSelection { block_id: new_inline_block_id.clone(), offset: 0, subselection: None },
+                });
+            }
+
             add_block_step.block_type.update_block_content(ContentBlock { inline_blocks: vec![new_inline_block_id.clone()] })?
         },
         false => add_block_step.block_type,

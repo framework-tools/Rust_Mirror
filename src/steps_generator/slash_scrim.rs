@@ -66,13 +66,15 @@ pub fn generate_slash_scrim_steps(
     steps.push(Step::AddBlock(AddBlockStep {
         block_id: nearest_standard_block.parent.clone(),
         child_offset: nearest_standard_block.index(block_map)? + 1,
-        block_type: new_block_type
+        block_type: new_block_type,
+        focus_block_below: false
     }));
     if add_paragraph_block_below_new_block {
         steps.push(Step::AddBlock(AddBlockStep {
             block_id: nearest_standard_block.parent.clone(),
             child_offset: nearest_standard_block.index(block_map)? + 2,
-            block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![]))
+            block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![])),
+            focus_block_below: false
         }));
     }
 

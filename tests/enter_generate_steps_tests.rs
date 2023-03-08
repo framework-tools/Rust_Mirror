@@ -422,9 +422,15 @@ mod tests {
 
         assert_eq!(steps.len(), 1);
         match &steps[0] {
-            Step::AddBlock(AddBlockStep { block_id, child_offset, block_type  }) => {
+            Step::AddBlock(AddBlockStep {
+                block_id,
+                child_offset,
+                block_type,
+                focus_block_below
+            }) => {
                 assert_eq!(*block_id, root_block_id.clone());
                 assert_eq!(*child_offset, 0);
+                assert_eq!(*focus_block_below, true);
                 match block_type {
                     StandardBlockType::Paragraph(_) => {},
                     _ => panic!("Expected block type to be paragraph")

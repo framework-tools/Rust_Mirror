@@ -19,7 +19,8 @@ pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: Su
             Step::AddBlock(AddBlockStep {
                 block_id: parent.id(),
                 child_offset: std_block.index(block_map)?,
-                block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![]))
+                block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![])),
+                focus_block_below: true
             })
         ])
     } else {
