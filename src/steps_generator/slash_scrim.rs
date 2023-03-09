@@ -47,6 +47,7 @@ pub fn generate_slash_scrim_steps(
 
     let mut steps = vec![];
     let nearest_standard_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
+    let mut block_is_being_replaced = false;
     if replace_slash_scrim_text_step.is_some() {
         let replace_step = replace_slash_scrim_text_step.unwrap();
         if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? && new_block_type.has_content() {
@@ -59,6 +60,7 @@ pub fn generate_slash_scrim_steps(
             ])
         } else if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? {
             steps.push(Step::DeleteBlock(nearest_standard_block.id()));
+            block_is_being_replaced = true;
         } else {
             steps.push(Step::ReplaceStep(replace_step));
         }
@@ -66,16 +68,20 @@ pub fn generate_slash_scrim_steps(
 
     let add_paragraph_block_below_new_block = !new_block_type.has_content();
 
+    let mut offset_to_add_at = nearest_standard_block.index(block_map)?;
+    if !block_is_being_replaced {
+        offset_to_add_at += 1;
+    }
     steps.push(Step::AddBlock(AddBlockStep {
         block_id: nearest_standard_block.parent.clone(),
-        child_offset: nearest_standard_block.index(block_map)? + 1,
+        child_offset: offset_to_add_at,
         block_type: new_block_type,
         focus_block_below: false
     }));
     if add_paragraph_block_below_new_block {
         steps.push(Step::AddBlock(AddBlockStep {
             block_id: nearest_standard_block.parent.clone(),
-            child_offset: nearest_standard_block.index(block_map)? + 2,
+            child_offset: offset_to_add_at + 1,
             block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![])),
             focus_block_below: false
         }));
