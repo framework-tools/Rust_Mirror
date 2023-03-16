@@ -18,7 +18,7 @@ pub fn generate_steps_for_backspace(
                         } else {
                             let block_above_no_content = match std_block.get_previous(block_map)? {
                                 Some(block) => !block.has_content(),
-                                None => false
+                                None => true
                             };
                             if block_above_no_content {
                                 return Ok(vec![])
@@ -26,7 +26,6 @@ pub fn generate_steps_for_backspace(
                             return caret_at_start_of_parent_block_steps(from_block, block_map)
                         }
                     } else { // caret at start of inline block that is not the first inline in it's parent
-                        let from_block = block_map.get_inline_block(&from.block_id)?;
                         let previous_inline_block = from_block.previous_block(block_map)?;
                         from = SubSelection {
                             block_id: previous_inline_block.id(),

@@ -138,6 +138,12 @@ impl InlineBlock {
         let new_block = self.clone().to_new_block(new_ids)?.update_text(second_half)?;
         return Ok((self, new_block))
     }
+
+    pub fn is_last_inline_block(&self, block_map: &BlockMap) -> Result<bool, StepError> {
+        let parent_block = self.get_parent(block_map)?;
+        let index = parent_block.index_of(&self._id)?;
+        return Ok(index == parent_block.content_block()?.inline_blocks.len() - 1)
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
