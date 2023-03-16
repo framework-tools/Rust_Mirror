@@ -1,4 +1,6 @@
-use crate::{blocks::{BlockMap, Block}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps}, step::Step};
+use crate::{blocks::{BlockMap, Block, inline_blocks::InlineBlock}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps}, step::Step};
+
+use super::backspace::generate_steps_for_backspace;
 
 pub fn generate_steps_for_delete(
     block_map: &BlockMap,
@@ -24,8 +26,7 @@ pub fn generate_steps_for_delete(
                         offset: 0,
                         subselection: None
                     };
-                    from = new_subselection.clone();
-                    to = new_subselection;
+                    return generate_steps_for_backspace(block_map, new_subselection.clone(), new_subselection)
                 } else { // caret at end of inline block that is not the last inline in it's parent
                     let next_inline_block = from_block.next_block(block_map)?;
                     from = SubSelection {
@@ -45,4 +46,3 @@ pub fn generate_steps_for_delete(
         Block::Root(_) => return Err(StepError("Cannot perform a delete operation on a root block".to_string()))
     }
 }
-
