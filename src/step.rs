@@ -62,7 +62,8 @@ pub struct TurnToParent {
 pub struct AddBlockStep {
     pub block_id: String,
     pub child_offset: usize,
-    pub block_type: StandardBlockType
+    pub block_type: StandardBlockType,
+    pub focus_block_below: bool
 }
 
 #[derive(Debug, PartialEq, Clone)]

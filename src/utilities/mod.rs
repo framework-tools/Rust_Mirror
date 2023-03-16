@@ -333,3 +333,25 @@ pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> 
 
     return Ok(standard_blocks)
 }
+
+pub fn caret_is_at_start_of_block(from: &SubSelection, to: &SubSelection, block_map: &BlockMap) -> Result<bool, StepError> {
+    if from != to {
+        return Ok(false)
+    }
+
+    if from.offset != 0 {
+        return Ok(false)
+    }
+
+    let block = block_map.get_inline_block(&from.block_id);
+    if block.is_err() {
+        return Ok(false)
+    }
+
+    let block = block.unwrap();
+    if block.index(block_map)? == 0 {
+        return Ok(true)
+    } else {
+        return Ok(false)
+    }
+}
