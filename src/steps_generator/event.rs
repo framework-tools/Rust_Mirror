@@ -13,7 +13,8 @@ pub enum Event {
     ContextMenu(ContextMenuEvent),
     DropBlock(DropBlockEvent),
     DeleteBlock(String),
-    ReplaceWithChildren(ReplaceWithChildrenEvent)
+    ReplaceWithChildren(ReplaceWithChildrenEvent),
+    AddParagraphAtBottom(String) // (root block id)
 }
 
 impl Event {
@@ -28,6 +29,7 @@ impl Event {
             "drop_block" => Ok(Event::DropBlock(DropBlockEvent::from_js_obj(obj)?)),
             "delete_block" => Ok(Event::DeleteBlock(get_js_field_as_string(&obj, "value")?)),
             "replace_with_children" => Ok(Event::ReplaceWithChildren(ReplaceWithChildrenEvent::from_js_obj(obj)?)),
+            "add_paragraph_at_bottom" => Ok(Event::AddParagraphAtBottom(get_js_field_as_string(&obj, "value")?)),
             _type => Err(StepError(format!("Expected event _type. Got: {}", _type)))
         }
     }

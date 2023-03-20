@@ -1,7 +1,7 @@
 
-use crate::{blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}}, step::{Step, TurnInto, ReplaceStep}, mark::Mark};
+use crate::{blocks::{BlockMap}, step::{Step}, mark::Mark};
 
-use self::{event::{Event, FormatBarEvent, ContextMenuEvent}, keypress_step_generator::{generate_keyboard_event_steps, backspace::generate_steps_for_backspace}, selection::{Selection, SubSelection}, mark_steps::generate_mark_steps, slash_scrim::generate_slash_scrim_steps, turn_into::generate_turn_into_step, clipboard_steps::{generate_cut_steps, generate_paste_steps}};
+use self::{event::{Event, FormatBarEvent, ContextMenuEvent}, keypress_step_generator::{generate_keyboard_event_steps}, selection::{Selection}, mark_steps::generate_mark_steps, slash_scrim::generate_slash_scrim_steps, turn_into::generate_turn_into_step, clipboard_steps::{generate_cut_steps, generate_paste_steps}};
 
 pub mod keypress_step_generator;
 pub mod selection;
@@ -38,6 +38,7 @@ pub fn generate_steps(event: &Event, block_map: &BlockMap, selection: Selection)
         Event::DropBlock(drop_block_event) => Ok(vec![Step::DropBlock(drop_block_event.clone())]),
         Event::DeleteBlock(block_id) => Ok(vec![Step::DeleteBlock(block_id.clone())]),
         Event::ReplaceWithChildren(replace_with_children_event) => Ok(vec![Step::ReplaceWithChildren(replace_with_children_event.clone())]),
+        Event::AddParagraphAtBottom(root_block_id) => Ok(vec![Step::AddParagraphAtBottom(root_block_id.clone())])
     }
 }
 

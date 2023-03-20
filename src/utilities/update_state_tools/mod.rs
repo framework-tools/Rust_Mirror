@@ -28,7 +28,7 @@ pub fn splice_children_on_std_block(
     blocks_to_update: &mut Vec<String>,
     block_map: &mut BlockMap,
 ) -> Result<(), StepError> {
-    for child in &new_children{
+    for child in &new_children {
         let mut child = block_map.get_standard_block(child)?;
         child.parent = block.id();
         block_map.update_block(Block::StandardBlock(child), blocks_to_update)?;

@@ -20,6 +20,7 @@ use self::actualise_child_steps::actualise_child_steps;
 use self::actualise_replace_steps::actualise_replace_step;
 use self::actualise_split_step::actualise_split_step;
 use crate::steps_actualisor::actualise_parent_steps::actualise_parent_steps;
+use crate::steps_actualisor::actualise_add_paragraph_at_bottom::actualise_add_paragraph_at_bottom;
 
 pub mod actualise_replace_steps;
 pub mod actualise_mark_steps;
@@ -33,6 +34,7 @@ pub mod actualise_shortcuts;
 pub mod actualise_drop_block;
 pub mod actualise_delete_block;
 pub mod actualise_replace_with_children;
+pub mod actualise_add_paragraph_at_bottom;
 
 pub struct UpdatedState {
     pub block_map: BlockMap,
@@ -103,6 +105,7 @@ pub fn actualise_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewI
             Step::DropBlock(drop_block_event) => actualise_drop_block(drop_block_event, updated_state.block_map, updated_state.blocks_to_update, new_ids)?,
             Step::DeleteBlock(block_id) => actualise_delete_block(block_id, updated_state.block_map, updated_state.blocks_to_update)?,
             Step::ReplaceWithChildren(replace_with_children_event) => actualise_replace_with_children(replace_with_children_event, updated_state.block_map, updated_state.blocks_to_update)?,
+            Step::AddParagraphAtBottom(root_block_id) => actualise_add_paragraph_at_bottom(root_block_id, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
         };
     }
     updated_state.copy = Some(copy);
