@@ -1,8 +1,11 @@
-use std::{collections::HashMap, thread::current};
+use std::{collections::HashMap};
 
-use serde::__private::de;
-
-use crate::{steps_generator::{selection::SubSelection, StepError}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block, inline_blocks::{InlineBlock, text_block::StringUTF16}}, steps_actualisor::actualise_mark_steps::{actualise_across_std_blocks::split_edge_inline_blocks, create_before_middle_after_blocks_with_new_text_and_mark}, new_ids::NewIds};
+use crate::{steps_generator::{selection::SubSelection, StepError}, 
+    blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block, 
+    inline_blocks::{InlineBlock}},
+    steps_actualisor::actualise_mark_steps::{actualise_across_std_blocks::split_edge_inline_blocks, 
+            create_before_middle_after_blocks_with_new_text_and_mark}, 
+            new_ids::NewIds};
 pub mod update_state_tools;
 
 #[derive(PartialEq)]
@@ -53,58 +56,7 @@ impl Tree {
             &self.block_map
         )?;
 
-
-        let mut new_blocks: HashMap<String, Block> = HashMap::new();
-        let mut new_top_blocks = Vec::new();
-        for mut block in all_new_std_blocks {
-            let new_std_block_id = new_ids.get_id()?;
-            let old_id = block.id();
-            block._id = new_std_block_id.clone();
-            if self.top_blocks.iter().any(|x| x.id() == old_id) {
-                new_top_blocks.push(block.clone());
-            } else { // else must be a child
-                let old_parent_id = block.parent.clone();
-                let mut parent = new_blocks.get(&old_parent_id).unwrap().clone();
-                block.parent = parent.id();
-                let parent_children = parent.children()?.iter().map(|x| {
-                    if x == &old_id {
-                        return new_std_block_id.clone()
-                    }
-                    return x.clone()
-                }).collect();
-                parent.update_children(parent_children)?;
-                new_blocks.insert(old_parent_id, parent);
-            }
-
-            let inline_blocks = &block.content_block()?.inline_blocks;
-            let mut new_inline_blocks = Vec::new();
-            for old_inline_id in inline_blocks {
-                let new_inline_block_id = new_ids.get_id()?;
-                let mut inline_block = self.block_map.get_inline_block(old_inline_id)?;
-                inline_block._id = new_inline_block_id.clone();
-                inline_block.parent = new_std_block_id.clone();
-                new_inline_blocks.push(new_inline_block_id);
-                new_blocks.insert(old_inline_id.clone(), Block::InlineBlock(inline_block));
-            }
-
-            block = block.update_block_content(ContentBlock { inline_blocks: new_inline_blocks })?;
-
-
-            new_blocks.insert(old_id, Block::StandardBlock(block));
-        }
-
-        let mut new_block_map = BlockMap::Rust(HashMap::new());
-        for (_id, block) in new_blocks.into_iter() {
-            new_block_map.update_block(block, blocks_to_update)?;
-        }
-
-        let mut updated_new_top_blocks = Vec::new();
-        for block in new_top_blocks{
-            updated_new_top_blocks.push(new_block_map.get_standard_block(&block.id())?);
-        }
-
-        self.top_blocks = updated_new_top_blocks;
-        self.block_map = new_block_map;
+        reassign_ids(all_new_std_blocks, &mut self.top_blocks, &mut self.block_map, new_ids, blocks_to_update)?;
 
         return Ok(())
     }
@@ -354,4 +306,66 @@ pub fn caret_is_at_start_of_block(from: &SubSelection, to: &SubSelection, block_
     } else {
         return Ok(false)
     }
+}
+
+pub fn reassign_ids(
+    blocks: Vec<StandardBlock>,
+    top_blocks: &mut Vec<StandardBlock>,
+    block_map: &mut BlockMap,
+    new_ids: &mut NewIds, 
+    blocks_to_update: &mut Vec<String>
+) -> Result<(), StepError> {
+    let mut new_blocks: HashMap<String, Block> = HashMap::new();
+    let mut new_top_blocks = Vec::new();
+    for mut block in blocks {
+        let new_std_block_id = new_ids.get_id()?;
+        let old_id = block.id();
+        block._id = new_std_block_id.clone();
+        if top_blocks.iter().any(|x| x.id() == old_id) {
+            new_top_blocks.push(block.clone());
+        } else { // else must be a child
+            let old_parent_id = block.parent.clone();
+            let mut parent = new_blocks.get(&old_parent_id).unwrap().clone();
+            block.parent = parent.id();
+            let parent_children = parent.children()?.iter().map(|x| {
+                if x == &old_id {
+                    return new_std_block_id.clone()
+                }
+                return x.clone()
+            }).collect();
+            parent.update_children(parent_children)?;
+            new_blocks.insert(old_parent_id, parent);
+        }
+
+        let inline_blocks = &block.content_block()?.inline_blocks;
+        let mut new_inline_blocks = Vec::new();
+        for old_inline_id in inline_blocks {
+            let new_inline_block_id = new_ids.get_id()?;
+            let mut inline_block = block_map.get_inline_block(old_inline_id)?;
+            inline_block._id = new_inline_block_id.clone();
+            inline_block.parent = new_std_block_id.clone();
+            new_inline_blocks.push(new_inline_block_id);
+            new_blocks.insert(old_inline_id.clone(), Block::InlineBlock(inline_block));
+        }
+
+        block = block.update_block_content(ContentBlock { inline_blocks: new_inline_blocks })?;
+
+
+        new_blocks.insert(old_id, Block::StandardBlock(block));
+    }
+
+    let mut new_block_map = BlockMap::Rust(HashMap::new());
+    for (_id, block) in new_blocks.into_iter() {
+        new_block_map.update_block(block, blocks_to_update)?;
+    }
+
+    let mut updated_new_top_blocks = Vec::new();
+    for block in new_top_blocks{
+        updated_new_top_blocks.push(new_block_map.get_standard_block(&block.id())?);
+    }
+
+    *top_blocks = updated_new_top_blocks;
+    *block_map = new_block_map;
+
+    return Ok(())
 }

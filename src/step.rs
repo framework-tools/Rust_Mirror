@@ -17,6 +17,7 @@ pub enum Step {
     Paste(SubSelection, SubSelection),
     DropBlock(DropBlockEvent),
     DeleteBlock(String), //ID
+    Duplicate(String), //ID
     ReplaceWithChildren(ReplaceWithChildrenEvent),
     AddParagraphAtBottom(String) // (Root block id)
     //ReplaceAroundStep
