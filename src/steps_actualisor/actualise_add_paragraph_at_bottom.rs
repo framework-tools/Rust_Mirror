@@ -1,6 +1,7 @@
 use crate::{blocks::{BlockMap, inline_blocks::InlineBlock, standard_blocks::StandardBlock, Block}, new_ids::NewIds, steps_generator::{StepError, selection::{SubSelection, Selection}}, utilities::update_state_tools};
 use super::UpdatedState;
 
+/// This step helps automate a process that is needed in multiple circumstances
 pub fn actualise_add_paragraph_at_bottom(
     root_block_id: String,
     mut block_map: BlockMap,

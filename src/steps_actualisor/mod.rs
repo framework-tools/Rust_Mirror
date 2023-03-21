@@ -228,7 +228,7 @@ pub fn remove_empty_inline_blocks(
 
 // This function checks whether the two input lists of Marks are identical.
 //It does this by first checking that the lists have the same number of elements,
-//and then checking that each element in marks is contained in other_marks.
+//and then checking that each element in marks is contained in the other_marks.
 //If either of these conditions is not met, the function returns false.
 //Otherwise, it returns true.
 
