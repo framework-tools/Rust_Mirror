@@ -11,6 +11,7 @@ use crate::steps_actualisor::actualise_mark_steps::actualise_mark_step;
 
 use self::actualise_delete_block::actualise_delete_block;
 use self::actualise_drop_block::actualise_drop_block;
+use self::actualise_duplicate::actualise_duplicate;
 use self::actualise_replace_with_children::actualise_replace_with_children;
 use self::actualise_shortcuts::{actualise_copy, actualise_paste};
 use self::actualise_toggle_completed::actualise_toggle_completed;
@@ -105,7 +106,7 @@ pub fn actualise_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewI
             Step::Paste(from, _to) => actualise_paste(copy.clone(), from, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
             Step::DropBlock(drop_block_event) => actualise_drop_block(drop_block_event, updated_state.block_map, updated_state.blocks_to_update, new_ids)?,
             Step::DeleteBlock(block_id) => actualise_delete_block(block_id, updated_state.block_map, updated_state.blocks_to_update)?,
-            Step::Duplicate(block_id) => actualise_duplicate(block_id, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
+            Step::Duplicate(block_id) => actualise_duplicate(block_id, updated_state.block_map, updated_state.blocks_to_update, new_ids)?,
             Step::ReplaceWithChildren(replace_with_children_event) => actualise_replace_with_children(replace_with_children_event, updated_state.block_map, updated_state.blocks_to_update)?,
             Step::AddParagraphAtBottom(root_block_id) => actualise_add_paragraph_at_bottom(root_block_id, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
         };
