@@ -30,7 +30,7 @@ impl Event {
             "drop_block" => Ok(Event::DropBlock(DropBlockEvent::from_js_obj(obj)?)),
             "delete_block" => Ok(Event::DeleteBlock(get_js_field_as_string(&obj, "value")?)),
             "replace_with_children" => Ok(Event::ReplaceWithChildren(ReplaceWithChildrenEvent::from_js_obj(obj)?)),
-            "duplicate" => Ok(Event::Duplicate(get_js_field_as_string(&obj, "value")?)),
+            "duplicate_block" => Ok(Event::Duplicate(get_js_field_as_string(&obj, "value")?)),
             "add_paragraph_at_bottom" => Ok(Event::AddParagraphAtBottom(get_js_field_as_string(&obj, "value")?)),
             _type => Err(StepError(format!("Expected event _type. Got: {}", _type)))
         }
