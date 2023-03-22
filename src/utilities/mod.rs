@@ -315,6 +315,8 @@ pub fn reassign_ids(
     new_ids: &mut NewIds,
     blocks_to_update: &mut Vec<String>
 ) -> Result<(), StepError> {
+    return Err(StepError(format!("Blocks: {:#?}", blocks)));
+
     let mut new_blocks: HashMap<String, Block> = HashMap::new();
     let mut new_top_blocks = Vec::new();
     for mut block in blocks {
