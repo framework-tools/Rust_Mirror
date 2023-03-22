@@ -255,7 +255,15 @@ pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> 
             next_node = block_map.get_standard_block(&current_node.children[0])?;
         } else {
             match current_node.next_sibling(block_map) {
-                Ok(Some(sibling)) => next_node = sibling,
+                Ok(Some(sibling)) => {
+                    next_node = sibling;
+                    if top_blocks.contains(&current_node) && top_blocks.contains(&next_node) {
+                        current_top_block_i += 1;
+                    } else if top_blocks.contains(&current_node) {
+                        standard_blocks.push(current_node);
+                        break;
+                    }
+                },
                 _ => {
                     match current_node.parents_next_sibling(block_map) {
                         Ok(Some(parents_sib)) => {
@@ -315,7 +323,7 @@ pub fn reassign_ids(
     new_ids: &mut NewIds,
     blocks_to_update: &mut Vec<String>
 ) -> Result<(), StepError> {
-    return Err(StepError(format!("Blocks: {:#?}", blocks)));
+    // return Err(StepError(format!("Blocks: {:#?}", blocks)));
 
     let mut new_blocks: HashMap<String, Block> = HashMap::new();
     let mut new_top_blocks = Vec::new();
@@ -361,18 +369,15 @@ pub fn reassign_ids(
         new_blocks.insert(old_id, Block::StandardBlock(block));
     }
 
-    let mut new_block_map = BlockMap::Rust(HashMap::new());
     for (_id, block) in new_blocks.into_iter() {
-        new_block_map.update_block(block, blocks_to_update)?;
+        block_map.update_block(block, blocks_to_update)?;
     }
 
     let mut updated_new_top_blocks = Vec::new();
     for block in new_top_blocks{
-        updated_new_top_blocks.push(new_block_map.get_standard_block(&block.id())?);
+        updated_new_top_blocks.push(block_map.get_standard_block(&block.id())?);
     }
-
     *top_blocks = updated_new_top_blocks;
-    *block_map = new_block_map;
 
     return Ok(())
 }

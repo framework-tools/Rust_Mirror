@@ -68,15 +68,16 @@ mod tests {
                 inline_block2, block2,
                 root_block
             ]).unwrap();
-            let event = Event::Duplicate(paragraph_block_id2.clone());
+            let event = Event::Duplicate(paragraph_block_id1.clone());
             let sub_selection = SubSelection::from(inline_block_id1.clone().clone(), 0, None);
             let selection = Selection::from(sub_selection.clone(), sub_selection.clone());
 
             let steps = generate_steps(&event, &block_map, selection).unwrap();
             let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
             let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
+
             assert_eq!(updated_root_block.children.len(), 3);
-            let new_block = updated_state.block_map.get_standard_block(&updated_root_block.children[2]).unwrap();
+            let new_block = updated_state.block_map.get_standard_block(&updated_root_block.children[1]).unwrap();
             match new_block.content {
                 StandardBlockType::Paragraph(content) => {
                     assert_eq!(content.inline_blocks.len(), 1);
