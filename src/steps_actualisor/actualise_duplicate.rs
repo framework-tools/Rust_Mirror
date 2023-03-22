@@ -16,13 +16,13 @@ pub fn actualise_duplicate(
     let block_and_all_descendants = get_all_blocks(&top_block, &block_map)?;
     reassign_ids(block_and_all_descendants, &mut top_block, &mut block_map, new_ids, &mut blocks_to_update)?;
 
-    // update_state_tools::splice_children(
-    //     parent,
-    //     original_block_index+1..original_block_index+1,
-    //     vec![top_block[0].id()],
-    //     &mut blocks_to_update,
-    //     &mut block_map
-    // )?;
+    update_state_tools::splice_children(
+        parent,
+        original_block_index+1..original_block_index+1,
+        vec![top_block[0].id()],
+        &mut blocks_to_update,
+        &mut block_map
+    )?;
 
     return Ok(UpdatedState {
         block_map,

@@ -1,10 +1,10 @@
 use std::{collections::HashMap};
 
-use crate::{steps_generator::{selection::SubSelection, StepError}, 
-    blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block, 
+use crate::{steps_generator::{selection::SubSelection, StepError},
+    blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block,
     inline_blocks::{InlineBlock}},
-    steps_actualisor::actualise_mark_steps::{actualise_across_std_blocks::split_edge_inline_blocks, 
-            create_before_middle_after_blocks_with_new_text_and_mark}, 
+    steps_actualisor::actualise_mark_steps::{actualise_across_std_blocks::split_edge_inline_blocks,
+            create_before_middle_after_blocks_with_new_text_and_mark},
             new_ids::NewIds};
 pub mod update_state_tools;
 
@@ -312,7 +312,7 @@ pub fn reassign_ids(
     blocks: Vec<StandardBlock>,
     top_blocks: &mut Vec<StandardBlock>,
     block_map: &mut BlockMap,
-    new_ids: &mut NewIds, 
+    new_ids: &mut NewIds,
     blocks_to_update: &mut Vec<String>
 ) -> Result<(), StepError> {
     let mut new_blocks: HashMap<String, Block> = HashMap::new();
@@ -324,6 +324,8 @@ pub fn reassign_ids(
         if top_blocks.iter().any(|x| x.id() == old_id) {
             new_top_blocks.push(block.clone());
         } else { // else must be a child
+            return Err(StepError(format!("Shouldn't happen. got block: {:#?}", block)));
+
             let old_parent_id = block.parent.clone();
             let mut parent = new_blocks.get(&old_parent_id).unwrap().clone();
             block.parent = parent.id();
