@@ -324,10 +324,13 @@ pub fn reassign_ids(
         if top_blocks.iter().any(|x| x.id() == old_id) {
             new_top_blocks.push(block.clone());
         } else { // else must be a child
-            return Err(StepError(format!("Shouldn't happen. got block: {:#?}", block)));
-
             let old_parent_id = block.parent.clone();
-            let mut parent = new_blocks.get(&old_parent_id).unwrap().clone();
+            let parent = new_blocks.get(&old_parent_id);
+            let mut parent = match parent {
+                Some(parent) => parent.clone(),
+                None => return Err(StepError(format!("Should never happen as parent should already be added
+                to new blocks. Block where this occured: {:#?}", block)))
+            };
             block.parent = parent.id();
             let parent_children = parent.children()?.iter().map(|x| {
                 if x == &old_id {
