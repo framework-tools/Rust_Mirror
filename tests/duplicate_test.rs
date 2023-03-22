@@ -7,7 +7,7 @@ mod tests {
     use serde_json::json;
 
     #[test]
-        fn can_duplicate() {
+        fn can_duplicate_single_std_block() {
             let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
             let inline_block_id1 = "Inline1".to_string();
