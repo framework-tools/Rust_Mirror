@@ -243,6 +243,11 @@ fn split_edge_block_inline_blocks(
     return Ok(current_node.update_block_content(ContentBlock { inline_blocks })?)
 }
 
+/// If the top blocks are all the blocks on the root, this will get you every block in the tree,
+/// flat and in order.
+/// 
+/// However, we have generalised it so you can give it a limited "top blocks" to get only and all the top blocks
+/// and all their children.
 pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> Result<Vec<StandardBlock>, StepError> {
     let mut standard_blocks: Vec<StandardBlock> = Vec::new();
 
@@ -260,34 +265,60 @@ pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> 
                     if top_blocks.contains(&current_node) && top_blocks.contains(&next_node) {
                         current_top_block_i += 1;
                     } else if top_blocks.contains(&current_node) {
-                        standard_blocks.push(current_node);
+                        if !standard_blocks.contains(&current_node) {
+                            standard_blocks.push(current_node);
+                        }
                         break;
                     }
                 },
-                _ => {
+                _ if !top_blocks.contains(&current_node) => {
                     match current_node.parents_next_sibling(block_map) {
                         Ok(Some(parents_sib)) => {
                             next_node = parents_sib;
+                            if top_blocks.contains(&current_node) && top_blocks.contains(&next_node) {
+                                current_top_block_i += 1;
+                            } else if top_blocks.contains(&block_map.get_standard_block(&current_node.parent)?) {
+                                if !standard_blocks.contains(&current_node) {
+                                    standard_blocks.push(current_node);
+                                }
+                                break;
+                            }
                         },
                         _ => match current_node.get_parent(block_map) {
-                            Ok(Block::StandardBlock(block)) if !standard_blocks.contains(&block) => next_node = block,
+                            Ok(Block::StandardBlock(block)) if !standard_blocks.contains(&block) =>{
+                                if !standard_blocks.contains(&current_node) {
+                                    standard_blocks.push(current_node);
+                                }
+                                current_node = block;
+                                continue;
+                            },
                             _ => {
                                 current_top_block_i += 1;
                                 match top_blocks.get(current_top_block_i) {
                                     Some(_) => next_node = top_blocks[current_top_block_i].clone(),
                                     None => {
-                                        standard_blocks.push(current_node);
+                                        if !standard_blocks.contains(&current_node) {
+                                            standard_blocks.push(current_node);
+                                        }
                                         break;
                                     },
                                 };
                             }
                         }
                     };
+                },
+                _ => {
+                    if !standard_blocks.contains(&current_node) {
+                        standard_blocks.push(current_node);
+                    };
+                    break;
                 }
-            }
+            };
         }
 
-        standard_blocks.push(current_node);
+        if !standard_blocks.contains(&current_node) {
+            standard_blocks.push(current_node);
+        }
         current_node = next_node;
     }
 
