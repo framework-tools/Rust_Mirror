@@ -14,7 +14,7 @@ pub fn actualise_duplicate(
     let original_block_index = block.index(&block_map)?;
     let mut top_block = vec![block];
     let block_and_all_descendants = get_all_blocks(&top_block, &block_map)?;
-    // reassign_ids(block_and_all_descendants, &mut top_block, &mut block_map, new_ids, &mut blocks_to_update)?;
+    reassign_ids(block_and_all_descendants, &mut top_block, &mut block_map, new_ids, &mut blocks_to_update)?;
 
     // update_state_tools::splice_children(
     //     parent,
