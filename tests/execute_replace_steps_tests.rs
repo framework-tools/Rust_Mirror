@@ -594,6 +594,7 @@ mod tests {
     ///     <6>Good|bye world</6>
     ///         <7/>
     ///     <8/>
+    /// <9/>
     ///        | | |
     ///        | | |
     ///        V V V
@@ -601,6 +602,7 @@ mod tests {
     /// <1>Hello bye world</1>
     ///     <7/>
     /// <8/>
+    /// <9/>
     #[test]
     fn can_actualise_replace_where_from_is_shallower_than_to() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
@@ -617,6 +619,7 @@ mod tests {
         let std_block_id6 = "6".to_string();
         let std_block_id7 = "7".to_string();
         let std_block_id8 = "8".to_string();
+        let std_block_id9 = "9".to_string();
 
         let inline_block1 = json!({
             "_id": inline_block_id1.clone(),
@@ -730,13 +733,25 @@ mod tests {
             "marks": [],
             "parent": std_block_id5.clone()
         });
+        let std_block9 = json!({
+            "_id": std_block_id9.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
 
         let root_block = RootBlock::json_from(root_block_id.clone(),
-        vec![std_block_id1.clone(), std_block_id4.clone(), std_block_id5.clone()]);
+        vec![std_block_id1.clone(), std_block_id4.clone(), std_block_id5.clone(), std_block_id9.clone()]);
 
         let block_map = BlockMap::from(vec![
             inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), std_block1.to_string(), std_block2.to_string(),
-            root_block.to_string(), std_block3.to_string(), std_block4.to_string(), std_block5.to_string(), std_block6.to_string(), std_block7.to_string(), std_block8.to_string(),
+            root_block.to_string(), std_block3.to_string(), std_block4.to_string(), std_block5.to_string(), std_block6.to_string(),
+            std_block7.to_string(), std_block8.to_string(), std_block9.to_string(),
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
@@ -786,6 +801,9 @@ mod tests {
 
         let updated_block8 = updated_state.block_map.get_standard_block(&std_block_id8).unwrap();
         assert_eq!(updated_block8.parent, root_block_id.clone());
+
+        let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
+        assert_eq!(updated_root_block.children, vec![std_block_id1, std_block_id8, std_block_id9]);
     }
 
     /// Input:

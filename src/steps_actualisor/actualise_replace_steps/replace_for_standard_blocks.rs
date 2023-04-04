@@ -167,7 +167,7 @@ fn move_to_block_siblings_after_from_block(
     let from_siblings = from_parent.children()?.clone();
     update_state_tools::splice_children(
         from_parent,
-        from_block.index(&block_map)? + 1..from_siblings.len(),
+        from_block.index(&block_map)? + 1..from_block.index(&block_map)? + 1,
         siblings_after_to_block,
         blocks_to_update,
         block_map
