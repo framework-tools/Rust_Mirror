@@ -69,7 +69,7 @@ pub fn replace_selected_across_standard_blocks(
     let from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
     let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
 
-    if !to_block.parent_is_root(&block_map) && !selection_is_inside_single_std_block {
+    if !to_block.parent_is_root(&block_map) && !(selection_is_inside_single_std_block && from_block.parent_is_root(&block_map)) {
         let to_block_parent = to_block.get_parent(&block_map)?;
         let parent_is_layout_block = match to_block_parent {
             Block::StandardBlock(StandardBlock { content: StandardBlockType::Layout(_), .. }) => true,
@@ -77,6 +77,7 @@ pub fn replace_selected_across_standard_blocks(
         };
 
         if !parent_is_layout_block {
+            println!("happened");
             move_to_block_siblings_after_from_block(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
         }
     }
@@ -90,6 +91,7 @@ pub fn replace_selected_across_standard_blocks(
         let highest_to_block = block_map.get_standard_block(&highest_to.block_id)?;
 
         let one_of_highest_blocks_is_a_layout_block = highest_from_block.is_horizontal_layout() || highest_to_block.is_horizontal_layout();
+        println!("parent children: {:#?}", highest_from_parent.children()?);
         if !one_of_highest_blocks_is_a_layout_block {
             update_state_tools::splice_children( // move any remaining children from highest "to" block to root
                 highest_from_parent,
@@ -99,6 +101,8 @@ pub fn replace_selected_across_standard_blocks(
                 &mut block_map
             )?;
         }
+        let highest_from_parent = block_map.get_block(&highest_from_block.parent)?;
+        println!("parent children: {:#?}", highest_from_parent.children()?);
     }
 
     match &replace_step.from.subselection {
@@ -164,7 +168,6 @@ fn move_to_block_siblings_after_from_block(
     to_block.remove_siblings_after(block_map, blocks_to_update)?;
 
     let from_parent = from_block.get_parent(&block_map)?;
-    let from_siblings = from_parent.children()?.clone();
     update_state_tools::splice_children(
         from_parent,
         from_block.index(&block_map)? + 1..from_block.index(&block_map)? + 1,
@@ -172,6 +175,7 @@ fn move_to_block_siblings_after_from_block(
         blocks_to_update,
         block_map
     )?;
+
     return Ok(())
 }
 
