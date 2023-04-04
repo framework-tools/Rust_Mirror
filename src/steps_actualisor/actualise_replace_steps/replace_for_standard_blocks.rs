@@ -69,7 +69,7 @@ pub fn replace_selected_across_standard_blocks(
     let from_block = block_map.get_standard_block(&replace_step.from.block_id)?;
     let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
 
-    if !to_block.parent_is_root(&block_map) && !(selection_is_inside_single_std_block && from_block.parent_is_root(&block_map)) {
+    if !to_block.parent_is_root(&block_map) && !(selection_is_inside_single_std_block && from_block.children.contains(&to_block._id)) {
         let to_block_parent = to_block.get_parent(&block_map)?;
         let parent_is_layout_block = match to_block_parent {
             Block::StandardBlock(StandardBlock { content: StandardBlockType::Layout(_), .. }) => true,
