@@ -77,7 +77,6 @@ pub fn replace_selected_across_standard_blocks(
         };
 
         if !parent_is_layout_block {
-            println!("happened");
             move_to_block_siblings_after_from_block(&from_block, &to_block, &mut block_map, &mut blocks_to_update)?;
         }
     }
@@ -91,7 +90,6 @@ pub fn replace_selected_across_standard_blocks(
         let highest_to_block = block_map.get_standard_block(&highest_to.block_id)?;
 
         let one_of_highest_blocks_is_a_layout_block = highest_from_block.is_horizontal_layout() || highest_to_block.is_horizontal_layout();
-        println!("parent children: {:#?}", highest_from_parent.children()?);
         if !one_of_highest_blocks_is_a_layout_block {
             update_state_tools::splice_children( // move any remaining children from highest "to" block to root
                 highest_from_parent,
@@ -101,8 +99,6 @@ pub fn replace_selected_across_standard_blocks(
                 &mut block_map
             )?;
         }
-        let highest_from_parent = block_map.get_block(&highest_from_block.parent)?;
-        println!("parent children: {:#?}", highest_from_parent.children()?);
     }
 
     match &replace_step.from.subselection {
