@@ -124,7 +124,7 @@ pub fn get_blocks_between(
             break;
         }
 
-        let mut next_node = get_next_block_in_tree(&current_node, block_map, &mut depth_from_root)?;
+        let next_node = get_next_block_in_tree(&current_node, block_map, &mut depth_from_root)?;
 
         if block_structure == BlockStructure::Tree {
             add_block_and_inline_blocks_to_new_block_map(block_map, &mut new_block_map, current_node.clone())?;
@@ -245,7 +245,7 @@ fn split_edge_block_inline_blocks(
 
 /// If the top blocks are all the blocks on the root, this will get you every block in the tree,
 /// flat and in order.
-/// 
+///
 /// However, we have generalised it so you can give it a limited "top blocks" to get only and all the top blocks
 /// and all their children.
 pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> Result<Vec<StandardBlock>, StepError> {

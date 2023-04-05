@@ -1,3 +1,5 @@
+use rust_mirror::new_ids::NewIds;
+
 #[cfg(test)]
 mod tests {
     use serde_json::json;
@@ -594,6 +596,7 @@ mod tests {
     ///     <6>Good|bye world</6>
     ///         <7/>
     ///     <8/>
+    /// <9/>
     ///        | | |
     ///        | | |
     ///        V V V
@@ -601,6 +604,7 @@ mod tests {
     /// <1>Hello bye world</1>
     ///     <7/>
     /// <8/>
+    /// <9/>
     #[test]
     fn can_actualise_replace_where_from_is_shallower_than_to() {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
@@ -617,6 +621,7 @@ mod tests {
         let std_block_id6 = "6".to_string();
         let std_block_id7 = "7".to_string();
         let std_block_id8 = "8".to_string();
+        let std_block_id9 = "9".to_string();
 
         let inline_block1 = json!({
             "_id": inline_block_id1.clone(),
@@ -730,13 +735,25 @@ mod tests {
             "marks": [],
             "parent": std_block_id5.clone()
         });
+        let std_block9 = json!({
+            "_id": std_block_id9.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": []
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
 
         let root_block = RootBlock::json_from(root_block_id.clone(),
-        vec![std_block_id1.clone(), std_block_id4.clone(), std_block_id5.clone()]);
+        vec![std_block_id1.clone(), std_block_id4.clone(), std_block_id5.clone(), std_block_id9.clone()]);
 
         let block_map = BlockMap::from(vec![
             inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), std_block1.to_string(), std_block2.to_string(),
-            root_block.to_string(), std_block3.to_string(), std_block4.to_string(), std_block5.to_string(), std_block6.to_string(), std_block7.to_string(), std_block8.to_string(),
+            root_block.to_string(), std_block3.to_string(), std_block4.to_string(), std_block5.to_string(), std_block6.to_string(),
+            std_block7.to_string(), std_block8.to_string(), std_block9.to_string(),
         ]).unwrap();
 
         let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
@@ -775,9 +792,6 @@ mod tests {
         let updated_inline_block_1 = updated_state.block_map.get_inline_block(&inline_block_id1).unwrap();
         assert_eq!(updated_inline_block_1.text().unwrap().clone().to_string().as_str(), &"Hello bye World".to_string());
 
-        let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
-        assert_eq!(updated_root_block.children, vec![std_block_id1.clone(), std_block_id8.clone()]);
-
         let updated_block1 = updated_state.block_map.get_standard_block(&std_block_id1).unwrap();
         assert_eq!(updated_block1.children, vec![std_block_id7.clone()]);
 
@@ -786,6 +800,9 @@ mod tests {
 
         let updated_block8 = updated_state.block_map.get_standard_block(&std_block_id8).unwrap();
         assert_eq!(updated_block8.parent, root_block_id.clone());
+
+        let updated_root_block = updated_state.block_map.get_root_block(&root_block_id).unwrap();
+        assert_eq!(updated_root_block.children, vec![std_block_id1, std_block_id8, std_block_id9]);
     }
 
     /// Input:
@@ -2154,7 +2171,6 @@ mod tests {
 
         let updated_paragraph_block1 = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
         assert_eq!(updated_paragraph_block1.children, vec![paragraph_block_id4.clone()]);
-
     }
     /// Input:
     /// <1></1>
@@ -2467,5 +2483,165 @@ mod tests {
         assert_eq!(updated_paragraph_block1.children, vec![paragraph_block_id2.clone()]);
 
     }
-}
+    /// Input:
+    /// </1>
+    ///     <2|/>
+    ///     <3/>
+    ///         <4|/>
+    ///         <5/>
+    ///
+    /// Output:
+    /// </1>
+    ///    <2/>
+    ///    <5/>
 
+
+    #[test]
+    fn internal_test3() {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id().unwrap();
+        let paragraph_block_id1 = "1".to_string();
+        let paragraph_block_id2 = "2".to_string();
+        let paragraph_block_id3 = "3".to_string();
+        let paragraph_block_id4 = "4".to_string();
+        let paragraph_block_id5 = "5".to_string();
+        let inline_block_id1 = new_ids.get_id().unwrap();
+        let inline_block_id2 = new_ids.get_id().unwrap();
+        let inline_block_id3 = new_ids.get_id().unwrap();
+        let inline_block_id4 = new_ids.get_id().unwrap();
+
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello World"
+            },
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello woooorld"
+            },
+            "marks": [],
+            "parent": paragraph_block_id2.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello World"
+            },
+            "marks": [],
+            "parent": paragraph_block_id3.clone()
+        });
+        let inline_block4 = json!({
+            "_id": inline_block_id4.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "helloooo wororld"
+            },
+            "marks": [],
+            "parent": paragraph_block_id4.clone()
+        });
+        let paragraph_block1 = json!({
+            "_id": paragraph_block_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [paragraph_block_id2.clone(), paragraph_block_id3.clone()],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let paragraph_block2 = json!({
+            "_id": paragraph_block_id2.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let paragraph_block3 = json!({
+            "_id": paragraph_block_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id3.clone()]
+            },
+            "children": [paragraph_block_id4.clone(), paragraph_block_id5.clone()],
+            "marks": [],
+            "parent": paragraph_block_id1.clone()
+        });
+        let paragraph_block4 = json!({
+            "_id": paragraph_block_id4.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id4.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id3.clone()
+        });
+        let paragraph_block5 = json!({
+            "_id": paragraph_block_id5.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id4.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": paragraph_block_id3.clone()
+        });
+
+        let root_block = RootBlock::json_from(root_block_id.clone(), vec![paragraph_block_id1.clone()]);
+        let block_map = BlockMap::from(vec![
+            inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), inline_block4.to_string(),
+            paragraph_block1.to_string(), paragraph_block2.to_string(), paragraph_block3.to_string(),
+            paragraph_block4.to_string(), paragraph_block5.to_string(), root_block.to_string()
+        ]).unwrap();
+        let event = Event::KeyPress(KeyPress::new(Key::Backspace, None));
+        let selection = Selection {
+            anchor: SubSelection {
+                block_id: paragraph_block_id2.clone(),
+                offset: 0,
+                subselection: Some(Box::new(SubSelection {
+                    block_id: inline_block_id2.clone(),
+                    offset: 6,
+                    subselection: None,
+                }))},
+            head: SubSelection {
+            block_id: paragraph_block_id2.clone(),
+            offset: 0,
+            subselection: Some(Box::new(SubSelection {
+                block_id: paragraph_block_id4.clone(),
+                offset: 0,
+                subselection: Some(Box::new(SubSelection {
+                    block_id: inline_block_id4.clone(),
+                    offset: 4,
+                    subselection: None,
+                }))
+            }))},
+        };
+
+        let steps = generate_steps(&event, &block_map, selection).unwrap();
+        let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
+
+        let updated_paragraph_block1 = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
+        assert_eq!(updated_paragraph_block1.children, vec![paragraph_block_id2.clone(), paragraph_block_id5.clone()]);
+
+    }
+}
