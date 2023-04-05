@@ -1,4 +1,6 @@
 
+use std::collections::{HashMap, HashSet};
+
 use crate::{
     blocks::{standard_blocks::StandardBlock, Block, BlockMap, inline_blocks::text_block::StringUTF16},
     step::{ReplaceSlice, ReplaceStep}, frontend_interface::{get_js_field, get_js_field_as_string, get_js_field_as_f64},
@@ -15,6 +17,67 @@ pub struct Selection {
 }
 
 impl Selection {
+    /// Check if both deepest anchor and head are inline blocks
+    /// if true start creating selection
+    /// else if standard_block for either add an extra layer underneath with the inline block
+    /// -------
+    /// Make deepest layer of selection the anchor and head
+    /// keep adding to the selection in the loop by bubbling up to its parent
+    /// until the next parent is the root block or common shared parent for both anchor and head
+    /// after this, remove each layer from the top down until the last shared common parent is reached
+    pub fn from_raw_html(
+        anchor_id: String, 
+        head_id: String, 
+        anchor_offset: usize, 
+        head_offset: usize, 
+        block_map: &BlockMap,
+        anchor_is_above: bool) -> Result<Self, StepError> {
+        let anchor_block = block_map.get_block(&anchor_id);
+        let head_block = block_map.get_block(&head_id);
+        let mut anchor_subselection: SubSelection = SubSelection{
+            block_id: anchor_id,
+            offset: anchor_offset,
+            subselection: None,
+        };
+        let mut anchor = get_deepest_selection(
+            anchor_block, 
+            anchor_offset, 
+            anchor_is_above, 
+            &mut anchor_subselection, 
+            block_map
+        )?;
+
+
+        let mut head_subselection: SubSelection = SubSelection {
+            block_id: head_id,
+            offset: head_offset,
+            subselection: None,
+        };
+        let mut head = get_deepest_selection(
+            head_block, 
+            head_offset, 
+            !anchor_is_above, 
+            &mut head_subselection, 
+            block_map
+        )?;
+
+        build_up_selection_from_base(
+            &mut anchor, 
+            &mut head, 
+            &mut anchor_subselection, 
+            &mut head_subselection, 
+            block_map
+        )?;
+
+        // remove layers from top down until last shared common parent is reached
+        remove_excess_from_selection(&mut anchor_subselection, &mut head_subselection);
+
+        return Ok(Selection {
+            anchor: anchor_subselection,
+            head: head_subselection,
+        });
+    }
+
     pub fn from(anchor: SubSelection, head: SubSelection) -> Self {
         Self { anchor, head }
     }
@@ -95,6 +158,7 @@ impl Selection {
         js_sys::Reflect::set(&obj, &JsValue::from_str("head"), &JsValue::from(self.head.to_js_obj()?)).unwrap();
         return Ok(obj.into())
     }
+
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -326,4 +390,99 @@ impl SubSelection {
     //     };
     //     return Ok(())
     // }
+}
+
+pub fn get_deepest_selection(
+    block: Result<Block, StepError>, 
+    offset: usize, 
+    anchor_is_above: bool, 
+    subselection: &mut SubSelection,
+    block_map: &BlockMap) -> Result<Block, StepError> {
+    match block {
+        Ok(Block::InlineBlock(inline_block)) => {
+            *subselection = SubSelection {
+                block_id: inline_block._id.clone(),
+                offset: offset,
+                subselection: None,
+            };
+            return Ok(Block::InlineBlock(inline_block))
+        },
+        Ok(Block::StandardBlock(standard_block)) => {
+            // we want to add a layer above the deepest layer where the selection is at the start of the inline block
+            if anchor_is_above {
+                let inline = block_map.get_inline_block(&standard_block.content_block()?.inline_blocks[0])?;
+                *subselection = SubSelection {
+                    block_id: inline.id(),
+                    offset: 0,
+                    subselection: None,
+                };
+                return Ok(Block::InlineBlock(inline))
+            } else {
+                let inline = block_map.get_inline_block(&standard_block.content_block()?.inline_blocks[standard_block.content_block()?.inline_blocks.len() - 1])?;
+                *subselection = SubSelection {
+                    block_id: inline.id(),
+                    offset: inline.text()?.len(),
+                    subselection: None,
+                };
+                return Ok(Block::InlineBlock(inline))
+            }
+        },
+        Err(_) | Ok(Block::Root(_)) => {
+            return Err(StepError("Anchor block not found or is root".to_string()))
+        }
+    };
+}
+
+pub fn build_up_selection_from_base(
+    anchor: &mut Block,
+    head: &mut Block,
+    anchor_subselection: &mut SubSelection,
+    head_subselection: &mut SubSelection,
+    block_map: &BlockMap,
+) -> Result<(), StepError> {
+    while !(anchor.is_root() && head.is_root()) && anchor.id() != head.id() {
+        *anchor = block_map.get_block(&anchor.parent()?)?;
+        *head = block_map.get_block(&head.parent()?)?;
+        if !anchor.is_root() {
+            *anchor_subselection = SubSelection {
+                block_id: anchor.id().to_string(),
+                offset: 0,
+                subselection: Some(Box::new(anchor_subselection.clone())),
+            };
+
+        }
+        if !head.is_root() {
+            *head_subselection = SubSelection {
+                block_id: head.id().to_string(),
+                offset: 0,
+                subselection: Some(Box::new(head_subselection.clone())),
+            };
+        }
+    }
+    return Ok(())
+}
+
+pub fn remove_excess_from_selection(
+    anchor_subselection: &mut SubSelection,
+    head_subselection: &mut SubSelection,
+) -> Result<(), StepError> {
+    if anchor_subselection.subselection.is_none() && head_subselection.subselection.is_none() {
+        return Ok(())
+    }
+    let mut used_standard_block_ids = HashSet::new();
+    let mut current_anchor = anchor_subselection.clone();
+    while current_anchor.subselection.clone().unwrap().subselection.is_some() {
+        used_standard_block_ids.insert(current_anchor.block_id.clone());
+        current_anchor = *current_anchor.subselection.unwrap();
+    }
+    for item in used_standard_block_ids.iter() {
+        let current_head = head_subselection.clone();
+        while current_anchor.subselection.clone().unwrap().subselection.is_some() {
+            if current_head.block_id == *item {
+                return Ok(());
+            }
+            *head_subselection = *head_subselection.subselection.clone().unwrap();
+        }
+    }
+    return Ok(());
 }
