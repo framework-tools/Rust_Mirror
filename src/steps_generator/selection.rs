@@ -62,11 +62,7 @@ impl Selection {
             block_map
         )?;
 
-        // purely for testing
-        return Ok( Selection { anchor: anchor_subselection, head: head_subselection })
-
-        // // remove layers from top down until last shared common parent is reached
-        // return remove_excess_from_selection(anchor_subselection, head_subselection)
+        return remove_excess_from_selection(anchor_subselection, head_subselection)
     }
 
     pub fn from(anchor: SubSelection, head: SubSelection) -> Self {
@@ -440,8 +436,12 @@ pub fn build_up_selection_from_base(
     block_map: &BlockMap,
 ) -> Result<(), StepError> {
     loop {
-        *anchor = block_map.get_block(&anchor.parent()?)?;
-        *head = block_map.get_block(&head.parent()?)?;
+        if !anchor.is_root() {
+            *anchor = block_map.get_block(&anchor.parent()?)?;
+        }
+        if !head.is_root() {
+            *head = block_map.get_block(&head.parent()?)?;
+        }
         if !anchor.is_root() {
             *anchor_subselection = SubSelection {
                 block_id: anchor.id().to_string(),
