@@ -1,8 +1,8 @@
 
 use wasm_bindgen::JsValue;
 
-use crate::{steps_generator::{event::Event, selection::Selection, generate_steps, StepError},
-new_ids::NewIds, blocks::{BlockMap, standard_blocks::StandardBlockType}, steps_actualisor::{actualise_steps, UpdatedState}, custom_copy::CustomCopy};
+use crate::{steps_generator::{event::Event, selection::{Selection, SubSelection}, generate_steps, StepError},
+new_ids::NewIds, blocks::{BlockMap}, steps_actualisor::{actualise_steps, UpdatedState}, custom_copy::CustomCopy};
 
 pub fn actualise_event(
     selection_js: js_sys::Object,
@@ -101,4 +101,22 @@ pub fn get_js_field_as_bool(obj: &JsValue, field: &str) -> Result<bool, StepErro
             format!("Failed to get field: '{}' from js obj", field),
         ))
     }
+}
+
+pub fn get_selection(
+    anchor_id: String,
+    anchor_offset: usize,
+    head_id: String,
+    head_offset: usize,
+    anchor_is_above: bool,
+    block_map_js: js_sys::Map,
+) -> JsValue {
+    let block_map = BlockMap::from_js_map(block_map_js);
+    let selection = Selection::from_frontend_data(anchor_id, head_id, anchor_offset, head_offset, &block_map, anchor_is_above);
+    let selection = match selection {
+        Ok(selection) => selection,
+        Err(_) => Selection { anchor: SubSelection::new(), head: SubSelection::new() }
+    };
+
+    return selection.to_js_obj().unwrap()
 }

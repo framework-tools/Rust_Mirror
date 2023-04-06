@@ -1,12 +1,12 @@
 
-use std::collections::{HashMap, HashSet};
+
 
 use crate::{
     blocks::{standard_blocks::StandardBlock, Block, BlockMap, inline_blocks::text_block::StringUTF16},
     step::{ReplaceSlice, ReplaceStep}, frontend_interface::{get_js_field, get_js_field_as_string, get_js_field_as_f64},
 };
 
-use super::{StepError, mark_steps::ForSelection};
+use super::{StepError};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::JsValue;
 
