@@ -474,14 +474,14 @@ pub fn remove_excess_from_selection(
     while anchor.block_id == head.block_id {
         match &anchor.subselection {
             Some(subselection) => match &subselection.subselection {
-                Some(subselection) => anchor = *subselection.clone(),
+                Some(inner_subselection) => anchor = *subselection.clone(),
                 None => return Ok(Selection { anchor, head })
             },
             None => return Ok(Selection { anchor, head })
         };
         match &head.subselection {
             Some(subselection) => match &subselection.subselection {
-                Some(subselection) => head = *subselection.clone(),
+                Some(inner_subselection) => head = *subselection.clone(),
                 None => return Ok(Selection { anchor, head })
             },
             None => return Ok(Selection { anchor, head })
