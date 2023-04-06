@@ -54,16 +54,16 @@ impl Selection {
             block_map
         )?;
 
+        build_up_selection_from_base(
+            &mut anchor,
+            &mut head,
+            &mut anchor_subselection,
+            &mut head_subselection,
+            block_map
+        )?;
+
         // purely for testing
         return Ok( Selection { anchor: anchor_subselection, head: head_subselection })
-
-        // build_up_selection_from_base(
-        //     &mut anchor,
-        //     &mut head,
-        //     &mut anchor_subselection,
-        //     &mut head_subselection,
-        //     block_map
-        // )?;
 
         // // remove layers from top down until last shared common parent is reached
         // return remove_excess_from_selection(anchor_subselection, head_subselection)
