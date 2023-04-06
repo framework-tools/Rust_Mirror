@@ -25,57 +25,45 @@ impl Selection {
     /// keep adding to the selection in the loop by bubbling up to its parent
     /// until the next parent is the root block or common shared parent for both anchor and head
     /// after this, remove each layer from the top down until the last shared common parent is reached
-    pub fn from_raw_html(
-        anchor_id: String, 
-        head_id: String, 
-        anchor_offset: usize, 
-        head_offset: usize, 
+    pub fn from_frontend_data(
+        anchor_id: String,
+        head_id: String,
+        anchor_offset: usize,
+        head_offset: usize,
         block_map: &BlockMap,
-        anchor_is_above: bool) -> Result<Self, StepError> {
+        anchor_is_above: bool
+    ) -> Result<Self, StepError> {
         let anchor_block = block_map.get_block(&anchor_id);
         let head_block = block_map.get_block(&head_id);
-        let mut anchor_subselection: SubSelection = SubSelection{
-            block_id: anchor_id,
-            offset: anchor_offset,
-            subselection: None,
-        };
-        let mut anchor = get_deepest_selection(
-            anchor_block, 
-            anchor_offset, 
-            anchor_is_above, 
-            &mut anchor_subselection, 
+
+        let mut anchor_subselection: SubSelection = SubSelection::new();
+        let mut anchor = get_deepest_subselection(
+            anchor_block,
+            anchor_offset,
+            anchor_is_above,
+            &mut anchor_subselection,
             block_map
         )?;
 
-
-        let mut head_subselection: SubSelection = SubSelection {
-            block_id: head_id,
-            offset: head_offset,
-            subselection: None,
-        };
-        let mut head = get_deepest_selection(
-            head_block, 
-            head_offset, 
-            !anchor_is_above, 
-            &mut head_subselection, 
+        let mut head_subselection: SubSelection = SubSelection::new();
+        let mut head = get_deepest_subselection(
+            head_block,
+            head_offset,
+            anchor_is_above,
+            &mut head_subselection,
             block_map
         )?;
 
         build_up_selection_from_base(
-            &mut anchor, 
-            &mut head, 
-            &mut anchor_subselection, 
-            &mut head_subselection, 
+            &mut anchor,
+            &mut head,
+            &mut anchor_subselection,
+            &mut head_subselection,
             block_map
         )?;
 
         // remove layers from top down until last shared common parent is reached
-        remove_excess_from_selection(&mut anchor_subselection, &mut head_subselection);
-
-        return Ok(Selection {
-            anchor: anchor_subselection,
-            head: head_subselection,
-        });
+        return remove_excess_from_selection(anchor_subselection, head_subselection)
     }
 
     pub fn from(anchor: SubSelection, head: SubSelection) -> Self {
@@ -158,7 +146,6 @@ impl Selection {
         js_sys::Reflect::set(&obj, &JsValue::from_str("head"), &JsValue::from(self.head.to_js_obj()?)).unwrap();
         return Ok(obj.into())
     }
-
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -169,6 +156,14 @@ pub struct SubSelection {
 }
 
 impl SubSelection {
+    pub fn new() -> Self {
+        return Self {
+            block_id: "".to_string(),
+            offset: 0,
+            subselection: None
+        }
+    }
+
     pub fn from(block_id: String, offset: usize, subselection: Option<Box<SubSelection>>) -> Self {
         Self {
             block_id,
@@ -392,12 +387,13 @@ impl SubSelection {
     // }
 }
 
-pub fn get_deepest_selection(
-    block: Result<Block, StepError>, 
-    offset: usize, 
-    anchor_is_above: bool, 
+pub fn get_deepest_subselection(
+    block: Result<Block, StepError>,
+    offset: usize,
+    anchor_is_above: bool,
     subselection: &mut SubSelection,
-    block_map: &BlockMap) -> Result<Block, StepError> {
+    block_map: &BlockMap
+) -> Result<Block, StepError> {
     match block {
         Ok(Block::InlineBlock(inline_block)) => {
             *subselection = SubSelection {
@@ -430,7 +426,7 @@ pub fn get_deepest_selection(
         Err(_) | Ok(Block::Root(_)) => {
             return Err(StepError("Anchor block not found or is root".to_string()))
         }
-    };
+    }
 }
 
 pub fn build_up_selection_from_base(
@@ -440,7 +436,7 @@ pub fn build_up_selection_from_base(
     head_subselection: &mut SubSelection,
     block_map: &BlockMap,
 ) -> Result<(), StepError> {
-    while !(anchor.is_root() && head.is_root()) && anchor.id() != head.id() {
+    loop {
         *anchor = block_map.get_block(&anchor.parent()?)?;
         *head = block_map.get_block(&head.parent()?)?;
         if !anchor.is_root() {
@@ -449,7 +445,6 @@ pub fn build_up_selection_from_base(
                 offset: 0,
                 subselection: Some(Box::new(anchor_subselection.clone())),
             };
-
         }
         if !head.is_root() {
             *head_subselection = SubSelection {
@@ -458,31 +453,29 @@ pub fn build_up_selection_from_base(
                 subselection: Some(Box::new(head_subselection.clone())),
             };
         }
+
+        if block_map.get_block(&anchor.parent()?)?.is_root() && block_map.get_block(&head.parent()?)?.is_root() {
+            return Ok(())
+        }
     }
-    return Ok(())
 }
 
 pub fn remove_excess_from_selection(
-    anchor_subselection: &mut SubSelection,
-    head_subselection: &mut SubSelection,
-) -> Result<(), StepError> {
-    if anchor_subselection.subselection.is_none() && head_subselection.subselection.is_none() {
-        return Ok(())
+    mut anchor: SubSelection,
+    mut head: SubSelection,
+) -> Result<Selection, StepError> {
+    if anchor.subselection.is_none() && head.subselection.is_none() {
+        return Ok(Selection { anchor, head })
     }
-    let mut used_standard_block_ids = HashSet::new();
-    let mut current_anchor = anchor_subselection.clone();
-    while current_anchor.subselection.clone().unwrap().subselection.is_some() {
-        used_standard_block_ids.insert(current_anchor.block_id.clone());
-        current_anchor = *current_anchor.subselection.unwrap();
-    }
-    for item in used_standard_block_ids.iter() {
-        let current_head = head_subselection.clone();
-        while current_anchor.subselection.clone().unwrap().subselection.is_some() {
-            if current_head.block_id == *item {
-                return Ok(());
-            }
-            *head_subselection = *head_subselection.subselection.clone().unwrap();
+
+    while anchor.block_id == head.block_id {
+        if anchor.subselection.is_none() || head.subselection.is_none() {
+            return Ok(Selection { anchor, head })
         }
+
+        anchor = *anchor.subselection.unwrap();
+        head = *head.subselection.unwrap();
     }
-    return Ok(());
+
+    return Ok(Selection { anchor, head })
 }
