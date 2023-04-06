@@ -62,7 +62,11 @@ impl Selection {
             block_map
         )?;
 
-        return remove_excess_from_selection(anchor_subselection, head_subselection)
+        // purely for testing
+        return Ok( Selection { anchor: anchor_subselection, head: head_subselection })
+
+        // // remove layers from top down until last shared common parent is reached
+        // return remove_excess_from_selection(anchor_subselection, head_subselection)
     }
 
     pub fn from(anchor: SubSelection, head: SubSelection) -> Self {
