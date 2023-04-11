@@ -474,18 +474,25 @@ pub fn remove_excess_from_selection(
     while anchor.block_id == head.block_id {
         match &anchor.subselection {
             Some(subselection) => match &subselection.subselection {
-                Some(inner_subselection) => anchor = *subselection.clone(),
+                Some(_) => anchor = *subselection.clone(),
                 None => return Ok(Selection { anchor, head })
             },
             None => return Ok(Selection { anchor, head })
         };
         match &head.subselection {
             Some(subselection) => match &subselection.subselection {
-                Some(inner_subselection) => head = *subselection.clone(),
+                Some(_) => head = *subselection.clone(),
                 None => return Ok(Selection { anchor, head })
             },
             None => return Ok(Selection { anchor, head })
         };
+    }
+
+    if anchor.block_id == head.block_id && anchor.subselection.is_some() && head.subselection.is_some() {
+        if anchor.subselection.clone().unwrap().subselection.is_none() && head.subselection.clone().unwrap().subselection.is_none() {
+            anchor = *anchor.subselection.unwrap();
+            head = *head.subselection.unwrap();
+        }
     }
 
     return Ok(Selection { anchor, head })
