@@ -475,16 +475,16 @@ pub fn remove_excess_from_selection(
         match &anchor.subselection {
             Some(subselection) => match &subselection.subselection {
                 Some(_) => anchor = *subselection.clone(),
-                None => return Ok(Selection { anchor, head })
+                None => break
             },
-            None => return Ok(Selection { anchor, head })
+            None => break
         };
         match &head.subselection {
             Some(subselection) => match &subselection.subselection {
                 Some(_) => head = *subselection.clone(),
-                None => return Ok(Selection { anchor, head })
+                None => break
             },
-            None => return Ok(Selection { anchor, head })
+            None => break
         };
     }
 
