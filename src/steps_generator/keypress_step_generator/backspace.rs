@@ -16,13 +16,6 @@ pub fn generate_steps_for_backspace(
                         if std_block.is_list() {
                             return turn_into_paragraph_step(std_block.id())
                         } else {
-                            let block_above_no_content = match std_block.get_previous(block_map)? {
-                                Some(block) => !block.has_content(),
-                                None => true
-                            };
-                            if block_above_no_content {
-                                return Ok(vec![])
-                            }
                             return caret_at_start_of_parent_block_steps(from_block, block_map)
                         }
                     } else { // caret at start of inline block that is not the first inline in it's parent
