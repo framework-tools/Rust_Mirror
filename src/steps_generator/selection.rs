@@ -62,7 +62,7 @@ impl Selection {
             block_map
         )?;
 
-        return remove_excess_from_selection(anchor_subselection, head_subselection)
+        return remove_excess_from_selection(anchor_subselection, head_subselection, block_map)
     }
 
     pub fn from(anchor: SubSelection, head: SubSelection) -> Self {
