@@ -472,26 +472,37 @@ pub fn build_up_selection_from_base(
 pub fn remove_excess_from_selection(
     mut anchor: SubSelection,
     mut head: SubSelection,
+    block_map: &BlockMap
 ) -> Result<Selection, StepError> {
     if anchor.subselection.is_none() && head.subselection.is_none() {
         return Ok(Selection { anchor, head })
     }
 
     while anchor.block_id == head.block_id {
+        let temp_anchor;
+        let temp_head;
         match &anchor.subselection {
             Some(subselection) => match &subselection.subselection {
-                Some(_) => anchor = *subselection.clone(),
+                Some(_) => temp_anchor = *subselection.clone(),
                 None => break
             },
             None => break
         };
         match &head.subselection {
             Some(subselection) => match &subselection.subselection {
-                Some(_) => head = *subselection.clone(),
+                Some(_) => temp_head = *subselection.clone(),
                 None => break
             },
             None => break
         };
+        let temp_anchor_block = block_map.get_standard_block(&temp_anchor.block_id)?;
+        let temp_head_block = block_map.get_standard_block(&temp_head.block_id)?;
+        if temp_anchor_block.parent != temp_head_block.parent {
+            break; // selection should always have common parent at highest level
+        } else {
+            anchor = temp_anchor;
+            head = temp_head;
+        }
     }
 
     if anchor.block_id == head.block_id && anchor.subselection.is_some() && head.subselection.is_some() {
