@@ -41,7 +41,7 @@ pub fn generate_slash_scrim_steps(
         "dotpoint list" => StandardBlockType::DotPointList(ListBlock::new()),
         "inline page" => StandardBlockType::InlinePage(PageBlock::new()),
         "square page" => StandardBlockType::SquarePage(PageBlock::new()),
-
+        "link page" => StandardBlockType::LinkBlock(PageBlock::new()),
         block_type => return Err(StepError(format!("There is no valid block type: {}", block_type)))
     };
 
