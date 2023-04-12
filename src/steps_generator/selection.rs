@@ -388,13 +388,19 @@ impl SubSelection {
 
 pub fn get_deepest_subselection(
     block: Result<Block, StepError>,
-    offset: usize,
+    mut offset: usize,
     anchor_is_above: bool,
     subselection: &mut SubSelection,
     block_map: &BlockMap
 ) -> Result<Block, StepError> {
     match block {
         Ok(Block::InlineBlock(inline_block)) => {
+            // fix for edge case where selected on empty inline block
+            if offset == 1 && inline_block.text()?.len() == 0 {
+                offset = 0
+            }
+
+            // create deepest subselection
             *subselection = SubSelection {
                 block_id: inline_block._id.clone(),
                 offset: offset,
