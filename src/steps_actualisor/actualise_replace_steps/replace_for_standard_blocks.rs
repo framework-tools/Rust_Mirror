@@ -113,7 +113,7 @@ pub fn replace_selected_across_standard_blocks(
                 copy: None
             })
         },
-        None => return replace_across_standard_blocks_no_subselection(from_block, block_map, replace_step, blocks_to_update)
+        None => unimplemented!()// return replace_across_standard_blocks_no_subselection(from_block, block_map, replace_step, blocks_to_update)
     }
 }
 

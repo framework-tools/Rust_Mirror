@@ -416,6 +416,7 @@ pub enum StandardBlockType {
     ArrowList(ListBlock),
     InlinePage(PageBlock),
     SquarePage(PageBlock),
+    LinkBlock(PageBlock),
     Layout(LayoutBlock),
 }
 
@@ -434,6 +435,7 @@ impl StandardBlockType {
             "arrow list" => Ok(StandardBlockType::ArrowList(ListBlock::from_js_block(obj)?)),
             "inline page" => Ok(StandardBlockType::InlinePage(PageBlock::from_js_block(obj)?)),
             "square page" => Ok(StandardBlockType::SquarePage(PageBlock::from_js_block(obj)?)),
+            "link page" => Ok(StandardBlockType::LinkBlock(PageBlock::from_js_block(obj)?)),
             "layout" => Ok(StandardBlockType::Layout(LayoutBlock::from_js_block(obj)?)),
             _type => Err(StepError(format!("Block type '{}' not found", _type)))
         }
@@ -452,6 +454,7 @@ impl StandardBlockType {
             "arrow list" => Ok(StandardBlockType::ArrowList(ListBlock::from_json(json)?)),
             "inline page" => Ok(StandardBlockType::InlinePage(PageBlock::from_json(json)?)),
             "square page" => Ok(StandardBlockType::SquarePage(PageBlock::from_json(json)?)),
+            "link page" => Ok(StandardBlockType::LinkBlock(PageBlock::from_json(json)?)),
             "layout" => Ok(StandardBlockType::Layout(LayoutBlock::from_json(json)?)),
             _ => Err(StepError(format!("Block type {} not found", block_type)))
         }
@@ -543,6 +546,14 @@ impl StandardBlockType {
                     }
                 })
             },
+            StandardBlockType::LinkBlock(block) => {
+                json!({
+                    "_type": "link page",
+                    "content": {
+                        "page_id": block.page_id
+                    }
+                })
+            },
             StandardBlockType::Layout(block) => {
                 json!({
                     "_type": "layout",
@@ -566,6 +577,7 @@ impl StandardBlockType {
             StandardBlockType::ArrowList(_) => return Ok("arrow list".to_string()),
             StandardBlockType::InlinePage(_) => return Ok("inline page".to_string()),
             StandardBlockType::SquarePage(_) => return Ok("square page".to_string()),
+            StandardBlockType::LinkBlock(_) => return Ok("link page".to_string()),
             StandardBlockType::Layout(_) => return Ok("layout".to_string()),
         }
     }
@@ -584,7 +596,7 @@ impl StandardBlockType {
                     js_sys::Reflect::set(&content, &JsValue::from_str("inline_blocks"), &vec_string_to_arr(&list_block.content.inline_blocks)?.into()).unwrap();
                     js_sys::Reflect::set(&content, &JsValue::from_str("completed"), &JsValue::from(list_block.completed)).unwrap();
             },
-            StandardBlockType::InlinePage(page_block) | StandardBlockType::SquarePage(page_block) => {
+            StandardBlockType::InlinePage(page_block) | StandardBlockType::SquarePage(page_block) | StandardBlockType::LinkBlock(page_block) => {
                 js_sys::Reflect::set(&content, &JsValue::from_str("page_id"), &JsValue::from_str(&page_block.page_id)).unwrap();
             },
             StandardBlockType::Layout(layout_block) => {
