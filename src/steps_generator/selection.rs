@@ -410,22 +410,33 @@ pub fn get_deepest_subselection(
         },
         Ok(Block::StandardBlock(standard_block)) => {
             // we want to add a layer above the deepest layer where the selection is at the start of the inline block
-            if anchor_is_above {
-                let inline = block_map.get_inline_block(&standard_block.content_block()?.inline_blocks[0])?;
+
+            if standard_block.has_content() {
+                if anchor_is_above {
+                    let inline = block_map.get_inline_block(&standard_block.content_block()?.inline_blocks[0])?;
+                    *subselection = SubSelection {
+                        block_id: inline.id(),
+                        offset: 0,
+                        subselection: None,
+                    };
+                    return Ok(Block::InlineBlock(inline))
+                } else {
+                    let inline = block_map.get_inline_block(&standard_block.content_block()?.inline_blocks[standard_block.content_block()?.inline_blocks.len() - 1])?;
+                    *subselection = SubSelection {
+                        block_id: inline.id(),
+                        offset: inline.text()?.len(),
+                        subselection: None,
+                    };
+                    return Ok(Block::InlineBlock(inline))
+                }
+            } else {
+                // if no content in block we just return std block as the deepest (ie a page block)
                 *subselection = SubSelection {
-                    block_id: inline.id(),
+                    block_id: standard_block.id(),
                     offset: 0,
                     subselection: None,
                 };
-                return Ok(Block::InlineBlock(inline))
-            } else {
-                let inline = block_map.get_inline_block(&standard_block.content_block()?.inline_blocks[standard_block.content_block()?.inline_blocks.len() - 1])?;
-                *subselection = SubSelection {
-                    block_id: inline.id(),
-                    offset: inline.text()?.len(),
-                    subselection: None,
-                };
-                return Ok(Block::InlineBlock(inline))
+                return Ok(Block::StandardBlock(standard_block))
             }
         },
         Err(_) | Ok(Block::Root(_)) => {
