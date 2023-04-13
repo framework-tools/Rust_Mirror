@@ -3,7 +3,7 @@
 
 use crate::{
     blocks::{standard_blocks::StandardBlock, Block, BlockMap, inline_blocks::text_block::StringUTF16},
-    step::{ReplaceSlice, ReplaceStep}, frontend_interface::{get_js_field, get_js_field_as_string, get_js_field_as_f64},
+    step::{ReplaceSlice, ReplaceStep}, frontend_interface::{get_js_field, get_js_field_as_string, get_js_field_as_f64}, utilities::{get_next_block_in_tree, get_previous_block_in_tree},
 };
 
 use super::{StepError};
@@ -36,11 +36,20 @@ impl Selection {
         let anchor_block = block_map.get_block(&anchor_id);
         let head_block = block_map.get_block(&head_id);
 
+        // handle edge case where both blocks are std blocks (blocks with no content) & same block
+        if anchor_id == head_id && block_map.get_standard_block(&anchor_id).is_ok() {
+            return Ok(Self {
+                anchor: SubSelection { block_id: "".to_string(), offset: 0, subselection: None  },
+                head: SubSelection  { block_id: "".to_string(), offset: 0, subselection: None  },
+            })
+        }
+
         let mut anchor_subselection: SubSelection = SubSelection::new();
         let mut anchor = get_deepest_subselection(
             anchor_block,
             anchor_offset,
             anchor_is_above,
+            true,
             &mut anchor_subselection,
             block_map
         )?;
@@ -50,6 +59,7 @@ impl Selection {
             head_block,
             head_offset,
             anchor_is_above,
+            false,
             &mut head_subselection,
             block_map
         )?;
@@ -390,6 +400,7 @@ pub fn get_deepest_subselection(
     block: Result<Block, StepError>,
     mut offset: usize,
     anchor_is_above: bool,
+    for_anchor: bool,
     subselection: &mut SubSelection,
     block_map: &BlockMap
 ) -> Result<Block, StepError> {
@@ -412,31 +423,21 @@ pub fn get_deepest_subselection(
             // we want to add a layer above the deepest layer where the selection is at the start of the inline block
 
             if standard_block.has_content() {
-                if anchor_is_above {
-                    let inline = block_map.get_inline_block(&standard_block.content_block()?.inline_blocks[0])?;
-                    *subselection = SubSelection {
-                        block_id: inline.id(),
-                        offset: 0,
-                        subselection: None,
-                    };
-                    return Ok(Block::InlineBlock(inline))
+                if (anchor_is_above && for_anchor) || (!anchor_is_above && !for_anchor)  {
+                    return selection_at_start_of_std_block(standard_block, block_map, subselection)
                 } else {
-                    let inline = block_map.get_inline_block(&standard_block.content_block()?.inline_blocks[standard_block.content_block()?.inline_blocks.len() - 1])?;
-                    *subselection = SubSelection {
-                        block_id: inline.id(),
-                        offset: inline.text()?.len(),
-                        subselection: None,
-                    };
-                    return Ok(Block::InlineBlock(inline))
+                    return selection_at_end_of_std_block(standard_block, block_map, subselection)
                 }
             } else {
-                // if no content in block we just return std block as the deepest (ie a page block)
-                *subselection = SubSelection {
-                    block_id: standard_block.id(),
-                    offset: 0,
-                    subselection: None,
-                };
-                return Ok(Block::StandardBlock(standard_block))
+                // if block does not have content -> subselection should go to the next block above or below that does has content
+                // depending on the position of the blocks
+                if (anchor_is_above && for_anchor) || (!anchor_is_above && !for_anchor)  {
+                    // in this case we search below
+                    get_next_block_with_content(&standard_block, block_map, subselection, get_next_block_in_tree)
+                } else {
+                    // in this case we search above
+                    get_next_block_with_content(&standard_block, block_map, subselection, get_previous_block_in_tree)
+                }
             }
         },
         Err(_) | Ok(Block::Root(_)) => {
@@ -524,4 +525,59 @@ pub fn remove_excess_from_selection(
     }
 
     return Ok(Selection { anchor, head })
+}
+
+fn selection_at_start_of_std_block(
+    standard_block: StandardBlock,
+    block_map: &BlockMap,
+    subselection: &mut SubSelection
+) -> Result<Block, StepError> {
+    let inline = block_map.get_inline_block(&standard_block.content_block()?.inline_blocks[0])?;
+    *subselection = SubSelection {
+        block_id: inline.id(),
+        offset: 0,
+        subselection: None,
+    };
+    return Ok(Block::InlineBlock(inline))
+}
+
+fn selection_at_end_of_std_block(
+    standard_block: StandardBlock,
+    block_map: &BlockMap,
+    subselection: &mut SubSelection
+) -> Result<Block, StepError> {
+    let inline = block_map.get_inline_block(&standard_block.content_block()?.inline_blocks[standard_block.content_block()?.inline_blocks.len() - 1])?;
+    *subselection = SubSelection {
+        block_id: inline.id(),
+        offset: inline.text()?.len(),
+        subselection: None,
+    };
+    return Ok(Block::InlineBlock(inline))
+}
+
+pub fn get_next_block_with_content(
+    standard_block: &StandardBlock,
+    block_map: &BlockMap,
+    subselection: &mut SubSelection,
+    get_next_block: fn(current_node: &StandardBlock, block_map: &BlockMap, depth_from_root: &mut usize) -> Result<StandardBlock, StepError>
+) -> Result<Block, StepError> {
+    let mut opt_next_block = get_next_block(
+        &standard_block,
+        block_map,
+        &mut standard_block.depth_from_root(block_map)?
+    );
+    loop {
+        let next_block = match opt_next_block {
+            Ok(next_block) => next_block,
+            Err(_) => unimplemented!()
+        };
+        if next_block.has_content() {
+            return selection_at_start_of_std_block(next_block, block_map, subselection)
+        }
+        opt_next_block = get_next_block(
+            &next_block,
+            block_map,
+            &mut standard_block.depth_from_root(block_map)?
+        );
+    }
 }

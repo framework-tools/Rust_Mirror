@@ -101,20 +101,15 @@ pub fn replace_selected_across_standard_blocks(
         }
     }
 
-    match &replace_step.from.subselection {
-        Some(_) => {
-            let block_map = replace_inline_blocks_text(&replace_step, from_block, to_block, block_map, &mut blocks_to_update)?;
+    let block_map = replace_inline_blocks_text(&replace_step, from_block, to_block, block_map, &mut blocks_to_update)?;
 
-            return Ok(UpdatedState {
-                block_map,
-                selection: Some(Selection::update_selection_from(replace_step)),
-                blocks_to_update,
-                blocks_to_remove: vec![],
-                copy: None
-            })
-        },
-        None => unimplemented!()// return replace_across_standard_blocks_no_subselection(from_block, block_map, replace_step, blocks_to_update)
-    }
+    return Ok(UpdatedState {
+        block_map,
+        selection: Some(Selection::update_selection_from(replace_step)),
+        blocks_to_update,
+        blocks_to_remove: vec![],
+        copy: None
+    })
 }
 
 fn remove_all_selected_blocks_between_from_and_to(

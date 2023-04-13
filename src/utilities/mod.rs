@@ -412,3 +412,23 @@ pub fn reassign_ids(
 
     return Ok(())
 }
+
+
+pub fn get_previous_block_in_tree(current_node: &StandardBlock, block_map: &BlockMap, depth_from_root: &mut usize) -> Result<StandardBlock, StepError> {
+    return match current_node.get_previous(block_map)? {
+        Some(sibling_above) => {
+            if sibling_above.children.len() > 0 {
+                sibling_above.get_youngest_descendant(block_map)
+            } else {
+                Ok(sibling_above)
+            }
+        },
+        None => {
+            match current_node.get_parent(block_map)? {
+                Block::StandardBlock(std_block) => Ok(std_block),
+                Block::Root(_) => Err(StepError("No more blocks above! Is first block".to_string())),
+                Block::InlineBlock(_) => Err(StepError(format!("Parent of std block id: {} should not have an inline block as a parent!", current_node.id())))
+            }
+        }
+    }
+}
