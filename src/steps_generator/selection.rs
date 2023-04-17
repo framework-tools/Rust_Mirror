@@ -39,8 +39,8 @@ impl Selection {
         // handle edge case where both blocks are std blocks (blocks with no content) & same block
         if anchor_id == head_id && block_map.get_standard_block(&anchor_id).is_ok() {
             return Ok(Self {
-                anchor: SubSelection { block_id: "".to_string(), offset: 0, subselection: None  },
-                head: SubSelection  { block_id: "".to_string(), offset: 0, subselection: None  },
+                anchor: SubSelection { block_id: anchor_id.to_string(), offset: 0, subselection: None  },
+                head: SubSelection  { block_id: anchor_id.to_string(), offset: 0, subselection: None  },
             })
         }
 
