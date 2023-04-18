@@ -308,10 +308,16 @@ pub fn get_all_blocks(top_blocks: &Vec<StandardBlock>, block_map: &BlockMap) -> 
                     };
                 },
                 _ => {
-                    if !standard_blocks.contains(&current_node) {
-                        standard_blocks.push(current_node);
+                    current_top_block_i += 1;
+                    match top_blocks.get(current_top_block_i) {
+                        Some(_) => next_node = top_blocks[current_top_block_i].clone(),
+                        None => {
+                            if !standard_blocks.contains(&current_node) {
+                                standard_blocks.push(current_node);
+                            }
+                            break;
+                        },
                     };
-                    break;
                 }
             };
         }

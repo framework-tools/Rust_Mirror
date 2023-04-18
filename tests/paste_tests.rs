@@ -1,7 +1,7 @@
 
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{steps_actualisor::{actualise_shortcuts::actualise_copy, actualise_steps}, custom_copy::CustomCopy, steps_generator::{StepError, selection::SubSelection}, new_ids::NewIds, blocks::{BlockMap, RootBlock}, step::Step};
+    use rust_mirror::{steps_actualisor::{actualise_shortcuts::actualise_copy, actualise_steps}, custom_copy::CustomCopy, steps_generator::{StepError, selection::SubSelection}, new_ids::NewIds, blocks::{BlockMap, RootBlock}, step::Step, utilities::Tree};
     use serde_json::{json, to_string};
 
     /// Copy: /// <1> Hell|o </1><2> brave </2><3> ne|w </3><4> world </4>
@@ -538,6 +538,125 @@ mod tests {
 
         let new_root = updated_state.block_map.get_root_block(&root_block_id)?;
         assert_eq!(new_root.children.len(), 6);
+
+        return Ok(())
+    }
+
+    /// <1>
+    /// <2>
+    /// <3>
+    #[test]
+    fn can_paste_flat_paragraphs() -> Result<(), StepError> {
+        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
+
+        let root_block_id = new_ids.get_id()?;
+        let p_id1 = "1".to_string();
+        let p_id2 = "2".to_string();
+        let p_id3 = "3".to_string();
+        let inline_block_id1 = new_ids.get_id()?;
+        let inline_block_id2 = new_ids.get_id()?;
+        let inline_block_id3 = new_ids.get_id()?;
+        let p1 = json!({
+            "_id": p_id1.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id1.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.to_string()
+        });
+        let inline_block1 = json!({
+            "_id": inline_block_id1.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello"
+            },
+            "marks": [],
+            "parent": p_id1.clone()
+        });
+        let p2 = json!({
+            "_id": p_id2.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id2.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let inline_block2 = json!({
+            "_id": inline_block_id2.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "World"
+            },
+            "marks": [],
+            "parent": p_id2.clone()
+        });
+        let p3 = json!({
+            "_id": p_id3.clone(),
+            "kind": "standard",
+            "_type": "paragraph",
+            "content": {
+                "inline_blocks": [inline_block_id3.clone()]
+            },
+            "children": [],
+            "marks": [],
+            "parent": root_block_id.clone()
+        });
+        let inline_block3 = json!({
+            "_id": inline_block_id3.clone(),
+            "kind": "inline",
+            "_type": "text",
+            "content": {
+                "text": "Hello"
+            },
+            "marks": [],
+            "parent": p_id3.clone()
+        });
+
+        let root_block = RootBlock::json_from(
+            root_block_id.clone(),
+            vec![p_id1.clone()]
+        );
+
+        let block_map = BlockMap::from(
+            vec![
+                root_block.to_string(),
+                p1.to_string(), inline_block1.to_string(),
+            ]
+        ).unwrap();
+
+        let copy_map = BlockMap::from(
+            vec![
+                p2.to_string(), inline_block2.to_string(),
+                p3.to_string(), inline_block3.to_string(),
+            ]
+        ).unwrap();
+
+        let p2_rust = copy_map.get_standard_block(&p_id2).unwrap();
+        let p3_rust = copy_map.get_standard_block(&p_id3).unwrap();
+
+        let copy = CustomCopy::Rust(Tree {
+            top_blocks: vec![p2_rust, p3_rust],
+            block_map: copy_map
+        });
+
+        let paste_subselection = SubSelection::from(inline_block_id1.clone(), 0, None);
+        let updated_state = actualise_steps(
+            vec![Step::Paste(paste_subselection.clone(), paste_subselection.clone())],
+            block_map,
+            &mut new_ids,
+            copy
+        )?;
+
+        let new_root = updated_state.block_map.get_root_block(&root_block_id)?;
+        assert_eq!(new_root.children.len(), 2);
 
         return Ok(())
     }
