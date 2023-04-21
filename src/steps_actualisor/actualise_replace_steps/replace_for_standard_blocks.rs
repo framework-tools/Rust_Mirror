@@ -47,6 +47,7 @@ pub fn replace_selected_across_standard_blocks(
     mut blocks_to_update: Vec<String>,
     new_ids: &mut NewIds
 ) -> Result<UpdatedState, StepError> {
+    println!("got here");
     let to_block = block_map.get_standard_block(&replace_step.to.block_id)?;
     if from_block.parent != to_block.parent {
         return Err(StepError("Expected from_block and to_block to have the same parent".to_string()))
