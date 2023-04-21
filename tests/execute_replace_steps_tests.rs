@@ -2167,7 +2167,6 @@ mod tests {
         };
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
-        println!("steps: {:?}", steps);
         let updated_state = actualise_steps(steps, block_map, &mut new_ids, CustomCopy::new()).unwrap();
 
         let updated_paragraph_block1 = updated_state.block_map.get_standard_block(&paragraph_block_id1).unwrap();
