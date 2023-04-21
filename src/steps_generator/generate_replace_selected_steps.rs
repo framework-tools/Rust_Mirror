@@ -18,14 +18,23 @@ pub fn generate_replace_selected_steps(
             })
         ]),
         Block::StandardBlock(standard_block) => {
-            Ok(vec![
-                Step::ReplaceStep(ReplaceStep {
-                    block_id: standard_block.parent,
-                    from,
-                    to,
-                    slice: ReplaceSlice::String(replace_with)
-                })
-            ])
+            if &from.block_id == &to.block_id && from.subselection.is_none() && to.subselection.is_none() {
+                return Ok(vec![
+                    Step::TurnInto(TurnInto {
+                        block_id: from.block_id,
+                        new_block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![]))
+                    })
+                ])
+            } else {
+                Ok(vec![
+                    Step::ReplaceStep(ReplaceStep {
+                        block_id: standard_block.parent,
+                        from,
+                        to,
+                        slice: ReplaceSlice::String(replace_with)
+                    })
+                ])
+            }
         },
         Block::Root(_) => return Err(StepError("Cannot perform replace step on root".to_string()))
     }
