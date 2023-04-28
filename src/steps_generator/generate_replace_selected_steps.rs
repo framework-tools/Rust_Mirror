@@ -18,7 +18,7 @@ pub fn generate_replace_selected_steps(
             })
         ]),
         Block::StandardBlock(standard_block) => {
-            if &from.block_id == &to.block_id {
+            if &from.block_id == &to.block_id && from.subselection.is_none() && to.subselection.is_none() {
                 return Ok(vec![
                     Step::TurnInto(TurnInto {
                         block_id: from.block_id,

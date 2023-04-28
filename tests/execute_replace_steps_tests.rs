@@ -2042,10 +2042,10 @@ mod tests {
         let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
 
         let root_block_id = new_ids.get_id().unwrap();
-        let paragraph_block_id1 = new_ids.get_id().unwrap();
-        let paragraph_block_id2 = new_ids.get_id().unwrap();
-        let paragraph_block_id3 = new_ids.get_id().unwrap();
-        let paragraph_block_id4 = new_ids.get_id().unwrap();
+        let paragraph_block_id1 = "1".to_string();
+        let paragraph_block_id2 = "2".to_string();
+        let paragraph_block_id3 = "3".to_string();
+        let paragraph_block_id4 = "4".to_string();
         let inline_block_id1 = new_ids.get_id().unwrap();
         let inline_block_id2 = new_ids.get_id().unwrap();
         let inline_block_id3 = new_ids.get_id().unwrap();
