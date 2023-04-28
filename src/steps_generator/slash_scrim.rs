@@ -69,12 +69,12 @@ pub fn generate_slash_scrim_steps(
                     block_type: new_block_type,
                     focus_block_below: false,
                 }),
-                Step::AddBlock(AddBlockStep {
-                    block_id:  nearest_standard_block.parent(),
-                    child_offset: nearest_standard_block.index(block_map)? + 1,
-                    block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![])),
-                    focus_block_below: false,
-                })
+                // Step::AddBlock(AddBlockStep {
+                //     block_id:  nearest_standard_block.parent(),
+                //     child_offset: nearest_standard_block.index(block_map)? + 1,
+                //     block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![])),
+                //     focus_block_below: false,
+                // })
             ])
         } else {
             steps.push(Step::ReplaceStep(replace_step));
