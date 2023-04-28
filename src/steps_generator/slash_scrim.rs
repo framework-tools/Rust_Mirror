@@ -50,7 +50,7 @@ pub fn generate_slash_scrim_steps(
     let mut block_is_being_replaced = false;
     if replace_slash_scrim_text_step.is_some() {
         let replace_step = replace_slash_scrim_text_step.unwrap();
-        if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)?  {
+        if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? && nearest_standard_block.has_content()  {
             return Ok(vec![
                 Step::DeleteBlock(nearest_standard_block.id()),
                 Step::AddBlock(AddBlockStep {
