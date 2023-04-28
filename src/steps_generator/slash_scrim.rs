@@ -50,29 +50,13 @@ pub fn generate_slash_scrim_steps(
     let mut block_is_being_replaced = false;
     if replace_slash_scrim_text_step.is_some() {
         let replace_step = replace_slash_scrim_text_step.unwrap();
-        if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? && new_block_type.has_content() {
+        if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)?  {
             return Ok(vec![
                 Step::DeleteBlock(nearest_standard_block.id()),
                 Step::AddBlock(AddBlockStep {
                     block_id:  nearest_standard_block.parent(),
                     child_offset: nearest_standard_block.index(block_map)?,
                     block_type: new_block_type,
-                    focus_block_below: false,
-                })
-            ])
-        } else if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? {
-            return Ok(vec![
-                Step::DeleteBlock(nearest_standard_block.id()),
-                Step::AddBlock(AddBlockStep {
-                    block_id:  nearest_standard_block.parent(),
-                    child_offset: nearest_standard_block.index(block_map)?,
-                    block_type: new_block_type,
-                    focus_block_below: false,
-                }),
-                Step::AddBlock(AddBlockStep {
-                    block_id:  nearest_standard_block.parent(),
-                    child_offset: nearest_standard_block.index(block_map)? + 1,
-                    block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![])),
                     focus_block_below: false,
                 })
             ])
