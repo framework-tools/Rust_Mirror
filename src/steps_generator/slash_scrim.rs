@@ -52,10 +52,12 @@ pub fn generate_slash_scrim_steps(
         let replace_step = replace_slash_scrim_text_step.unwrap();
         if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? && new_block_type.has_content() {
             return Ok(vec![
-                Step::ReplaceStep(replace_step),
-                Step::TurnInto(TurnInto {
-                    block_id: nearest_standard_block.id(),
-                    new_block_type
+                Step::DeleteBlock(nearest_standard_block.id()),
+                Step::AddBlock(AddBlockStep {
+                    block_id:  nearest_standard_block.parent(),
+                    child_offset: nearest_standard_block.index(block_map)?,
+                    block_type: new_block_type,
+                    focus_block_below: false,
                 })
             ])
         } else if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? {
