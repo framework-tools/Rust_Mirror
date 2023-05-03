@@ -153,13 +153,6 @@ mod tests {
             i += 1;
         }
 
-        let expected_selection = Selection {
-            anchor: SubSelection { block_id: content_block.inline_blocks[1].clone(), offset: 0, subselection: None },
-            head: SubSelection { block_id: content_block.inline_blocks[2].clone(), offset: 3, subselection: None },
-        };
-
-        // assert_eq!(updated_state.selection, Some(expected_selection));
-
         Ok(())
     }
 

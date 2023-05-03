@@ -288,58 +288,6 @@ fn get_subselection_inline_block(
     let inner_subselection = subselection.get_child_subselection()?;
     return Ok((block_map.get_inline_block(&inner_subselection.block_id)?, inner_subselection.offset))
 }
-
-// This function appears to be a helper function for replacing
-//a selection of text with new text or blocks in a document.
-//If the "from" and "to" positions of the selection are within the same block,
-//the function will update the contents of that block by
-//splicing in the new text or blocks as specified in the replace_step argument.
-//If the "from" and "to" positions are not within the same block,
-//it looks like the function will attempt to remove all blocks between
-//the "from" and "to" blocks and then splice in the new text or blocks.
-
-
-//However, the code for this scenario has not been implemented yet, as indicated by the unimplemented! macros.
-
-fn replace_across_standard_blocks_no_subselection(
-    from_block: StandardBlock,
-    block_map: BlockMap,
-    replace_step: ReplaceStep,
-    mut blocks_to_update: Vec<String>
-) -> Result<UpdatedState, StepError> {
-    if replace_step.from.block_id == replace_step.to.block_id { // same block
-        if replace_step.from.offset == replace_step.to.offset { // same offset
-            let updated_subselection = SubSelection::at_end_of_block(&from_block._id, &block_map)?;
-
-            let mut inline_blocks = from_block.content_block()?.clone().inline_blocks;
-            let blocks_to_add = match replace_step.slice {
-                ReplaceSlice::Blocks(blocks) => blocks,
-                _ => return Err(StepError("Replace slice should be blocks".to_string()))
-            };
-            if replace_step.from.offset == 0 { // add blocks at start of this blocks inline blocks
-                inline_blocks.splice(0..0, blocks_to_add);
-            } else { // add blocks at end of this blocks inline blocks
-                inline_blocks = vec![inline_blocks, blocks_to_add].concat();
-            }
-            let updated_standard_block = from_block.update_block_content(ContentBlock { inline_blocks })?;
-            let updated_standard_block_id = updated_standard_block.id();
-            let block_map = clean_block_after_transform(updated_standard_block, block_map, &mut blocks_to_update)?;
-            let updated_standard_block = block_map.get_standard_block(&updated_standard_block_id)?;
-            let block_map = updated_standard_block.set_as_parent_for_all_inline_blocks(block_map, &mut blocks_to_update)?;
-            return Ok(UpdatedState {
-                block_map,
-                selection: Some(Selection{ anchor: updated_subselection.clone(), head: updated_subselection }),
-                blocks_to_update,
-                blocks_to_remove: vec![],
-                copy: None
-            })
-        } else {
-            unimplemented!()
-        }
-    } else {
-        unimplemented!()
-    }
-}
 // This function looks like it merges two inline blocks within two different standard blocks together.
 
 // It first creates a copy of the from_block's content block,

@@ -145,7 +145,7 @@ impl Selection {
                     head: subselection,
                 };
             }
-            ReplaceSlice::Blocks(blocks) => unimplemented!(),
+            ReplaceSlice::Blocks(_blocks) => unimplemented!(),
         }
     }
 
