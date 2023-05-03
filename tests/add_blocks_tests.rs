@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock}},
-    steps_generator::{event::{Event, SlashScrimEvent}, selection::{SubSelection, Selection}, generate_steps}, step::{Step, ReplaceSlice}, steps_actualisor::actualise_steps, custom_copy::CustomCopy};
+    steps_generator::{event::{Event, SlashScrimEvent}, selection::{SubSelection, Selection}, generate_steps}, step::{Step, ReplaceSlice, AddBlockStep}, steps_actualisor::actualise_steps, custom_copy::CustomCopy};
     use serde_json::json;
 
     #[test]
@@ -213,10 +213,20 @@ mod tests {
 
         let steps = generate_steps(&event, &block_map, selection).unwrap();
         assert_eq!(steps.len(), 2);
+        match &steps[0] {
+            Step::DeleteBlock(delete_block_id) => {
+                assert_eq!(*delete_block_id, paragraph_block_id);
+            },
+            _ => panic!("Expected turn into step")
+        };
         match &steps[1] {
-            Step::TurnInto(turn_into) => {
-                assert_eq!(turn_into.block_id, paragraph_block_id);
-                assert_eq!(turn_into.new_block_type, StandardBlockType::DotPointList(ListBlock { content: ContentBlock::new(vec![]), completed: false }));
+            Step::AddBlock(add_block_step) => {
+                assert_eq!(*add_block_step, AddBlockStep {
+                    block_id: root_block_id.clone(),
+                    child_offset: 0,
+                    block_type: StandardBlockType::DotPointList(ListBlock::new()),
+                    focus_block_below: false
+                })
             },
             _ => panic!("Expected turn into step")
         };
