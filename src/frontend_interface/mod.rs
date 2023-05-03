@@ -98,7 +98,7 @@ pub fn get_js_field_as_bool(obj: &JsValue, field: &str) -> Result<bool, StepErro
             }
         },
         Err(e) => return Err(StepError(
-            format!("Failed to get field: '{}' from js obj", field),
+            format!("Failed to get field: '{}' from js obj: '{:?}'", field, e),
         ))
     }
 }

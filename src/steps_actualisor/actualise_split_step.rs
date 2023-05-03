@@ -1,4 +1,4 @@
-use crate::{step::SplitStep, blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock, StandardBlock, list_block::ListBlock}, Block}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
+use crate::{step::SplitStep, blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock}, Block}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::NewIds};
 
 use super::{UpdatedState, clean_block_after_transform};
 

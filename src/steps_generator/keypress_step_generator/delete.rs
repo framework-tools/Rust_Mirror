@@ -1,4 +1,4 @@
-use crate::{blocks::{BlockMap, Block, inline_blocks::InlineBlock}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps}, step::Step};
+use crate::{blocks::{BlockMap, Block}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps}, step::Step};
 
 use super::backspace::generate_steps_for_backspace;
 

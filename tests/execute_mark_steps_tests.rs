@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_actualisor::actualise_steps, mark::{Mark, Color}, new_ids::NewIds, step::Step, custom_copy::CustomCopy};
+    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_actualisor::actualise_steps, mark::{Mark, Color}, new_ids::NewIds, custom_copy::CustomCopy};
 
     use serde_json::json;
 

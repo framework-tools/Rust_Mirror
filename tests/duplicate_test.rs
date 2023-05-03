@@ -2,8 +2,8 @@
 mod tests {
     use core::panic;
 
-    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock}},
-    steps_generator::{event::{Event, SlashScrimEvent}, selection::{SubSelection, Selection}, generate_steps}, step::{Step, ReplaceSlice}, steps_actualisor::actualise_steps, custom_copy::CustomCopy};
+    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType,}},
+    steps_generator::{event::{Event}, selection::{SubSelection, Selection}, generate_steps}, steps_actualisor::actualise_steps, custom_copy::CustomCopy};
     use serde_json::json;
 
     #[test]
@@ -202,7 +202,6 @@ mod tests {
                 },
                 _ => panic!("Should be paragraph")
             }
-            println!("{:#?}", updated_state.block_map);
         }
 
         #[test]

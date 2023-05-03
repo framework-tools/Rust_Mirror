@@ -1,5 +1,5 @@
-use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock, StandardBlockType, layout_block::LayoutBlock}, BlockMap, inline_blocks::InlineBlock, Block},
-steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}, utilities::{get_blocks_between, BlockStructure, get_next_block_in_tree, BlocksBetween, update_state_tools}, new_ids::{self, NewIds}};
+use crate::{blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock, StandardBlockType}, BlockMap, inline_blocks::InlineBlock, Block},
+steps_generator::{selection::{SubSelection, Selection}, StepError}, steps_actualisor::{UpdatedState, clean_block_after_transform}, step::{ReplaceSlice, ReplaceStep}, utilities::{get_blocks_between, BlockStructure, BlocksBetween, update_state_tools}, new_ids::{NewIds}};
 
 use super::replace_for_inline_blocks::{update_from_inline_block_text, update_to_inline_block_text};
 

@@ -1,10 +1,7 @@
-
-use std::ops::Index;
-
 use serde_json::json;
 use wasm_bindgen::JsValue;
 
-use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection, selection::SubSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string, step::AddBlockStep, steps_actualisor::clean_block_after_transform, utilities::update_state_tools};
+use crate::{mark::Mark, steps_generator::{StepError, mark_steps::ForSelection}, new_ids::NewIds, frontend_interface::get_js_field_as_string, utilities::update_state_tools};
 
 use self::{content_block::ContentBlock, list_block::ListBlock, page_block::PageBlock, layout_block::LayoutBlock};
 
@@ -190,7 +187,7 @@ impl StandardBlock {
         return block_map.get_inline_block(&last_block_id)
     }
 
-    pub fn split(mut self, index: usize, mut new_block_content: StandardBlockType, new_ids: &mut NewIds) -> Result<(Self, Self), StepError> {
+    pub fn split(mut self, index: usize, new_block_content: StandardBlockType, new_ids: &mut NewIds) -> Result<(Self, Self), StepError> {
         let inline_blocks = &self.content_block()?.inline_blocks;
         if index > inline_blocks.len() {
             return Err(StepError(format!("Inline blocks length: {}, is less than index: {}", inline_blocks.len(), index)))

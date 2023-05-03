@@ -1,10 +1,7 @@
-
-
-use std::str::FromStr;
 use serde_json::json;
 use wasm_bindgen::JsValue;
 
-use crate::{mark::Mark, steps_generator::StepError, new_ids::{self, NewIds}, frontend_interface::{get_js_field_as_string, get_js_field}};
+use crate::{mark::Mark, steps_generator::StepError, new_ids::{NewIds}, frontend_interface::{get_js_field_as_string, get_js_field}};
 
 use self::text_block::{TextBlock, StringUTF16};
 
@@ -46,7 +43,7 @@ impl InlineBlock {
     pub fn text(&self) -> Result<&StringUTF16, StepError> {
         match &self.content {
             InlineBlockType::TextBlock(block) => Ok(&block.0),
-            _ => Err(StepError("Block does not have text".to_string()))
+            // _ => Err(StepError("Block does not have text".to_string()))
         }
     }
 
@@ -68,7 +65,7 @@ impl InlineBlock {
         match self.content {
             InlineBlockType::TextBlock(_) => match block_type {
                 InlineBlockType::TextBlock(_) => true,
-                _ => false
+                // _ => false
             }
         }
     }

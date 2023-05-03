@@ -2,7 +2,6 @@
 
 use std::{collections::HashMap, str::FromStr};
 use js_sys::{Map, JsString};
-use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 use wasm_bindgen::JsValue;
 

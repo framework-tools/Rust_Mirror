@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent, ContextMenuEvent}, selection::{SubSelection, Selection}, generate_steps}, new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}}, step::Step, steps_actualisor::actualise_steps, custom_copy::CustomCopy};
+    use rust_mirror::{steps_generator::{StepError, event::{Event, ContextMenuEvent}, selection::{SubSelection, Selection}, generate_steps}, new_ids::NewIds, blocks::{RootBlock, BlockMap}, step::Step, steps_actualisor::actualise_steps, custom_copy::CustomCopy};
     use serde_json::json;
 
     #[test]

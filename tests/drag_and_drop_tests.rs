@@ -2,7 +2,7 @@
 mod tests {
     use std::{vec};
 
-    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType, layout_block}}, steps_generator::{event::{Event, DropBlockEvent, Side}, selection::{SubSelection, Selection}, generate_steps}, steps_actualisor::actualise_steps, custom_copy::CustomCopy};
+    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap, standard_blocks::{StandardBlockType}}, steps_generator::{event::{Event, DropBlockEvent, Side}, selection::{SubSelection, Selection}, generate_steps}, steps_actualisor::actualise_steps, custom_copy::CustomCopy};
     use serde_json::json;
 
 

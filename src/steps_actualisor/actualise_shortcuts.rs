@@ -1,6 +1,4 @@
-use std::ops::Index;
-
-use crate::{utilities::{BlocksBetween, get_blocks_between, BlockStructure, Tree, update_state_tools}, custom_copy::CustomCopy, steps_generator::{StepError, selection::{SubSelection, Selection}}, blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block}, new_ids::NewIds};
+use crate::{utilities::{BlocksBetween, get_blocks_between, BlockStructure, update_state_tools}, custom_copy::CustomCopy, steps_generator::{StepError, selection::{SubSelection, Selection}}, blocks::{BlockMap, standard_blocks::{StandardBlock, }}, new_ids::NewIds};
 
 use super::{UpdatedState, clean_block_after_transform};
 

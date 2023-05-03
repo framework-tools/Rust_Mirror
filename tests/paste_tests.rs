@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use rust_mirror::{steps_actualisor::{actualise_shortcuts::actualise_copy, actualise_steps}, custom_copy::CustomCopy, steps_generator::{StepError, selection::SubSelection}, new_ids::NewIds, blocks::{BlockMap, RootBlock}, step::Step, utilities::Tree};
-    use serde_json::{json, to_string};
+    use serde_json::{json};
 
     /// Copy: /// <1> Hell|o </1><2> brave </2><3> ne|w </3><4> world </4>
     /// Paste: <1> Hello </1><2> brave </2><3> new </3><4> ||world </4>

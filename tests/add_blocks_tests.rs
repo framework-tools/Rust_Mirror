@@ -6,8 +6,6 @@ mod tests {
 
     #[test]
     fn can_handle_slash_scrim_add_block() {
-        let mut new_ids = NewIds::hardcoded_new_ids_for_tests();
-
         let inline_block_id = "Inline".to_string();
         let paragraph_block_id = "Paragraph".to_string();
         let root_block_id = "Root".to_string();
