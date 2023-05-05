@@ -1,4 +1,5 @@
 use serde::{Serialize, Deserialize};
+use serde_json::{Value, json};
 use wasm_bindgen::JsValue;
 
 use crate::{mark::{Color, Mark}, frontend_interface::{get_js_field_as_string, get_js_field, get_js_field_as_bool}, blocks::standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock}};
@@ -214,6 +215,19 @@ impl DropBlockEvent {
             side_dropped
         })
     }
+
+    pub fn to_json(self) -> Result<Value, StepError> {
+        return Ok(json!({
+            "drag_block_id": self.drag_block_id,
+            "drop_block_id": self.drop_block_id,
+            "side_dropped": match self.side_dropped {
+                Side::Top => "top",
+                Side::Bottom => "bottom",
+                Side::Left => "left",
+                Side::Right => "right"
+            }
+        }))
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -247,5 +261,11 @@ impl ReplaceWithChildrenEvent {
         return Ok(Self {
             block_id
         })
+    }
+
+    pub fn to_json(self) -> Result<Value, StepError> {
+        return Ok(json!({
+            "block_id": self.block_id
+        }))
     }
 }

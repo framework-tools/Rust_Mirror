@@ -1,3 +1,5 @@
+use serde_json::{Value, json};
+
 use crate::steps_generator::StepError;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -76,6 +78,10 @@ impl Mark {
             },
             _ => self == other_mark
         }
+    }
+
+    pub fn to_json(&self) -> Result<Value, StepError> {
+        return Ok(json!(self.to_string()))
     }
 }
 

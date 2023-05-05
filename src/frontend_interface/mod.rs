@@ -22,6 +22,7 @@ pub fn actualise_event(
         Err(StepError(err)) => return Response {
             selection: None,
             blocks_to_update: JsValue::from(js_sys::Array::new()),
+            steps: JsValue::from(js_sys::Array::new()),
             err: Some(err)
         }
     };
@@ -37,14 +38,24 @@ pub fn actualise_event(
                 js_blocks_to_update.push(&JsValue::from_str(&id));
             }
 
+            let steps_js = js_sys::Array::new();
+            for step in steps {
+                steps_js.push(&step.to_js_obj().unwrap());
+            }
+
             Response {
                 selection,
                 blocks_to_update: JsValue::from(js_blocks_to_update),
-                steps,
+                steps: JsValue::from(steps_js),
                 err: None
             }
         },
-        Err(StepError(err)) => Response { selection: None, blocks_to_update: JsValue::from(js_sys::Array::new()), err: Some(err) }
+        Err(StepError(err)) => Response { 
+            selection: None, 
+            blocks_to_update: JsValue::from(js_sys::Array::new()),
+            steps: JsValue::from(js_sys::Array::new()),
+            err: Some(err) 
+        }
     }
 }
 

@@ -8,6 +8,7 @@ use crate::{
 
 use super::{StepError};
 use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
 use wasm_bindgen::JsValue;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -372,28 +373,19 @@ impl SubSelection {
         return Ok(obj.into())
     }
 
-    // pub fn adjust_deepest_subselection_for_marks(&mut self, for_from: bool, block_map: &BlockMap) -> Result<(), StepError> {
-    //     match &mut self.subselection {
-    //         Some(subselection) => return subselection.adjust_deepest_subselection_for_marks(for_from, block_map),
-    //         None if for_from => {
-    //             let block = block_map.get_inline_block(&self.block_id)?;
-    //             if self.offset == block.text()?.len() {
-    //                 let next_block = block.next_block(block_map)?;
-    //                 self.block_id = next_block.id();
-    //                 self.offset = 0;
-    //             }
-    //         },
-    //         None =>     {
-    //             if self.offset == 0 {
-    //                 let block = block_map.get_inline_block(&self.block_id)?;
-    //                 let previous = block.previous_block(block_map)?;
-    //                 self.block_id = previous.id();
-    //                 self.offset = previous.text()?.len();
-    //             }
-    //         }
-    //     };
-    //     return Ok(())
-    // }
+    pub fn to_json(self) -> Result<Value, StepError> {
+        let mut json = json!({
+            "block_id": self.block_id,
+            "offset": self.offset,
+        });
+        match self.subselection {
+            Some(subselection) => {
+                json["subselection"] = subselection.to_json()?;
+            },
+            None => {}
+        };
+        return Ok(json)
+    }
 }
 
 pub fn get_deepest_subselection(
