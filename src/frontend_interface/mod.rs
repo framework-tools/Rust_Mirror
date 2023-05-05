@@ -26,7 +26,7 @@ pub fn actualise_event(
         }
     };
 
-    return match actualise_steps(steps, block_map, &mut new_ids, copy) {
+    return match actualise_steps(steps.clone(), block_map, &mut new_ids, copy) {
         Ok(UpdatedState { selection, blocks_to_update, .. }) => {
             let selection = match selection {
                 Some(selection) => Some(selection.to_js_obj().unwrap()),
@@ -37,7 +37,12 @@ pub fn actualise_event(
                 js_blocks_to_update.push(&JsValue::from_str(&id));
             }
 
-            Response { selection, blocks_to_update: JsValue::from(js_blocks_to_update), err: None }
+            Response {
+                selection,
+                blocks_to_update: JsValue::from(js_blocks_to_update),
+                steps,
+                err: None
+            }
         },
         Err(StepError(err)) => Response { selection: None, blocks_to_update: JsValue::from(js_sys::Array::new()), err: Some(err) }
     }
@@ -46,6 +51,7 @@ pub fn actualise_event(
 pub struct Response {
     pub selection: Option<JsValue>,
     pub blocks_to_update: JsValue,
+    pub steps: JsValue,
     pub err: Option<String>
 }
 

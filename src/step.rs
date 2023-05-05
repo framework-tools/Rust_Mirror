@@ -1,5 +1,7 @@
 
-use crate::{steps_generator::{selection::{SubSelection}, event::{DropBlockEvent, ReplaceWithChildrenEvent}}, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
+use wasm_bindgen::JsValue;
+
+use crate::{steps_generator::{selection::{SubSelection}, event::{DropBlockEvent, ReplaceWithChildrenEvent}, StepError}, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
 
 
 #[derive(Debug, PartialEq, Clone)]
@@ -74,3 +76,16 @@ pub struct TurnInto {
     pub new_block_type: StandardBlockType
 }
 
+impl Step {
+    pub fn to_js_obj(self) -> Result<JsValue, StepError> {
+        let obj = js_sys::Object::new();
+
+        let _type = match self {
+            Self::AddBlock(_) =>
+        }
+
+        js_sys::Reflect::set(&obj, &JsValue::from_str("anchor"), &JsValue::from(self.anchor.to_js_obj()?)).unwrap();
+        js_sys::Reflect::set(&obj, &JsValue::from_str("head"), &JsValue::from(self.head.to_js_obj()?)).unwrap();
+        return Ok(obj)
+    }
+}
