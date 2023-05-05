@@ -1,8 +1,5 @@
-use std::str::FromStr;
-
 use wasm_bindgen::JsValue;
-
-use crate::{steps_generator::StepError, frontend_interface::{get_js_field, get_js_field_as_string, get_js_field_as_bool}};
+use crate::{steps_generator::StepError, frontend_interface::{get_js_field, get_js_field_as_bool}};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct LayoutBlock{

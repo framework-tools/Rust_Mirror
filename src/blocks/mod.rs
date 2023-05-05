@@ -2,7 +2,6 @@
 
 use std::{collections::HashMap, str::FromStr};
 use js_sys::{Map, JsString};
-use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 use wasm_bindgen::JsValue;
 
@@ -518,7 +517,7 @@ impl BlockMap {
                     None => Ok(None)
                 }
             },
-            Self::Js(js_map) => {
+            Self::Js(_js_map) => {
                 // let returned_block_as_json = js_map.remove(id);
                 // match returned_block_as_json {
                 //     Some(block_as_json) => {

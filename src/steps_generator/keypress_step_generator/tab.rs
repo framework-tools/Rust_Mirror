@@ -1,5 +1,5 @@
 
-use crate::{step::{Step, TurnToChild, TurnToParent}, steps_generator::{StepError, selection::SubSelection, event::{KeyPressMetadata, KeyPress}}, blocks::{BlockMap, Block, RootBlock, standard_blocks::StandardBlock, inline_blocks::InlineBlock}};
+use crate::{step::{Step, TurnToChild, TurnToParent}, steps_generator::{StepError, selection::SubSelection, event::{KeyPressMetadata}}, blocks::{BlockMap, Block, standard_blocks::StandardBlock}};
 
 
 pub fn generate_steps_for_tab(block_map: &BlockMap, from: SubSelection, to: SubSelection, key_press_metadata: KeyPressMetadata) -> Result<Vec<Step>, StepError> {

@@ -3,9 +3,7 @@ use std::{collections::HashMap};
 use crate::{steps_generator::{selection::SubSelection, StepError},
     blocks::{BlockMap, standard_blocks::{StandardBlock, content_block::ContentBlock}, Block,
     inline_blocks::{InlineBlock}},
-    steps_actualisor::actualise_mark_steps::{actualise_across_std_blocks::split_edge_inline_blocks,
-            create_before_middle_after_blocks_with_new_text_and_mark},
-            new_ids::NewIds};
+    new_ids::NewIds};
 pub mod update_state_tools;
 
 #[derive(PartialEq)]
@@ -420,7 +418,7 @@ pub fn reassign_ids(
 }
 
 
-pub fn get_previous_block_in_tree(current_node: &StandardBlock, block_map: &BlockMap, depth_from_root: &mut usize) -> Result<StandardBlock, StepError> {
+pub fn get_previous_block_in_tree(current_node: &StandardBlock, block_map: &BlockMap, _depth_from_root: &mut usize) -> Result<StandardBlock, StepError> {
     return match current_node.get_previous(block_map)? {
         Some(sibling_above) => {
             if sibling_above.children.len() > 0 {

@@ -1,4 +1,4 @@
-use crate::{blocks::{BlockMap, Block, inline_blocks::InlineBlock, standard_blocks::{StandardBlock, StandardBlockType, content_block::ContentBlock}}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps, turn_into::turn_into_paragraph_step}, step::{Step, ReplaceStep, ReplaceSlice, TurnToParent}};
+use crate::{blocks::{BlockMap, Block, inline_blocks::InlineBlock, standard_blocks::{StandardBlock}}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps, turn_into::turn_into_paragraph_step}, step::{Step, ReplaceStep, ReplaceSlice, TurnToParent}};
 
 
 pub fn generate_steps_for_backspace(

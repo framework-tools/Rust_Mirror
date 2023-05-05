@@ -1,9 +1,7 @@
 #[cfg(test)]
 mod tests {
     use rust_mirror::{steps_generator::{event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps},
-        blocks::{Block, standard_blocks::{StandardBlockType, content_block::ContentBlock}, inline_blocks::{text_block::TextBlock, InlineBlockType}, RootBlock,
-        BlockMap
-    }, step::{Step, ReplaceSlice}, mark::Mark, new_ids::NewIds};
+        blocks::{Block, RootBlock, BlockMap}, step::{Step, ReplaceSlice}, new_ids::NewIds};
 
     use serde_json::json;
 

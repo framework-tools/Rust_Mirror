@@ -4,7 +4,7 @@
 mod tests {
     use rust_mirror::custom_copy::CustomCopy;
     use rust_mirror::steps_actualisor::actualise_steps;
-    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap}, steps_generator::{event::{Event, KeyPress, Key, KeyPressMetadata}, selection::{SubSelection, Selection}, generate_steps}, step::Step};
+    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap}, steps_generator::{event::{Event, KeyPress, Key, KeyPressMetadata}, selection::{SubSelection, Selection}, generate_steps}};
     use serde_json::json;
 
     #[test]

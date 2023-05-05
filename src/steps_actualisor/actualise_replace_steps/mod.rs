@@ -1,6 +1,6 @@
 
 
-use crate::{step::{ReplaceStep, ReplaceSlice}, blocks::{BlockMap, Block, inline_blocks::InlineBlock}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::{self, NewIds}};
+use crate::{step::{ReplaceStep, ReplaceSlice}, blocks::{BlockMap, Block}, steps_generator::{StepError, selection::{Selection, SubSelection}}, new_ids::{NewIds}};
 
 use self::{replace_for_inline_blocks::replace_selected_across_inline_blocks, replace_for_standard_blocks::replace_selected_across_standard_blocks};
 
@@ -34,7 +34,7 @@ pub fn actualise_replace_step(
     replace_step: ReplaceStep,
     block_map: BlockMap,
     current_updated_selection: Option<Selection>,
-    mut blocks_to_update: Vec<String>,
+    blocks_to_update: Vec<String>,
     new_ids: &mut NewIds,
 ) -> Result<UpdatedState, StepError> {
     let from_block = block_map.get_block(&replace_step.from.block_id)?;

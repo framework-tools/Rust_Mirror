@@ -1,4 +1,3 @@
-use rust_mirror::new_ids::NewIds;
 
 #[cfg(test)]
 mod tests {
@@ -897,7 +896,7 @@ mod tests {
             ]);
 
         let block_map = BlockMap::from(vec![
-            inline_block1.to_string(), inline_block2.to_string(), std_block1.to_string(), std_block2.to_string(),
+            inline_block1.to_string(), inline_block2.to_string(), inline_block3.to_string(), std_block1.to_string(), std_block2.to_string(),
             root_block.to_string(), std_block3.to_string(),
         ]).unwrap();
 

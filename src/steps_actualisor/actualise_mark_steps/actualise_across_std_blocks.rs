@@ -1,4 +1,4 @@
-use crate::{step::MarkStep, blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, Block}, steps_actualisor::{UpdatedState, clean_block_after_transform}, steps_generator::{StepError, selection::SubSelection}, mark::Mark, new_ids::NewIds, utilities::{get_blocks_between, BlockStructure, BlocksBetween}};
+use crate::{step::MarkStep, blocks::{standard_blocks::{StandardBlock, content_block::ContentBlock}, BlockMap, Block}, steps_actualisor::{UpdatedState, clean_block_after_transform}, steps_generator::{StepError, selection::SubSelection}, new_ids::NewIds, utilities::{get_blocks_between, BlockStructure, BlocksBetween}};
 
 /// -> apply mark for "from" std block -> from "inner from" to end of inline blocks
 /// -> apply mark for "to" std block -> from start of inline blocks to "inner to"

@@ -1,8 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
-
-use js_sys::JsString;
-
-use crate::{blocks::{inline_blocks::{InlineBlock, text_block::StringUTF16}, BlockMap, Block, standard_blocks::{content_block::ContentBlock, StandardBlock}},
+use crate::{blocks::{inline_blocks::{InlineBlock, text_block::StringUTF16}, BlockMap, Block, standard_blocks::{StandardBlock}},
 step::{ReplaceStep, ReplaceSlice}, steps_generator::{StepError, selection::Selection},
 steps_actualisor::{UpdatedState, clean_block_after_transform}};
 
@@ -36,7 +32,7 @@ pub fn replace_selected_across_inline_blocks(
     from_block: InlineBlock,
     block_map: BlockMap,
     replace_step: ReplaceStep,
-    mut blocks_to_update: Vec<String>
+    blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let replace_with = match &replace_step.slice {
         ReplaceSlice::String(string) => string.clone(),

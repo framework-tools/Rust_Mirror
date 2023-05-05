@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_actualisor::actualise_steps, mark::{Mark, Color}, new_ids::NewIds, step::Step, custom_copy::CustomCopy};
+    use rust_mirror::{steps_generator::{StepError, event::{Event, FormatBarEvent}, selection::{SubSelection, Selection}, generate_steps}, blocks::{RootBlock, BlockMap}, steps_actualisor::actualise_steps, mark::{Mark, Color}, new_ids::NewIds, custom_copy::CustomCopy};
 
     use serde_json::json;
 
@@ -152,13 +152,6 @@ mod tests {
             }
             i += 1;
         }
-
-        let expected_selection = Selection {
-            anchor: SubSelection { block_id: content_block.inline_blocks[1].clone(), offset: 0, subselection: None },
-            head: SubSelection { block_id: content_block.inline_blocks[2].clone(), offset: 3, subselection: None },
-        };
-
-        // assert_eq!(updated_state.selection, Some(expected_selection));
 
         Ok(())
     }

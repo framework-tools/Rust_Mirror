@@ -4,7 +4,7 @@ mod tests {
     use rust_mirror::blocks::standard_blocks::content_block::ContentBlock;
     use rust_mirror::step::TurnInto;
     use rust_mirror::steps_generator::StepError;
-    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap}, steps_generator::{event::{Event, KeyPress, Key, KeyPressMetadata}, selection::{SubSelection, Selection}, generate_steps}, step::Step};
+    use rust_mirror::{new_ids::NewIds, blocks::{RootBlock, BlockMap}, steps_generator::{event::{Event, KeyPress, Key}, selection::{SubSelection, Selection}, generate_steps}, step::Step};
     use serde_json::json;
 
     #[test]

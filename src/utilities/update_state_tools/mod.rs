@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use crate::{blocks::{Block, BlockMap, inline_blocks::{self, InlineBlock, text_block::StringUTF16}, standard_blocks::{StandardBlock, content_block::ContentBlock}}, steps_generator::StepError, mark::Mark, new_ids};
+use crate::{blocks::{Block, BlockMap, inline_blocks::{InlineBlock, text_block::StringUTF16}, standard_blocks::{StandardBlock, content_block::ContentBlock}}, steps_generator::StepError, mark::Mark, new_ids};
 
 pub fn splice_children(
     mut block: Block,

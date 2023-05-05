@@ -1,9 +1,9 @@
 
-use crate::{blocks::{BlockMap}, step::Step, mark::Mark, new_ids::NewIds};
+use crate::{blocks::{BlockMap}, step::Step, mark::Mark};
 
 use self::{backspace::generate_steps_for_backspace, enter::generate_steps_for_enter, tab::generate_steps_for_tab, delete::generate_steps_for_delete, };
 
-use super::{event::{KeyPress, Key, KeyPressMetadata}, selection::{SubSelection}, StepError, mark_steps::generate_mark_steps, generate_replace_selected_steps::generate_replace_selected_steps, clipboard_steps::{generate_cut_steps, generate_paste_steps}};
+use super::{event::{KeyPress, Key}, selection::{SubSelection}, StepError, mark_steps::generate_mark_steps, generate_replace_selected_steps::generate_replace_selected_steps, clipboard_steps::{generate_cut_steps, generate_paste_steps}};
 
 pub mod backspace;
 pub mod enter;
