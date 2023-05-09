@@ -267,7 +267,7 @@ impl TurnInto {
         let content = get_js_field(&data, "content")?;
         return Ok(Self {
             block_id: get_js_field_as_string(&content, "block_id")?,
-            new_block_type: StandardBlockType::from_js_block(&get_js_field(&data, "block_type")?)?
+            new_block_type: StandardBlockType::from_js_block(&data)?
         })
     }
 }
