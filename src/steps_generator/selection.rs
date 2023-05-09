@@ -374,16 +374,19 @@ impl SubSelection {
     }
 
     pub fn to_json(self) -> Result<Value, StepError> {
-        let mut json = json!({
-            "block_id": self.block_id,
-            "offset": self.offset,
-        });
-        match self.subselection {
-            Some(subselection) => {
-                json["subselection"] = subselection.to_json()?;
-            },
-            None => {}
+        let json = match self.subselection {
+            Some(subselection) => json!({
+                "block_id": self.block_id,
+                "offset": self.offset,
+                "subselection": subselection.to_json()?
+            }),
+            None => json!({
+                "block_id": self.block_id,
+                "offset": self.offset,
+                "subselection": null
+            })
         };
+
         return Ok(json)
     }
 }
