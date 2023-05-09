@@ -144,7 +144,17 @@ pub fn actualise_mirror_step(
     block_map_js: js_sys::Map
 ) -> Response {
     let block_map = BlockMap::from_js_map(block_map_js);
-    let step = Step::from_js_obj(step_js).unwrap();
+    let step = match Step::from_js_obj(step_js) {
+        Ok(step) => step,
+        Err(StepError(err)) => {
+            return Response {
+                selection: None,
+                blocks_to_update: JsValue::from(js_sys::Array::new()),
+                steps: JsValue::from(js_sys::Array::new()),
+                err: Some(err)
+            }
+        }
+    };
     let mut new_ids = NewIds::Js(new_ids_arr);
 
     return match actualise_steps(vec![step.clone()], block_map, &mut new_ids, CustomCopy::new()) {
