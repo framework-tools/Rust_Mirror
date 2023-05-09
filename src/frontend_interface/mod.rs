@@ -69,7 +69,9 @@ pub struct Response {
 pub fn get_js_field(obj: &JsValue, field: &str) -> Result<JsValue, StepError> {
     match js_sys::Reflect::get(&obj, &JsValue::from_str(field)) {
         Ok(value) => Ok(value),
-        Err(e) => Err(StepError(e.as_string().unwrap()))
+        Err(_) => return Err(StepError(
+            format!("Failed to get field: '{}' from js obj: {:#?}", field, obj),
+        ))
     }
 }
 pub fn get_js_field_as_string(obj: &JsValue, field: &str) -> Result<String, StepError> {
@@ -83,7 +85,7 @@ pub fn get_js_field_as_string(obj: &JsValue, field: &str) -> Result<String, Step
             }
         },
         Err(_) => return Err(StepError(
-            format!("Failed to get field: '{}' from js obj", field),
+            format!("Failed to get field: '{}' from js obj: {:#?}", field, obj),
         ))
     }
 }
@@ -99,7 +101,7 @@ pub fn get_js_field_as_f64(obj: &JsValue, field: &str) -> Result<f64, StepError>
             }
         },
         Err(_) => return Err(StepError(
-            format!("Failed to get field: '{}' from js obj", field),
+            format!("Failed to get field: '{}' from js obj: {:#?}", field, obj),
         ))
     }
 }
@@ -115,7 +117,7 @@ pub fn get_js_field_as_bool(obj: &JsValue, field: &str) -> Result<bool, StepErro
             }
         },
         Err(e) => return Err(StepError(
-            format!("Failed to get field: '{}' from js obj: '{:?}'", field, e),
+            format!("Failed to get field: '{}' from js obj: {:#?}", field, obj),
         ))
     }
 }
