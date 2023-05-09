@@ -264,9 +264,8 @@ impl TurnInto {
     }
 
     pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
-        let content = get_js_field(&data, "content")?;
         return Ok(Self {
-            block_id: get_js_field_as_string(&content, "block_id")?,
+            block_id: get_js_field_as_string(&data, "block_id")?,
             new_block_type: StandardBlockType::from_js_block(&get_js_field(&data, "new_block_type")?)?
         })
     }
