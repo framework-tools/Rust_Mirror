@@ -40,7 +40,7 @@ impl Step {
             "TurnToChild" => Ok(Step::TurnToChild(TurnToChild::from_js_obj(data)?)),
             "TurnToParent" => Ok(Step::TurnToParent(TurnToParent::from_js_obj(data)?)),
             "TurnInto" => Ok(Step::TurnInto(TurnInto::from_js_obj(data)?)),
-            "ToggleCompleted" => Ok(Step::ToggleCompleted(data.as_string().unwrap())),
+            "ToggleCompleted" => Ok(Step::ToggleCompleted(get_js_field_as_string(&data, "block_id")?)),
             "Copy" => unreachable!(), // copy should be ignored everywhere except when applied on frontend
             "Paste" => unimplemented!(), // need to add
             "DropBlock" => Ok(Step::DropBlock(DropBlockEvent::from_js_obj(js_sys::Object::from(data))?)),
