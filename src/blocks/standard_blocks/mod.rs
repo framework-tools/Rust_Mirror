@@ -562,20 +562,20 @@ impl StandardBlockType {
         }
     }
 
-    pub fn _type_as_string(&self) -> Result<String, StepError> {
+    pub fn _type_as_string(&self) -> String {
         match self {
-            StandardBlockType::Paragraph(_) => return Ok("paragraph".to_string()),
-            StandardBlockType::H1(_) => return Ok("h1".to_string()),
-            StandardBlockType::H2(_) => return Ok("h2".to_string()),
-            StandardBlockType::H3(_) => return Ok("h3".to_string()),
-            StandardBlockType::TodoList(_) => return Ok("to-do list".to_string()),
-            StandardBlockType::DotPointList(_) => return Ok("dotpoint list".to_string()),
-            StandardBlockType::NumberedList(_) => return Ok("numbered list".to_string()),
-            StandardBlockType::ArrowList(_) => return Ok("arrow list".to_string()),
-            StandardBlockType::InlinePage(_) => return Ok("inline page".to_string()),
-            StandardBlockType::SquarePage(_) => return Ok("square page".to_string()),
-            StandardBlockType::LinkBlock(_) => return Ok("link page".to_string()),
-            StandardBlockType::Layout(_) => return Ok("layout".to_string()),
+            StandardBlockType::Paragraph(_) => return "paragraph".to_string(),
+            StandardBlockType::H1(_) => return "h1".to_string(),
+            StandardBlockType::H2(_) => return "h2".to_string(),
+            StandardBlockType::H3(_) => return "h3".to_string(),
+            StandardBlockType::TodoList(_) => return "to-do list".to_string(),
+            StandardBlockType::DotPointList(_) => return "dotpoint list".to_string(),
+            StandardBlockType::NumberedList(_) => return "numbered list".to_string(),
+            StandardBlockType::ArrowList(_) => return "arrow list".to_string(),
+            StandardBlockType::InlinePage(_) => return "inline page".to_string(),
+            StandardBlockType::SquarePage(_) => return "square page".to_string(),
+            StandardBlockType::LinkBlock(_) => return "link page".to_string(),
+            StandardBlockType::Layout(_) => return "layout".to_string(),
         }
     }
 

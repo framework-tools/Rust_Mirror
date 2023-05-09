@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use wasm_bindgen::JsValue;
 
-use crate::{steps_generator::StepError, frontend_interface::get_js_field};
+use crate::{steps_generator::StepError, frontend_interface::get_js_field, new_ids::NewIds};
 
 
 #[derive(Debug, PartialEq, Clone)]

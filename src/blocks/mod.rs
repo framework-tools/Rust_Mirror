@@ -110,7 +110,7 @@ impl Block {
             },
             Block::StandardBlock(std_block) => {
                 js_sys::Reflect::set(&obj, &JsValue::from_str("kind"), &JsValue::from_str("standard")).unwrap();
-                js_sys::Reflect::set(&obj, &JsValue::from_str("_type"), &JsValue::from_str(std_block.content._type_as_string()?.as_str())).unwrap();
+                js_sys::Reflect::set(&obj, &JsValue::from_str("_type"), &JsValue::from_str(std_block.content._type_as_string().as_str())).unwrap();
                 js_sys::Reflect::set(&obj, &JsValue::from_str("content"), &std_block.content.to_js()?).unwrap();
                 js_sys::Reflect::set(&obj, &JsValue::from_str("children"), &vec_string_to_arr(&std_block.children)?).unwrap();
                 js_sys::Reflect::set(&obj, &JsValue::from_str("marks"), &marks_to_js_arr(std_block.marks)?).unwrap();

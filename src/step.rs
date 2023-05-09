@@ -2,7 +2,7 @@
 use serde_json::{Value, json};
 use wasm_bindgen::JsValue;
 
-use crate::{steps_generator::{selection::{SubSelection}, event::{DropBlockEvent, ReplaceWithChildrenEvent}, StepError}, mark::Mark, blocks::{standard_blocks::StandardBlockType}};
+use crate::{steps_generator::{selection::{SubSelection}, event::{DropBlockEvent, ReplaceWithChildrenEvent}, StepError}, mark::Mark, blocks::{standard_blocks::StandardBlockType, BlockMap}, frontend_interface::{get_js_field_as_string, get_js_field, get_js_field_as_f64, get_js_field_as_bool}};
 
 
 #[derive(Debug, PartialEq, Clone)]
@@ -17,13 +17,40 @@ pub enum Step {
     TurnInto(TurnInto),
     ToggleCompleted(String), //block id
     Copy(SubSelection, SubSelection),
-    Paste(SubSelection, SubSelection),
+    Paste(SubSelection, SubSelection), // TODO: NEEDS TO STORE WHAT WAS PASTED INSIDE STEP
     DropBlock(DropBlockEvent),
     DeleteBlock(String), //ID
     Duplicate(String), //ID
     ReplaceWithChildren(ReplaceWithChildrenEvent),
     AddParagraphAtBottom(String) // (Root block id)
     //ReplaceAroundStep
+}
+
+impl Step {
+    pub fn from_js_obj(step_js: JsValue) -> Result<Self, StepError> {
+        let _type = get_js_field_as_string(&step_js, "_type")?;
+        let data = get_js_field(&step_js, "data")?;
+
+        return match _type.as_str() {
+            "AddBlock" => Ok(Step::AddBlock(AddBlockStep::from_js_obj(data)?)),
+            "AddMarkStep" => Ok(Step::AddMarkStep(MarkStep::from_js_obj(data)?)),
+            "RemoveMarkStep" => Ok(Step::AddMarkStep(MarkStep::from_js_obj(data)?)),
+            "ReplaceStep" => Ok(Step::ReplaceStep(ReplaceStep::from_js_obj(data)?)),
+            "SplitStep" => Ok(Step::SplitStep(SplitStep::from_js_obj(data)?)),
+            "TurnToChild" => Ok(Step::TurnToChild(TurnToChild::from_js_obj(data)?)),
+            "TurnToParent" => Ok(Step::TurnToParent(TurnToParent::from_js_obj(data)?)),
+            "TurnInto" => Ok(Step::TurnInto(TurnInto::from_js_obj(data)?)),
+            "ToggleCompleted" => Ok(Step::ToggleCompleted(data.as_string().unwrap())),
+            "Copy" => unreachable!(), // copy should be ignored everywhere except when applied on frontend
+            "Paste" => unimplemented!(), // need to add
+            "DropBlock" => Ok(Step::DropBlock(DropBlockEvent::from_js_obj(js_sys::Object::from(data))?)),
+            "DeleteBlock" => Ok(Step::DeleteBlock(data.as_string().unwrap())),
+            "Duplicate" => Ok(Step::Duplicate(data.as_string().unwrap())),
+            "ReplaceWithChildren" => Ok(Step::ReplaceWithChildren(ReplaceWithChildrenEvent::from_js_obj(js_sys::Object::from(data))?)),
+            "AddParagraphAtBottom" => Ok(Step::AddParagraphAtBottom(data.as_string().unwrap())),
+            _type => Err(StepError(format!("_type: {:?}, is not a valid step type!", _type)))
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -40,8 +67,17 @@ impl ReplaceStep {
             "block_id": self.block_id,
             "from": self.from.to_json()?,
             "to": self.to.to_json()?,
-            "slice": self.slice.to_json()?
+            "slice": self.slice.to_string()?
         }))
+    }
+
+    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
+        return Ok(Self {
+            block_id: get_js_field_as_string(&data, "block_id")?,
+            from: SubSelection::from_js_obj(get_js_field(&data, "from")?)?,
+            to: SubSelection::from_js_obj(get_js_field(&data, "to")?)?,
+            slice: ReplaceSlice::String(get_js_field_as_string(&data, "slice")?)
+        })
     }
 }
 
@@ -52,13 +88,13 @@ pub enum ReplaceSlice {
 }
 
 impl ReplaceSlice {
-    pub fn to_json(self) -> Result<Value, StepError> {
-        return Ok(json!({
-            "blocks": match self {
+    pub fn to_string(self) -> Result<String, StepError> {
+        return Ok(
+            match self {
                 Self::Blocks(blocks) => unimplemented!("Blocks not implemented yet"),
                 Self::String(string) => string
             }
-        }))
+        )
     }
 }
 
@@ -76,8 +112,17 @@ impl MarkStep {
             "block_id": self.block_id,
             "from": self.from.to_json()?,
             "to": self.to.to_json()?,
-            "mark": self.mark.to_json()?
+            "mark": self.mark.to_string()
         }))
+    }
+
+    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
+        return Ok(Self {
+            block_id: get_js_field_as_string(&data, "block_id")?,
+            from: SubSelection::from_js_obj(get_js_field(&data, "from")?)?,
+            to: SubSelection::from_js_obj(get_js_field(&data, "to")?)?,
+            mark: Mark::from_str(&get_js_field_as_string(&data, "mark")?)?
+        })
     }
 }
 
@@ -92,6 +137,10 @@ impl SplitStep {
             "subselection": self.subselection.to_json()?
         }))
     }
+
+    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
+        return Ok(Self { subselection: SubSelection::from_js_obj(get_js_field(&data, "subselection")?)? })
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -105,6 +154,10 @@ impl TurnToChild {
             "block_id": self.block_id
         }))
     }
+
+    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
+        return Ok(Self { block_id: get_js_field_as_string(&data, "block_id")? })
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -117,6 +170,10 @@ impl TurnToParent {
         return Ok(json!({
             "block_id": self.block_id
         }))
+    }
+
+    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
+        return Ok(Self { block_id: get_js_field_as_string(&data, "block_id")? })
     }
 }
 
@@ -137,6 +194,13 @@ impl AddBlockStep {
             "focus_block_below": self.focus_block_below
         }))
     }
+    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
+        let block_id = get_js_field_as_string(&data, "block_id")?;
+        let child_offset: usize = get_js_field_as_f64(&data, "child_offset")? as usize;
+        let block_type = StandardBlockType::from_js_block(&get_js_field(&data, "block_type")?)?;
+        let focus_block_below = get_js_field_as_bool(&data, "focus_block_below")?;
+        return Ok(Self { block_id, child_offset, block_type, focus_block_below })
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -151,6 +215,13 @@ impl TurnInto {
             "block_id": self.block_id,
             "new_block_type": self.new_block_type.to_json()
         }))
+    }
+
+    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
+        return Ok(Self {
+            block_id: get_js_field_as_string(&data, "block_id")?,
+            new_block_type: StandardBlockType::from_js_block(&get_js_field(&data, "block_type")?)?
+        })
     }
 }
 
@@ -195,7 +266,7 @@ impl Step {
             Self::ReplaceWithChildren(event) => event.to_json()?,
             Self::AddParagraphAtBottom(root_block_id) => json!({ "root_block_id": root_block_id })
         };
-        
+
         js_sys::Reflect::set(&obj, &JsValue::from_str("_type"), &JsValue::from(_type)).unwrap();
         js_sys::Reflect::set(&obj, &JsValue::from_str("data"), &JsValue::from(data.to_string())).unwrap();
         return Ok(JsValue::from(obj))
