@@ -1,5 +1,5 @@
 
-use crate::{blocks::{BlockMap}, step::Step, mark::Mark};
+use crate::{blocks::{BlockMap}, step::Step, mark::Mark, custom_copy::CustomCopy};
 
 use self::{backspace::generate_steps_for_backspace, enter::generate_steps_for_enter, tab::generate_steps_for_tab, delete::generate_steps_for_delete, };
 
@@ -14,7 +14,8 @@ pub fn generate_keyboard_event_steps(
     key_press: &KeyPress,
     block_map: &BlockMap,
     from: SubSelection,
-    to: SubSelection
+    to: SubSelection,
+    copy: &CustomCopy
 ) -> Result<Vec<Step>, StepError> {
     return match key_press.key {
         //Shortcuts
@@ -29,7 +30,7 @@ pub fn generate_keyboard_event_steps(
         Key::Standard('x') | Key::Standard('X') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
             generate_cut_steps(from, to, block_map),
         Key::Standard('v') | Key::Standard('V') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
-            generate_paste_steps(from, to, block_map),
+            generate_paste_steps(from, to, block_map, copy.clone()),
         Key::Standard('z') | Key::Standard('Z') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
             unimplemented!(),
         //standard press

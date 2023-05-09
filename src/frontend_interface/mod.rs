@@ -17,7 +17,7 @@ pub fn actualise_event(
     let event = Event::from_js_obj(event_js).unwrap();
     let mut new_ids = NewIds::Js(new_ids_arr);
 
-    let steps = match generate_steps(&event, &block_map, selection) {
+    let steps = match generate_steps(&event, &block_map, selection, &copy) {
         Ok(steps) => steps,
         Err(StepError(err)) => return Response {
             selection: None,

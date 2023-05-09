@@ -1,4 +1,4 @@
-use crate::{utilities::{BlocksBetween, get_blocks_between, BlockStructure, update_state_tools}, custom_copy::CustomCopy, steps_generator::{StepError, selection::{SubSelection, Selection}}, blocks::{BlockMap, standard_blocks::{StandardBlock, }}, new_ids::NewIds};
+use crate::{utilities::{BlocksBetween, get_blocks_between, BlockStructure, update_state_tools}, custom_copy::CustomCopy, steps_generator::{StepError, selection::{SubSelection, Selection}}, blocks::{BlockMap, standard_blocks::{StandardBlock, }}, new_ids::NewIds, step::PasteStep};
 
 use super::{UpdatedState, clean_block_after_transform};
 
@@ -37,7 +37,7 @@ pub fn actualise_copy(
 /// -> Rest of the blocks get inserted into the "from" std block's parents underneath it
 pub fn actualise_paste(
     copy: CustomCopy,
-    from: SubSelection,
+    paste_step: PasteStep,
     mut block_map: BlockMap,
     new_ids: &mut NewIds,
     mut blocks_to_update: Vec<String>
@@ -56,11 +56,11 @@ pub fn actualise_paste(
             head: SubSelection::at_end_of_block(&last_block._id, &block_map)?
         });
 
-        let insertion_std_block = block_map.get_nearest_ancestor_standard_block_incl_self(&from.block_id)?;
+        let insertion_std_block = block_map.get_nearest_ancestor_standard_block_incl_self(&paste_step.from.block_id)?;
 
         let mut insertion_std_block = paste_inline_blocks(
             insertion_std_block,
-            from.get_deepest_subselection().clone(),
+            paste_step.from.get_deepest_subselection().clone(),
             copy_tree.top_blocks[0].clone(),
             &mut block_map,
             new_ids,

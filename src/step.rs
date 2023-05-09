@@ -2,10 +2,10 @@
 use serde_json::{Value, json};
 use wasm_bindgen::JsValue;
 
-use crate::{steps_generator::{selection::{SubSelection}, event::{DropBlockEvent, ReplaceWithChildrenEvent}, StepError}, mark::Mark, blocks::{standard_blocks::StandardBlockType, BlockMap}, frontend_interface::{get_js_field_as_string, get_js_field, get_js_field_as_f64, get_js_field_as_bool}};
+use crate::{steps_generator::{selection::{SubSelection}, event::{DropBlockEvent, ReplaceWithChildrenEvent}, StepError}, mark::Mark, blocks::{standard_blocks::StandardBlockType, BlockMap}, frontend_interface::{get_js_field_as_string, get_js_field, get_js_field_as_f64, get_js_field_as_bool}, utilities::Tree};
 
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub enum Step {
     ReplaceStep(ReplaceStep),
     SplitStep(SplitStep),
@@ -17,7 +17,7 @@ pub enum Step {
     TurnInto(TurnInto),
     ToggleCompleted(String), //block id
     Copy(SubSelection, SubSelection),
-    Paste(SubSelection, SubSelection), // TODO: NEEDS TO STORE WHAT WAS PASTED INSIDE STEP
+    Paste(PasteStep), // TODO: NEEDS TO STORE WHAT WAS PASTED INSIDE STEP
     DropBlock(DropBlockEvent),
     DeleteBlock(String), //ID
     Duplicate(String), //ID
@@ -50,6 +50,52 @@ impl Step {
             "AddParagraphAtBottom" => Ok(Step::AddParagraphAtBottom(data.as_string().unwrap())),
             _type => Err(StepError(format!("_type: {:?}, is not a valid step type!", _type)))
         }
+    }
+
+    pub fn to_js_obj(self) -> Result<JsValue, StepError> {
+        let obj = js_sys::Object::new();
+
+        let _type = match &self {
+            Self::AddBlock(_) => "AddBlock",
+            Self::AddMarkStep(_) => "AddMarkStep",
+            Self::RemoveMarkStep(_) => "RemoveMarkStep",
+            Self::ReplaceStep(_) => "ReplaceStep",
+            Self::SplitStep(_) => "SplitStep",
+            Self::TurnToChild(_) => "TurnToChild",
+            Self::TurnToParent(_) => "TurnToParent",
+            Self::TurnInto(_) => "TurnInto",
+            Self::ToggleCompleted(_) => "ToggleCompleted",
+            Self::Copy(_, _) => "Copy",
+            Self::Paste(_) => "Paste",
+            Self::DropBlock(_) => "DropBlock",
+            Self::DeleteBlock(_) => "DeleteBlock",
+            Self::Duplicate(_) => "Duplicate",
+            Self::ReplaceWithChildren(_) => "ReplaceWithChildren",
+            Self::AddParagraphAtBottom(_) => "AddParagraphAtBottom"
+        };
+
+        let data = match self {
+            Self::AddBlock(step) => step.to_json()?,
+            Self::AddMarkStep(step) => step.to_json()?,
+            Self::RemoveMarkStep(step) => step.to_json()?,
+            Self::ReplaceStep(step) => step.to_json()?,
+            Self::SplitStep(step) => step.to_json()?,
+            Self::TurnToChild(step) => step.to_json()?,
+            Self::TurnToParent(step) => step.to_json()?,
+            Self::TurnInto(step) => step.to_json()?,
+            Self::ToggleCompleted(block_id) => json!({ "block_id": block_id }),
+            Self::Copy(from, to) => json!({ "from": from.to_json()?, "to": to.to_json()? }),
+            Self::Paste(paste_step) => unimplemented!(),// json!({ "from": from.to_json()?, "to": to.to_json()? }),
+            Self::DropBlock(event) => event.to_json()?,
+            Self::DeleteBlock(block_id) => json!({ "block_id": block_id }),
+            Self::Duplicate(block_id) => json!({ "block_id": block_id }),
+            Self::ReplaceWithChildren(event) => event.to_json()?,
+            Self::AddParagraphAtBottom(root_block_id) => json!({ "root_block_id": root_block_id })
+        };
+
+        js_sys::Reflect::set(&obj, &JsValue::from_str("_type"), &JsValue::from(_type)).unwrap();
+        js_sys::Reflect::set(&obj, &JsValue::from_str("data"), &JsValue::from(data.to_string())).unwrap();
+        return Ok(JsValue::from(obj))
     }
 }
 
@@ -225,50 +271,28 @@ impl TurnInto {
     }
 }
 
-impl Step {
-    pub fn to_js_obj(self) -> Result<JsValue, StepError> {
-        let obj = js_sys::Object::new();
+#[derive(Debug, Clone)]
+pub struct PasteStep {
+    pub from: SubSelection,
+    pub to: SubSelection,
+    pub copy_tree: Tree
+}
 
-        let _type = match &self {
-            Self::AddBlock(_) => "AddBlock",
-            Self::AddMarkStep(_) => "AddMarkStep",
-            Self::RemoveMarkStep(_) => "RemoveMarkStep",
-            Self::ReplaceStep(_) => "ReplaceStep",
-            Self::SplitStep(_) => "SplitStep",
-            Self::TurnToChild(_) => "TurnToChild",
-            Self::TurnToParent(_) => "TurnToParent",
-            Self::TurnInto(_) => "TurnInto",
-            Self::ToggleCompleted(_) => "ToggleCompleted",
-            Self::Copy(_, _) => "Copy",
-            Self::Paste(_, _) => "Paste",
-            Self::DropBlock(_) => "DropBlock",
-            Self::DeleteBlock(_) => "DeleteBlock",
-            Self::Duplicate(_) => "Duplicate",
-            Self::ReplaceWithChildren(_) => "ReplaceWithChildren",
-            Self::AddParagraphAtBottom(_) => "AddParagraphAtBottom"
-        };
+impl PasteStep {
+    pub fn to_json(self) -> Result<Value, StepError> {
+        unimplemented!()
+        // return Ok(json!({
+        //     "block_id": self.block_id,
+        //     "new_block_type": self.new_block_type.to_json()
+        // }))
+    }
 
-        let data = match self {
-            Self::AddBlock(step) => step.to_json()?,
-            Self::AddMarkStep(step) => step.to_json()?,
-            Self::RemoveMarkStep(step) => step.to_json()?,
-            Self::ReplaceStep(step) => step.to_json()?,
-            Self::SplitStep(step) => step.to_json()?,
-            Self::TurnToChild(step) => step.to_json()?,
-            Self::TurnToParent(step) => step.to_json()?,
-            Self::TurnInto(step) => step.to_json()?,
-            Self::ToggleCompleted(block_id) => json!({ "block_id": block_id }),
-            Self::Copy(from, to) => json!({ "from": from.to_json()?, "to": to.to_json()? }),
-            Self::Paste(from, to) => json!({ "from": from.to_json()?, "to": to.to_json()? }),
-            Self::DropBlock(event) => event.to_json()?,
-            Self::DeleteBlock(block_id) => json!({ "block_id": block_id }),
-            Self::Duplicate(block_id) => json!({ "block_id": block_id }),
-            Self::ReplaceWithChildren(event) => event.to_json()?,
-            Self::AddParagraphAtBottom(root_block_id) => json!({ "root_block_id": root_block_id })
-        };
-
-        js_sys::Reflect::set(&obj, &JsValue::from_str("_type"), &JsValue::from(_type)).unwrap();
-        js_sys::Reflect::set(&obj, &JsValue::from_str("data"), &JsValue::from(data.to_string())).unwrap();
-        return Ok(JsValue::from(obj))
+    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
+        unimplemented!()
+        // return Ok(Self {
+        //     block_id: get_js_field_as_string(&data, "block_id")?,
+        //     new_block_type: StandardBlockType::from_js_block(&get_js_field(&data, "block_type")?)?
+        // })
     }
 }
+
