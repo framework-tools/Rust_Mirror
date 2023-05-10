@@ -54,10 +54,10 @@ impl Step {
         }
     }
 
-    pub fn from_json(_type: &str, data_json: &str) -> Result<Self, StepError> {
-        let json = match serde_json::Value::from_str(data_json) {
+    pub fn from_json(_type: &str, json: &str) -> Result<Self, StepError> {
+        let json = match serde_json::Value::from_str(json) {
             Ok(json) => json,
-            Err(_) => return Err(StepError(format!("Could not parse json block from str: {}", data_json)))
+            Err(_) => return Err(StepError(format!("Could not parse json block from str: {}", json)))
         };
         return match _type {
             "AddBlock" => Ok(Step::AddBlock(AddBlockStep::from_json(json)?)),
@@ -154,16 +154,16 @@ impl ReplaceStep {
         })
     }
     
-    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
-        let block_id = data_json.get("block_id")
-            .ok_or(StepError(format!("Block does not have block_id field: {}", data_json)))?
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        let block_id = json.get("block_id")
+            .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
             .as_str().ok_or(StepError("block_id field is not a string".to_string()))?;
-        let from = SubSelection::from_json(data_json.get("from")
-            .ok_or(StepError(format!("Block does not have from field: {}", data_json)))?.clone())?;
-        let to = SubSelection::from_json(data_json.get("to")
-            .ok_or(StepError(format!("Block does not have to field: {}", data_json)))?.clone())?;
-        let slice = ReplaceSlice::String(data_json.get("slice")
-            .ok_or(StepError(format!("Block does not have slice field: {}", data_json)))?
+        let from = SubSelection::from_json(json.get("from")
+            .ok_or(StepError(format!("Block does not have from field: {}", json)))?.clone())?;
+        let to = SubSelection::from_json(json.get("to")
+            .ok_or(StepError(format!("Block does not have to field: {}", json)))?.clone())?;
+        let slice = ReplaceSlice::String(json.get("slice")
+            .ok_or(StepError(format!("Block does not have slice field: {}", json)))?
             .as_str().ok_or(StepError("slice field is not a string".to_string()))?.to_string());
         return Ok(Self { block_id: block_id.to_string(), from, to, slice })
 
@@ -213,16 +213,16 @@ impl MarkStep {
             mark: Mark::from_str(&get_js_field_as_string(&data, "mark")?)?
         })
     }
-    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
-        let block_id = data_json.get("block_id")
-            .ok_or(StepError(format!("Block does not have block_id field: {}", data_json)))?
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        let block_id = json.get("block_id")
+            .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
             .as_str().ok_or(StepError("block_id field is not a string".to_string()))?;
-        let from = SubSelection::from_json(data_json.get("from")
-            .ok_or(StepError(format!("Block does not have from field: {}", data_json)))?.clone())?;
-        let to = SubSelection::from_json(data_json.get("to")
-            .ok_or(StepError(format!("Block does not have to field: {}", data_json)))?.clone())?;
-        let mark = Mark::from_str(data_json.get("mark")
-            .ok_or(StepError(format!("Block does not have mark field: {}", data_json)))?
+        let from = SubSelection::from_json(json.get("from")
+            .ok_or(StepError(format!("Block does not have from field: {}", json)))?.clone())?;
+        let to = SubSelection::from_json(json.get("to")
+            .ok_or(StepError(format!("Block does not have to field: {}", json)))?.clone())?;
+        let mark = Mark::from_str(json.get("mark")
+            .ok_or(StepError(format!("Block does not have mark field: {}", json)))?
             .as_str().ok_or(StepError("mark field is not a string".to_string()))?)?;
         return Ok(Self { block_id: block_id.to_string(), from, to, mark })
 
@@ -245,9 +245,9 @@ impl SplitStep {
         return Ok(Self { subselection: SubSelection::from_js_obj(get_js_field(&data, "subselection")?)? })
     }
 
-    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
-        let subselection = SubSelection::from_json(data_json.get("subselection")
-            .ok_or(StepError(format!("Block does not have subselection field: {}", data_json)))?.clone())?;
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        let subselection = SubSelection::from_json(json.get("subselection")
+            .ok_or(StepError(format!("Block does not have subselection field: {}", json)))?.clone())?;
         return Ok(Self { subselection })
     }
 }
@@ -268,9 +268,9 @@ impl TurnToChild {
         return Ok(Self { block_id: get_js_field_as_string(&data, "block_id")? })
     }
 
-    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
-        let block_id = data_json.get("block_id")
-            .ok_or(StepError(format!("Block does not have block_id field: {}", data_json)))?
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        let block_id = json.get("block_id")
+            .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
             .as_str().ok_or(StepError("block_id field is not a string".to_string()))?;
         return Ok(Self { block_id: block_id.to_string() })
     }
@@ -292,9 +292,9 @@ impl TurnToParent {
         return Ok(Self { block_id: get_js_field_as_string(&data, "block_id")? })
     }
 
-    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
-        let block_id = data_json.get("block_id")
-            .ok_or(StepError(format!("Block does not have block_id field: {}", data_json)))?
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        let block_id = json.get("block_id")
+            .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
             .as_str().ok_or(StepError("block_id field is not a string".to_string()))?;
         return Ok(Self { block_id: block_id.to_string() })
     }
@@ -326,17 +326,17 @@ impl AddBlockStep {
         return Ok(Self { block_id, child_offset, block_type, focus_block_below })
     }
 
-    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
-        let block_id = data_json.get("block_id")
-            .ok_or(StepError(format!("Block does not have block_id field: {}", data_json)))?
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        let block_id = json.get("block_id")
+            .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
             .as_str().ok_or(StepError("block_id field is not a string".to_string()))?;
-        let child_offset = data_json.get("child_offset")
-            .ok_or(StepError(format!("Block does not have child_offset field: {}", data_json)))?
+        let child_offset = json.get("child_offset")
+            .ok_or(StepError(format!("Block does not have child_offset field: {}", json)))?
             .as_u64().ok_or(StepError("child_offset field is not a u64".to_string()))? as usize;
-        let block_type = StandardBlockType::from_json_block(data_json.get("block_type")
-            .ok_or(StepError(format!("Block does not have block_type field: {}", data_json)))?)?;
-        let focus_block_below = data_json.get("focus_block_below")
-            .ok_or(StepError(format!("Block does not have focus_block_below field: {}", data_json)))?
+        let block_type = StandardBlockType::from_json_block(json.get("block_type")
+            .ok_or(StepError(format!("Block does not have block_type field: {}", json)))?)?;
+        let focus_block_below = json.get("focus_block_below")
+            .ok_or(StepError(format!("Block does not have focus_block_below field: {}", json)))?
             .as_bool().ok_or(StepError("focus_block_below field is not a bool".to_string()))?;
         return Ok(Self { block_id: block_id.to_string(), child_offset, block_type, focus_block_below })
 
@@ -365,12 +365,12 @@ impl TurnInto {
         })
     }
 
-    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
-        let block_id = data_json.get("block_id")
-            .ok_or(StepError(format!("Block does not have block_id field: {}", data_json)))?
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        let block_id = json.get("block_id")
+            .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
             .as_str().ok_or(StepError("block_id field is not a string".to_string()))?;
-        let new_block_type = StandardBlockType::from_json_block(data_json.get("new_block_type")
-            .ok_or(StepError(format!("Block does not have new_block_type field: {}", data_json)))?)?;
+        let new_block_type = StandardBlockType::from_json_block(json.get("new_block_type")
+            .ok_or(StepError(format!("Block does not have new_block_type field: {}", json)))?)?;
         return Ok(Self { block_id: block_id.to_string(), new_block_type })
 
     }
