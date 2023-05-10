@@ -231,14 +231,14 @@ impl DropBlockEvent {
         }))
     }
 
-    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
-        let drag_block_id = data_json.get("drag_block_id")
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        let drag_block_id = json.get("drag_block_id")
             .ok_or(StepError("Could not get drag_block_id from json".to_string()))?
             .as_str().ok_or(StepError("Could not get drag_block_id as str".to_string()))?.to_string();
-        let drop_block_id = data_json.get("drop_block_id")
+        let drop_block_id = json.get("drop_block_id")
             .ok_or(StepError("Could not get drop_block_id from json".to_string()))?
             .as_str().ok_or(StepError("Could not get drop_block_id as str".to_string()))?.to_string();
-        let side_dropped = data_json.get("side_dropped")
+        let side_dropped = json.get("side_dropped")
             .ok_or(StepError("Could not get side_dropped from json".to_string()))?
             .as_str().ok_or(StepError("Could not get side_dropped as str".to_string()))?.to_string();
         let side_dropped = Side::from_str(&side_dropped)?;
@@ -289,8 +289,8 @@ impl ReplaceWithChildrenEvent {
         }))
     }
 
-    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
-        let block_id = data_json.get("block_id")
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        let block_id = json.get("block_id")
             .ok_or(StepError("Could not get block_id from json".to_string()))?
             .as_str().ok_or(StepError("Could not get block_id as str".to_string()))?.to_string();
         return Ok(Self {

@@ -166,7 +166,6 @@ impl ReplaceStep {
             .ok_or(StepError(format!("Block does not have slice field: {}", json)))?
             .as_str().ok_or(StepError("slice field is not a string".to_string()))?.to_string());
         return Ok(Self { block_id: block_id.to_string(), from, to, slice })
-
     }
 }
 
@@ -225,7 +224,6 @@ impl MarkStep {
             .ok_or(StepError(format!("Block does not have mark field: {}", json)))?
             .as_str().ok_or(StepError("mark field is not a string".to_string()))?)?;
         return Ok(Self { block_id: block_id.to_string(), from, to, mark })
-
     }
 }
 
@@ -339,7 +337,6 @@ impl AddBlockStep {
             .ok_or(StepError(format!("Block does not have focus_block_below field: {}", json)))?
             .as_bool().ok_or(StepError("focus_block_below field is not a bool".to_string()))?;
         return Ok(Self { block_id: block_id.to_string(), child_offset, block_type, focus_block_below })
-
     }
 }
 
@@ -372,7 +369,6 @@ impl TurnInto {
         let new_block_type = StandardBlockType::from_json_block(json.get("new_block_type")
             .ok_or(StepError(format!("Block does not have new_block_type field: {}", json)))?)?;
         return Ok(Self { block_id: block_id.to_string(), new_block_type })
-
     }
 }
 
