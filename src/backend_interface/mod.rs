@@ -3,7 +3,7 @@ use std::{collections::HashMap};
 use crate::{blocks::BlockMap, step::Step, steps_generator::StepError, new_ids::NewIds, steps_actualisor::{actualise_steps, UpdatedState}, custom_copy::CustomCopy};
 
 
-
+//
 pub fn actualise_mirror_step(
     step_as_json: (String, String),
     new_ids: Vec<String>,
