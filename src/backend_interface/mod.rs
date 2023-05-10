@@ -4,7 +4,7 @@ use crate::{blocks::BlockMap, step::Step, steps_generator::StepError, new_ids::N
 
 
 
-pub fn backend_actualise_mirror_steps(
+pub fn actualise_mirror_steps(
     steps_as_json: Vec<(String, String)>,
     new_ids: Vec<String>,
     block_map_rust: HashMap<String, String>
