@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use serde::{Serialize, Deserialize};
 use serde_json::{Value, json};
 use wasm_bindgen::JsValue;
@@ -228,6 +230,24 @@ impl DropBlockEvent {
             }
         }))
     }
+
+    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
+        let drag_block_id = data_json.get("drag_block_id")
+            .ok_or(StepError("Could not get drag_block_id from json".to_string()))?
+            .as_str().ok_or(StepError("Could not get drag_block_id as str".to_string()))?.to_string();
+        let drop_block_id = data_json.get("drop_block_id")
+            .ok_or(StepError("Could not get drop_block_id from json".to_string()))?
+            .as_str().ok_or(StepError("Could not get drop_block_id as str".to_string()))?.to_string();
+        let side_dropped = data_json.get("side_dropped")
+            .ok_or(StepError("Could not get side_dropped from json".to_string()))?
+            .as_str().ok_or(StepError("Could not get side_dropped as str".to_string()))?.to_string();
+        let side_dropped = Side::from_str(&side_dropped)?;
+        return Ok(Self {
+            drag_block_id,
+            drop_block_id,
+            side_dropped
+        })
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -267,5 +287,14 @@ impl ReplaceWithChildrenEvent {
         return Ok(json!({
             "block_id": self.block_id
         }))
+    }
+
+    pub fn from_json(data_json: Value) -> Result<Self, StepError> {
+        let block_id = data_json.get("block_id")
+            .ok_or(StepError("Could not get block_id from json".to_string()))?
+            .as_str().ok_or(StepError("Could not get block_id as str".to_string()))?.to_string();
+        return Ok(Self {
+            block_id
+        })
     }
 }

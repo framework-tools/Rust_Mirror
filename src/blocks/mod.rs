@@ -619,7 +619,9 @@ pub fn id_from_json_block(json: &Value) -> Result<String, StepError> {
 }
 
 pub fn children_from_json_block(json: &Value) -> Result<Vec<String>, StepError> {
-    let children = json.get("children").ok_or(StepError("Block does not have children field".to_string()))?.as_array().ok_or(StepError("Block children field is not an array".to_string()))?;
+    let children = json.get("children")
+        .ok_or(StepError("Block does not have children field".to_string()))?
+        .as_array().ok_or(StepError("Block children field is not an array".to_string()))?;
     children.iter().map(|child| {
         let child_id = child.as_str().ok_or(StepError("Block children field is not an array of strings".to_string()))?;
         String::from_str(child_id).map_err(|_| StepError("Block children field is not an array of valid Strings".to_string()))

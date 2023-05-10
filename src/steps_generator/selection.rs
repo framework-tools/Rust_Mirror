@@ -203,6 +203,35 @@ impl SubSelection {
         });
     }
 
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        let block_id = match json.get("block_id") {
+            Some(block_id) => match block_id.as_str() {
+                Some(block_id) => block_id.to_string(),
+                None => return Err(StepError("Block id is not a string".to_string()))
+            },
+            None => return Err(StepError("Block id not found".to_string()))
+        };
+        let offset = match json.get("offset") {
+            Some(offset) => match offset.as_u64() {
+                Some(offset) => offset as usize,
+                None => return Err(StepError("Offset is not a u64".to_string()))
+            },
+            None => return Err(StepError("Offset not found".to_string()))
+        };
+        let subselection = match json.get("subselection") {
+            Some(subselection) => match subselection.is_null() {
+                true => None,
+                false => Some(Box::new(SubSelection::from_json(subselection.clone())?))
+            },
+            None => return Err(StepError("Subselection not found".to_string()))
+        };
+        return Ok(Self {
+            block_id,
+            offset,
+            subselection
+        })
+    }
+
     pub fn block_id(&self) -> String {
         return self.block_id.clone();
     }
