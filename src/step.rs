@@ -33,51 +33,51 @@ impl Step {
         let _type = get_js_field_as_string(&step_js, "_type")?;
         let data = get_js_field(&step_js, "data")?;
 
-        return match _type.as_str() {
-            "AddBlock" => Ok(Step::AddBlock(AddBlockStep::from_js_obj(data)?)),
-            "AddMarkStep" => Ok(Step::AddMarkStep(MarkStep::from_js_obj(data)?)),
-            "RemoveMarkStep" => Ok(Step::AddMarkStep(MarkStep::from_js_obj(data)?)),
-            "ReplaceStep" => Ok(Step::ReplaceStep(ReplaceStep::from_js_obj(data)?)),
-            "SplitStep" => Ok(Step::SplitStep(SplitStep::from_js_obj(data)?)),
-            "TurnToChild" => Ok(Step::TurnToChild(TurnToChild::from_js_obj(data)?)),
-            "TurnToParent" => Ok(Step::TurnToParent(TurnToParent::from_js_obj(data)?)),
-            "TurnInto" => Ok(Step::TurnInto(TurnInto::from_js_obj(data)?)),
-            "ToggleCompleted" => Ok(Step::ToggleCompleted(get_js_field_as_string(&data, "block_id")?)),
+        return Ok(match _type.as_str() {
+            "AddBlock" => Step::AddBlock(AddBlockStep::from_js_obj(data)?),
+            "AddMarkStep" => Step::AddMarkStep(MarkStep::from_js_obj(data)?),
+            "RemoveMarkStep" => Step::AddMarkStep(MarkStep::from_js_obj(data)?),
+            "ReplaceStep" => Step::ReplaceStep(ReplaceStep::from_js_obj(data)?),
+            "SplitStep" => Step::SplitStep(SplitStep::from_js_obj(data)?),
+            "TurnToChild" => Step::TurnToChild(TurnToChild::from_js_obj(data)?),
+            "TurnToParent" => Step::TurnToParent(TurnToParent::from_js_obj(data)?),
+            "TurnInto" => Step::TurnInto(TurnInto::from_js_obj(data)?),
+            "ToggleCompleted" => Step::ToggleCompleted(get_js_field_as_string(&data, "block_id")?),
             "Copy" => unreachable!(), // copy should be ignored everywhere except when applied on frontend
             "Paste" => unimplemented!(), // need to add
-            "DropBlock" => Ok(Step::DropBlock(DropBlockEvent::from_js_obj(js_sys::Object::from(data))?)),
-            "DeleteBlock" => Ok(Step::DeleteBlock(data.as_string().unwrap())),
-            "Duplicate" => Ok(Step::Duplicate(data.as_string().unwrap())),
-            "ReplaceWithChildren" => Ok(Step::ReplaceWithChildren(ReplaceWithChildrenEvent::from_js_obj(js_sys::Object::from(data))?)),
-            "AddParagraphAtBottom" => Ok(Step::AddParagraphAtBottom(data.as_string().unwrap())),
-            _type => Err(StepError(format!("_type: {:?}, is not a valid step type!", _type)))
-        }
+            "DropBlock" => Step::DropBlock(DropBlockEvent::from_js_obj(js_sys::Object::from(data))?),
+            "DeleteBlock" => Step::DeleteBlock(data.as_string().unwrap()),
+            "Duplicate" => Step::Duplicate(data.as_string().unwrap()),
+            "ReplaceWithChildren" => Step::ReplaceWithChildren(ReplaceWithChildrenEvent::from_js_obj(js_sys::Object::from(data))?),
+            "AddParagraphAtBottom" => Step::AddParagraphAtBottom(data.as_string().unwrap()),
+            _type => Err(StepError(format!("_type: {:?}, is not a valid step type!", _type)))?
+        })
     }
 
     pub fn from_json(_type: &str, json: &str) -> Result<Self, StepError> {
-        let json_data = match serde_json::Value::from_str(json) {
+        let json = match serde_json::Value::from_str(json) {
             Ok(json) => json,
             Err(_) => return Err(StepError(format!("Could not parse json block from str: {}", json)))
         };
-        return match _type {
-            "AddBlock" => Ok(Step::AddBlock(AddBlockStep::from_json(json_data)?)),
-            "AddMarkStep" => Ok(Step::AddMarkStep(MarkStep::from_json(json_data)?)),
-            "RemoveMarkStep" => Ok(Step::AddMarkStep(MarkStep::from_json(json_data)?)),
-            "ReplaceStep" => Ok(Step::ReplaceStep(ReplaceStep::from_json(json_data)?)),
-            "SplitStep" => Ok(Step::SplitStep(SplitStep::from_json(json_data)?)),
-            "TurnToChild" => Ok(Step::TurnToChild(TurnToChild::from_json(json_data)?)),
-            "TurnToParent" => Ok(Step::TurnToParent(TurnToParent::from_json(json_data)?)),
-            "TurnInto" => Ok(Step::TurnInto(TurnInto::from_json(json_data)?)),
-            "ToggleCompleted" => Ok(Step::ToggleCompleted(json!(json).as_str().unwrap().to_string())),
+        return Ok(match _type {
+            "AddBlock" => Step::AddBlock(AddBlockStep::from_json(json)?),
+            "AddMarkStep" => Step::AddMarkStep(MarkStep::from_json(json)?),
+            "RemoveMarkStep" => Step::AddMarkStep(MarkStep::from_json(json)?),
+            "ReplaceStep" => Step::ReplaceStep(ReplaceStep::from_json(json)?),
+            "SplitStep" => Step::SplitStep(SplitStep::from_json(json)?),
+            "TurnToChild" => Step::TurnToChild(TurnToChild::from_json(json)?),
+            "TurnToParent" => Step::TurnToParent(TurnToParent::from_json(json)?),
+            "TurnInto" => Step::TurnInto(TurnInto::from_json(json)?),
+            "ToggleCompleted" => Step::ToggleCompleted(json!(json).as_str().unwrap().to_string()),
             "Copy" => unreachable!(), // copy should be ignored everywhere except when applied on frontend
             "Paste" => unimplemented!(), // need to add
-            "DropBlock" => Ok(Step::DropBlock(DropBlockEvent::from_json(json_data)?)),
-            "DeleteBlock" => Ok(Step::DeleteBlock(json!(json).as_str().unwrap().to_string())),
-            "Duplicate" => Ok(Step::Duplicate(json!(json).as_str().unwrap().to_string())),
-            "ReplaceWithChildren" => Ok(Step::ReplaceWithChildren(ReplaceWithChildrenEvent::from_json(json_data)?)),
-            "AddParagraphAtBottom" => Ok(Step::AddParagraphAtBottom(json!(json).as_str().unwrap().to_string())),
-            _type => Err(StepError(format!("_type: {:?}, is not a valid step type!", _type)))
-        }
+            "DropBlock" => Step::DropBlock(DropBlockEvent::from_json(json)?),
+            "DeleteBlock" => Step::DeleteBlock(json!(json).as_str().unwrap().to_string()),
+            "Duplicate" => Step::Duplicate(json!(json).as_str().unwrap().to_string()),
+            "ReplaceWithChildren" => Step::ReplaceWithChildren(ReplaceWithChildrenEvent::from_json(json)?),
+            "AddParagraphAtBottom" => Step::AddParagraphAtBottom(json!(json).as_str().unwrap().to_string()),
+            _type => Err(StepError(format!("_type: {:?}, is not a valid step type!", _type)))?
+        })
     }
 
     pub fn to_js_obj(self) -> Result<JsValue, StepError> {
