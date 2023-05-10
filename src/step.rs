@@ -68,14 +68,15 @@ impl Step {
             "TurnToChild" => Step::TurnToChild(TurnToChild::from_json(json)?),
             "TurnToParent" => Step::TurnToParent(TurnToParent::from_json(json)?),
             "TurnInto" => Step::TurnInto(TurnInto::from_json(json)?),
-            "ToggleCompleted" => Step::ToggleCompleted(json!(json).as_str().unwrap().to_string()),
+            "ToggleCompleted" => Step::ToggleCompleted(block_id_from_json(json)?),
             "Copy" => unreachable!(), // copy should be ignored everywhere except when applied on frontend
             "Paste" => unimplemented!(), // need to add
             "DropBlock" => Step::DropBlock(DropBlockEvent::from_json(json)?),
-            "DeleteBlock" => Step::DeleteBlock(json!(json).as_str().unwrap().to_string()),
-            "Duplicate" => Step::Duplicate(json!(json).as_str().unwrap().to_string()),
+            "DeleteBlock" => Step::DeleteBlock(block_id_from_json(json)?),
+            "Duplicate" => Step::Duplicate(block_id_from_json(json)?),
             "ReplaceWithChildren" => Step::ReplaceWithChildren(ReplaceWithChildrenEvent::from_json(json)?),
-            "AddParagraphAtBottom" => Step::AddParagraphAtBottom(json!(json).as_str().unwrap().to_string()),
+            "AddParagraphAtBottom" => Step::AddParagraphAtBottom(json.get("root_block_id")
+            .ok_or(StepError("step does not have root_block_id field".to_string()))?.to_string()),
             _type => Err(StepError(format!("_type: {:?}, is not a valid step type!", _type)))?
         })
     }
@@ -125,6 +126,11 @@ impl Step {
         js_sys::Reflect::set(&obj, &JsValue::from_str("data"), &JsValue::from(data.to_string())).unwrap();
         return Ok(JsValue::from(obj))
     }
+}
+
+fn block_id_from_json(json: Value) -> Result<String, StepError> {
+    Ok(json.get("block_id")
+        .ok_or(StepError("step does not have block_id field".to_string()))?.to_string())
 }
 
 #[derive(Debug, PartialEq, Clone)]
