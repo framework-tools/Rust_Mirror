@@ -13,10 +13,12 @@ pub fn backend_actualise_mirror_steps(
     let mut new_ids = NewIds::Rust(new_ids);
 
     for (_type, data) in steps_as_json {
-        let step = Step::from_json(&_type, &data)?;
-        let updated_state = 
-            actualise_steps(vec![step.clone()], block_map, &mut new_ids, CustomCopy::new())?;
-        block_map = updated_state.block_map;
+        if &_type != "copy" {
+            let step = Step::from_json(&_type, &data)?;
+            let updated_state = 
+                actualise_steps(vec![step.clone()], block_map, &mut new_ids, CustomCopy::new())?;
+            block_map = updated_state.block_map;
+        }
     }
     return match block_map {
         BlockMap::Rust(block_map) => Ok(block_map),
