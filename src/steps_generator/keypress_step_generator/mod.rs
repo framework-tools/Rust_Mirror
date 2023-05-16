@@ -1,5 +1,5 @@
 
-use crate::{blocks::{BlockMap}, step::Step, mark::Mark, custom_copy::CustomCopy};
+use crate::{blocks::{BlockMap}, step::Step, mark::Mark, custom_copy::CustomCopy, new_ids::NewIds};
 
 use self::{backspace::generate_steps_for_backspace, enter::generate_steps_for_enter, tab::generate_steps_for_tab, delete::generate_steps_for_delete, };
 
@@ -15,16 +15,17 @@ pub fn generate_keyboard_event_steps(
     block_map: &BlockMap,
     from: SubSelection,
     to: SubSelection,
-    copy: &CustomCopy
+    copy: &CustomCopy,
+    new_ids: &mut NewIds
 ) -> Result<Vec<Step>, StepError> {
     return match key_press.key {
         //Shortcuts
         Key::Standard('b') | Key::Standard('B') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
-            generate_mark_steps(Mark::Bold, from, to, block_map),
+            generate_mark_steps(Mark::Bold, from, to, block_map, new_ids),
         Key::Standard('i') | Key::Standard('I') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
-            generate_mark_steps(Mark::Italic, from, to, block_map),
+            generate_mark_steps(Mark::Italic, from, to, block_map, new_ids),
         Key::Standard('u') | Key::Standard('U') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
-            generate_mark_steps(Mark::Underline, from, to, block_map),
+            generate_mark_steps(Mark::Underline, from, to, block_map, new_ids),
         Key::Standard('c') | Key::Standard('C') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
             Ok(vec![Step::Copy(from, to)]),
         Key::Standard('x') | Key::Standard('X') if key_press.metadata.ctrl_down || key_press.metadata.meta_down =>
@@ -37,7 +38,7 @@ pub fn generate_keyboard_event_steps(
         Key::Standard(key) => generate_replace_selected_steps(block_map, from, to, key.to_string()),
         Key::Backspace => generate_steps_for_backspace(block_map, from, to),
         Key::Delete => generate_steps_for_delete(block_map, from, to),
-        Key::Enter => generate_steps_for_enter(block_map, from, to),
+        Key::Enter => generate_steps_for_enter(block_map, from, to, new_ids),
         Key::Tab => generate_steps_for_tab(block_map, from, to, key_press.metadata.clone()),
         _ => unimplemented!(),
     }

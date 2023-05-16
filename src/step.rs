@@ -4,7 +4,9 @@ use std::str::FromStr;
 use serde_json::{Value, json};
 use wasm_bindgen::JsValue;
 
-use crate::{steps_generator::{selection::{SubSelection}, event::{DropBlockEvent, ReplaceWithChildrenEvent}, StepError}, mark::Mark, blocks::{standard_blocks::StandardBlockType, BlockMap}, frontend_interface::{get_js_field_as_string, get_js_field, get_js_field_as_f64, get_js_field_as_bool}, utilities::Tree};
+use crate::{steps_generator::{selection::{SubSelection}, event::{DropBlockEvent, ReplaceWithChildrenEvent}, StepError},
+mark::Mark, blocks::{standard_blocks::StandardBlockType},
+utilities::Tree, backend_interface::{get_json_field_as_string, get_json_field_as_int, get_json_field_as_bool}};
 
 
 #[derive(Debug, Clone)]
@@ -22,38 +24,13 @@ pub enum Step {
     Paste(PasteStep), // TODO: NEEDS TO STORE WHAT WAS PASTED INSIDE STEP
     DropBlock(DropBlockEvent),
     DeleteBlock(String), //ID
-    Duplicate(String), //ID
+    Duplicate(DuplicateStep),
     ReplaceWithChildren(ReplaceWithChildrenEvent),
-    AddParagraphAtBottom(String) // (Root block id)
+    AddParagraphAtBottom(AddParagraphAtBottomStep) // (Root block id)
     //ReplaceAroundStep
 }
 
 impl Step {
-    pub fn from_js_obj(step_js: JsValue) -> Result<Self, StepError> {
-        let _type = get_js_field_as_string(&step_js, "_type")?;
-        let data = get_js_field(&step_js, "data")?;
-
-        return Ok(match _type.as_str() {
-            "AddBlock" => Step::AddBlock(AddBlockStep::from_js_obj(data)?),
-            "AddMarkStep" => Step::AddMarkStep(MarkStep::from_js_obj(data)?),
-            "RemoveMarkStep" => Step::AddMarkStep(MarkStep::from_js_obj(data)?),
-            "ReplaceStep" => Step::ReplaceStep(ReplaceStep::from_js_obj(data)?),
-            "SplitStep" => Step::SplitStep(SplitStep::from_js_obj(data)?),
-            "TurnToChild" => Step::TurnToChild(TurnToChild::from_js_obj(data)?),
-            "TurnToParent" => Step::TurnToParent(TurnToParent::from_js_obj(data)?),
-            "TurnInto" => Step::TurnInto(TurnInto::from_js_obj(data)?),
-            "ToggleCompleted" => Step::ToggleCompleted(get_js_field_as_string(&data, "block_id")?),
-            "Copy" => unreachable!(), // copy should be ignored everywhere except when applied on frontend
-            "Paste" => unimplemented!(), // need to add
-            "DropBlock" => Step::DropBlock(DropBlockEvent::from_js_obj(js_sys::Object::from(data))?),
-            "DeleteBlock" => Step::DeleteBlock(data.as_string().unwrap()),
-            "Duplicate" => Step::Duplicate(data.as_string().unwrap()),
-            "ReplaceWithChildren" => Step::ReplaceWithChildren(ReplaceWithChildrenEvent::from_js_obj(js_sys::Object::from(data))?),
-            "AddParagraphAtBottom" => Step::AddParagraphAtBottom(data.as_string().unwrap()),
-            _type => Err(StepError(format!("_type: {:?}, is not a valid step type!", _type)))?
-        })
-    }
-
     pub fn from_json(_type: &str, json: &str) -> Result<Self, StepError> {
         let json = match serde_json::Value::from_str(json) {
             Ok(json) => json,
@@ -68,15 +45,14 @@ impl Step {
             "TurnToChild" => Step::TurnToChild(TurnToChild::from_json(json)?),
             "TurnToParent" => Step::TurnToParent(TurnToParent::from_json(json)?),
             "TurnInto" => Step::TurnInto(TurnInto::from_json(json)?),
-            "ToggleCompleted" => Step::ToggleCompleted(block_id_from_json(json)?),
+            "ToggleCompleted" => Step::ToggleCompleted(get_json_field_as_string(&json, "block_id")?),
             "Copy" => unreachable!(), // copy should be ignored everywhere except when applied on frontend
             "Paste" => unimplemented!(), // need to add
             "DropBlock" => Step::DropBlock(DropBlockEvent::from_json(json)?),
-            "DeleteBlock" => Step::DeleteBlock(block_id_from_json(json)?),
-            "Duplicate" => Step::Duplicate(block_id_from_json(json)?),
+            "DeleteBlock" => Step::DeleteBlock(get_json_field_as_string(&json, "block_id")?),
+            "Duplicate" => Step::Duplicate(DuplicateStep::from_json(json)?),
             "ReplaceWithChildren" => Step::ReplaceWithChildren(ReplaceWithChildrenEvent::from_json(json)?),
-            "AddParagraphAtBottom" => Step::AddParagraphAtBottom(json.get("root_block_id")
-            .ok_or(StepError("step does not have root_block_id field".to_string()))?.to_string()),
+            "AddParagraphAtBottom" => Step::AddParagraphAtBottom(AddParagraphAtBottomStep::from_json(json)?),
             _type => Err(StepError(format!("_type: {:?}, is not a valid step type!", _type)))?
         })
     }
@@ -117,20 +93,15 @@ impl Step {
             Self::Paste(paste_step) => unimplemented!(),// json!({ "from": from.to_json()?, "to": to.to_json()? }),
             Self::DropBlock(event) => event.to_json()?,
             Self::DeleteBlock(block_id) => json!({ "block_id": block_id }),
-            Self::Duplicate(block_id) => json!({ "block_id": block_id }),
+            Self::Duplicate(step) => step.to_json()?,
             Self::ReplaceWithChildren(event) => event.to_json()?,
-            Self::AddParagraphAtBottom(root_block_id) => json!({ "root_block_id": root_block_id })
+            Self::AddParagraphAtBottom(step) => step.to_json()?
         };
 
         js_sys::Reflect::set(&obj, &JsValue::from_str("_type"), &JsValue::from(_type)).unwrap();
         js_sys::Reflect::set(&obj, &JsValue::from_str("data"), &JsValue::from(data.to_string())).unwrap();
         return Ok(JsValue::from(obj))
     }
-}
-
-fn block_id_from_json(json: Value) -> Result<String, StepError> {
-    Ok(json.get("block_id")
-        .ok_or(StepError("step does not have block_id field".to_string()))?.to_string())
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -151,27 +122,14 @@ impl ReplaceStep {
         }))
     }
 
-    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
-        return Ok(Self {
-            block_id: get_js_field_as_string(&data, "block_id")?,
-            from: SubSelection::from_js_obj(get_js_field(&data, "from")?)?,
-            to: SubSelection::from_js_obj(get_js_field(&data, "to")?)?,
-            slice: ReplaceSlice::String(get_js_field_as_string(&data, "slice")?)
-        })
-    }
-    
     pub fn from_json(json: Value) -> Result<Self, StepError> {
-        let block_id = json.get("block_id")
-            .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
-            .as_str().ok_or(StepError("block_id field is not a string".to_string()))?;
+        let block_id = get_json_field_as_string(&json, "block_id")?;
         let from = SubSelection::from_json(json.get("from")
             .ok_or(StepError(format!("Block does not have from field: {}", json)))?.clone())?;
         let to = SubSelection::from_json(json.get("to")
             .ok_or(StepError(format!("Block does not have to field: {}", json)))?.clone())?;
-        let slice = ReplaceSlice::String(json.get("slice")
-            .ok_or(StepError(format!("Block does not have slice field: {}", json)))?
-            .as_str().ok_or(StepError("slice field is not a string".to_string()))?.to_string());
-        return Ok(Self { block_id: block_id.to_string(), from, to, slice })
+        let slice = ReplaceSlice::String(get_json_field_as_string(&json, "slice")?);
+        return Ok(Self { block_id, from, to, slice })
     }
 }
 
@@ -198,6 +156,8 @@ pub struct MarkStep {
     pub from: SubSelection,
     pub to: SubSelection,
     pub mark: Mark,
+    pub from_new_inline_id: String,
+    pub to_new_inline_id: String
 }
 
 impl MarkStep {
@@ -206,53 +166,53 @@ impl MarkStep {
             "block_id": self.block_id,
             "from": self.from.to_json()?,
             "to": self.to.to_json()?,
-            "mark": self.mark.to_string()
+            "mark": self.mark.to_string(),
+            "from_new_inline_id": self.from_new_inline_id,
+            "to_new_inline_id": self.to_new_inline_id
         }))
     }
 
-    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
-        return Ok(Self {
-            block_id: get_js_field_as_string(&data, "block_id")?,
-            from: SubSelection::from_js_obj(get_js_field(&data, "from")?)?,
-            to: SubSelection::from_js_obj(get_js_field(&data, "to")?)?,
-            mark: Mark::from_str(&get_js_field_as_string(&data, "mark")?)?
-        })
-    }
     pub fn from_json(json: Value) -> Result<Self, StepError> {
-        let block_id = json.get("block_id")
-            .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
-            .as_str().ok_or(StepError("block_id field is not a string".to_string()))?;
         let from = SubSelection::from_json(json.get("from")
             .ok_or(StepError(format!("Block does not have from field: {}", json)))?.clone())?;
         let to = SubSelection::from_json(json.get("to")
             .ok_or(StepError(format!("Block does not have to field: {}", json)))?.clone())?;
-        let mark = Mark::from_str(json.get("mark")
-            .ok_or(StepError(format!("Block does not have mark field: {}", json)))?
-            .as_str().ok_or(StepError("mark field is not a string".to_string()))?)?;
-        return Ok(Self { block_id: block_id.to_string(), from, to, mark })
+        let mark = Mark::from_str(&get_json_field_as_string(&json, "mark")?)?;
+        return Ok(Self {
+            block_id: get_json_field_as_string(&json, "block_id")?,
+            from,
+            to,
+            mark,
+            from_new_inline_id: get_json_field_as_string(&json, "from_new_inline_id")?,
+            to_new_inline_id: get_json_field_as_string(&json, "to_new_inline_id")?
+        })
     }
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct SplitStep {
-    pub subselection: SubSelection
+    pub subselection: SubSelection,
+    pub new_std_block_id: String,
+    pub new_inline_block_id: String,
 }
 
 impl SplitStep {
     pub fn to_json(self) -> Result<Value, StepError> {
         return Ok(json!({
-            "subselection": self.subselection.to_json()?
+            "subselection": self.subselection.to_json()?,
+            "new_std_block_id": self.new_std_block_id,
+            "new_inline_block_id": self.new_inline_block_id,
         }))
-    }
-
-    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
-        return Ok(Self { subselection: SubSelection::from_js_obj(get_js_field(&data, "subselection")?)? })
     }
 
     pub fn from_json(json: Value) -> Result<Self, StepError> {
         let subselection = SubSelection::from_json(json.get("subselection")
-            .ok_or(StepError(format!("Block does not have subselection field: {}", json)))?.clone())?;
-        return Ok(Self { subselection })
+            .ok_or(StepError(format!("Step does not have subselection field: {}", json)))?.clone())?;
+        return Ok(Self {
+            subselection,
+            new_std_block_id: get_json_field_as_string(&json, "new_std_block_id")?,
+            new_inline_block_id: get_json_field_as_string(&json, "new_inline_block_id")?,
+        })
     }
 }
 
@@ -266,10 +226,6 @@ impl TurnToChild {
         return Ok(json!({
             "block_id": self.block_id
         }))
-    }
-
-    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
-        return Ok(Self { block_id: get_js_field_as_string(&data, "block_id")? })
     }
 
     pub fn from_json(json: Value) -> Result<Self, StepError> {
@@ -292,10 +248,6 @@ impl TurnToParent {
         }))
     }
 
-    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
-        return Ok(Self { block_id: get_js_field_as_string(&data, "block_id")? })
-    }
-
     pub fn from_json(json: Value) -> Result<Self, StepError> {
         let block_id = json.get("block_id")
             .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
@@ -307,6 +259,8 @@ impl TurnToParent {
 #[derive(Debug, PartialEq, Clone)]
 pub struct AddBlockStep {
     pub block_id: String,
+    pub new_std_block_id: String,
+    pub new_inline_block_id: String,
     pub child_offset: usize,
     pub block_type: StandardBlockType,
     pub focus_block_below: bool
@@ -316,33 +270,25 @@ impl AddBlockStep {
     pub fn to_json(self) -> Result<Value, StepError> {
         return Ok(json!({
             "block_id": self.block_id,
+            "new_std_block_id": self.new_std_block_id,
+            "new_inline_block_id": self.new_inline_block_id,
             "child_offset": self.child_offset,
             "block_type": self.block_type.to_json(),
             "focus_block_below": self.focus_block_below
         }))
     }
 
-    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
-        let block_id = get_js_field_as_string(&data, "block_id")?;
-        let child_offset: usize = get_js_field_as_f64(&data, "child_offset")? as usize;
-        let block_type = StandardBlockType::from_js_block(&get_js_field(&data, "block_type")?)?;
-        let focus_block_below = get_js_field_as_bool(&data, "focus_block_below")?;
-        return Ok(Self { block_id, child_offset, block_type, focus_block_below })
-    }
-
     pub fn from_json(json: Value) -> Result<Self, StepError> {
-        let block_id = json.get("block_id")
-            .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
-            .as_str().ok_or(StepError("block_id field is not a string".to_string()))?;
-        let child_offset = json.get("child_offset")
-            .ok_or(StepError(format!("Block does not have child_offset field: {}", json)))?
-            .as_u64().ok_or(StepError("child_offset field is not a u64".to_string()))? as usize;
         let block_type = StandardBlockType::from_json_block(json.get("block_type")
             .ok_or(StepError(format!("Block does not have block_type field: {}", json)))?)?;
-        let focus_block_below = json.get("focus_block_below")
-            .ok_or(StepError(format!("Block does not have focus_block_below field: {}", json)))?
-            .as_bool().ok_or(StepError("focus_block_below field is not a bool".to_string()))?;
-        return Ok(Self { block_id: block_id.to_string(), child_offset, block_type, focus_block_below })
+        return Ok(Self {
+            block_id: get_json_field_as_string(&json, "block_id")?,
+            new_std_block_id: get_json_field_as_string(&json, "new_std_block_id")?,
+            new_inline_block_id: get_json_field_as_string(&json, "new_inline_block_id")?,
+            child_offset: get_json_field_as_int(&json, "child_offset")? as usize,
+            block_type,
+            focus_block_below: get_json_field_as_bool(&json, "focus_block_below")?
+        })
     }
 }
 
@@ -361,20 +307,11 @@ impl TurnInto {
         }))
     }
 
-    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
-        return Ok(Self {
-            block_id: get_js_field_as_string(&data, "block_id")?,
-            new_block_type: StandardBlockType::from_js_block(&get_js_field(&data, "new_block_type")?)?
-        })
-    }
-
     pub fn from_json(json: Value) -> Result<Self, StepError> {
-        let block_id = json.get("block_id")
-            .ok_or(StepError(format!("Block does not have block_id field: {}", json)))?
-            .as_str().ok_or(StepError("block_id field is not a string".to_string()))?;
+        let block_id = get_json_field_as_string(&json, "block_id")?;
         let new_block_type = StandardBlockType::from_json_block(json.get("new_block_type")
             .ok_or(StepError(format!("Block does not have new_block_type field: {}", json)))?)?;
-        return Ok(Self { block_id: block_id.to_string(), new_block_type })
+        return Ok(Self { block_id, new_block_type })
     }
 }
 
@@ -394,12 +331,55 @@ impl PasteStep {
         // }))
     }
 
-    pub fn from_js_obj(data: JsValue) -> Result<Self, StepError> {
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
         unimplemented!()
-        // return Ok(Self {
-        //     block_id: get_js_field_as_string(&data, "block_id")?,
-        //     new_block_type: StandardBlockType::from_js_block(&get_js_field(&data, "block_type")?)?
-        // })
     }
+
 }
 
+
+#[derive(Debug, Clone)]
+pub struct DuplicateStep {
+    pub duplicate_block_id: String,
+    pub new_block_id: String
+}
+
+impl DuplicateStep {
+    pub fn to_json(self) -> Result<Value, StepError> {
+        return Ok(json!({
+            "duplicate_block_id": self.duplicate_block_id,
+            "new_block_id": self.new_block_id
+        }))
+    }
+
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        return Ok(Self {
+            duplicate_block_id: get_json_field_as_string(&json, "duplicate_block_id")?,
+            new_block_id: get_json_field_as_string(&json, "new_block_id")?,
+        })
+    }
+
+}
+
+#[derive(Debug, Clone)]
+pub struct AddParagraphAtBottomStep {
+    pub root_block_id: String,
+    pub new_block_id: String
+}
+
+impl AddParagraphAtBottomStep {
+    pub fn to_json(self) -> Result<Value, StepError> {
+        return Ok(json!({
+            "root_block_id": self.root_block_id,
+            "new_block_id": self.new_block_id
+        }))
+    }
+
+    pub fn from_json(json: Value) -> Result<Self, StepError> {
+        return Ok(Self {
+            root_block_id: get_json_field_as_string(&json, "root_block_id")?,
+            new_block_id: get_json_field_as_string(&json, "new_block_id")?,
+        })
+    }
+
+}

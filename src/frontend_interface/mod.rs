@@ -2,7 +2,7 @@
 use wasm_bindgen::JsValue;
 
 use crate::{steps_generator::{event::Event, selection::{Selection, SubSelection}, generate_steps, StepError},
-new_ids::NewIds, blocks::{BlockMap}, steps_actualisor::{actualise_steps, UpdatedState}, custom_copy::CustomCopy, step::Step};
+new_ids::NewIds, blocks::{BlockMap}, steps_actualisor::{actualise_steps, UpdatedState}, custom_copy::CustomCopy};
 
 pub fn actualise_event(
     selection_js: js_sys::Object,
@@ -17,7 +17,7 @@ pub fn actualise_event(
     let event = Event::from_js_obj(event_js).unwrap();
     let mut new_ids = NewIds::Js(new_ids_arr);
 
-    let steps = match generate_steps(&event, &block_map, selection, &copy) {
+    let steps = match generate_steps(&event, &block_map, selection, &copy, &mut new_ids) {
         Ok(steps) => steps,
         Err(StepError(err)) => return Response {
             selection: None,
@@ -138,53 +138,4 @@ pub fn get_selection(
     };
 
     return selection.to_js_obj().unwrap()
-}
-
-pub fn actualise_mirror_step(
-    step_js: JsValue,
-    new_ids_arr: js_sys::Array,
-    block_map_js: js_sys::Map
-) -> Response {
-    let block_map = BlockMap::from_js_map(block_map_js);
-    let step = match Step::from_js_obj(step_js) {
-        Ok(step) => step,
-        Err(StepError(err)) => {
-            return Response {
-                selection: None,
-                blocks_to_update: JsValue::from(js_sys::Array::new()),
-                steps: JsValue::from(js_sys::Array::new()),
-                err: Some(err)
-            }
-        }
-    };
-    let mut new_ids = NewIds::Js(new_ids_arr);
-
-    return match actualise_steps(vec![step.clone()], block_map, &mut new_ids, CustomCopy::new()) {
-        Ok(UpdatedState { selection, blocks_to_update, .. }) => {
-            let selection = match selection {
-                Some(selection) => Some(selection.to_js_obj().unwrap()),
-                None => None
-            };
-            let js_blocks_to_update = js_sys::Array::new();
-            for id in blocks_to_update {
-                js_blocks_to_update.push(&JsValue::from_str(&id));
-            }
-
-            let steps_js = js_sys::Array::new();
-            steps_js.push(&step.to_js_obj().unwrap());
-
-            Response {
-                selection,
-                blocks_to_update: JsValue::from(js_blocks_to_update),
-                steps: JsValue::from(steps_js),
-                err: None
-            }
-        },
-        Err(StepError(err)) => Response {
-            selection: None,
-            blocks_to_update: JsValue::from(js_sys::Array::new()),
-            steps: JsValue::from(js_sys::Array::new()),
-            err: Some(err)
-        }
-    }
 }

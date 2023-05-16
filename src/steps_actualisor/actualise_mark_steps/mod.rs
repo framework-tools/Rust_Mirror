@@ -32,7 +32,6 @@ pub fn actualise_mark_step(
     mark_step: MarkStep,
     mut block_map: BlockMap,
     add_mark: bool,
-    new_ids: &mut NewIds,
     mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let from_raw_selection = mark_step.from.to_raw_selection(&block_map)?;
@@ -41,12 +40,12 @@ pub fn actualise_mark_step(
     let block = block_map.get_block(&mark_step.from.block_id)?;
     match block {
         Block::InlineBlock(from_block) => {
-            let updated_state = actualise_mark_step_on_inline_blocks(mark_step, from_block, block_map, add_mark, new_ids, blocks_to_update)?;
+            let updated_state = actualise_mark_step_on_inline_blocks(mark_step, from_block, block_map, add_mark, blocks_to_update)?;
             block_map = updated_state.block_map;
             blocks_to_update = updated_state.blocks_to_update;
         },
         Block::StandardBlock(_) => {
-            let updated_state = actualise_mark_step_on_standard_blocks(mark_step, block_map, add_mark, new_ids, blocks_to_update)?;
+            let updated_state = actualise_mark_step_on_standard_blocks(mark_step, block_map, add_mark, blocks_to_update)?;
             block_map = updated_state.block_map;
             blocks_to_update = updated_state.blocks_to_update;
         },
@@ -89,7 +88,6 @@ fn actualise_mark_step_on_inline_blocks(
     from_block: InlineBlock,
     mut block_map: BlockMap,
     add_mark: bool,
-    new_ids: &mut NewIds,
     mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     if mark_step.from.block_id == mark_step.to.block_id {
@@ -123,10 +121,10 @@ fn actualise_mark_step_on_inline_blocks(
         let from_parent_block = block_map.get_standard_block(&from_block.parent)?;
         let to_block = block_map.get_inline_block(&mark_step.to.block_id)?;
 
-        let (first_half_of_from_block, second_half_of_from_block) = from_block.split(mark_step.from.offset, new_ids)?;
+        let (first_half_of_from_block, second_half_of_from_block) = from_block.split(mark_step.from.offset, mark_step.from_new_inline_id)?;
         let first_half_of_from_block_id = first_half_of_from_block.id();
         let second_half_of_from_block_id = second_half_of_from_block.id();
-        let (first_half_of_to_block, second_half_of_to_block) = to_block.split(mark_step.to.offset, new_ids)?;
+        let (first_half_of_to_block, second_half_of_to_block) = to_block.split(mark_step.to.offset, mark_step.to_new_inline_id)?;
         let first_half_of_to_block_id = first_half_of_to_block.id();
         let second_half_of_to_block_id = second_half_of_to_block.id();
 

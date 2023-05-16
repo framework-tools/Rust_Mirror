@@ -34,18 +34,25 @@ use super::{UpdatedState, clean_block_after_transform};
 pub fn actualise_split_step(
     split_step: SplitStep,
     mut block_map: BlockMap,
-    new_ids: &mut NewIds,
     mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let inline_block = block_map.get_inline_block(&split_step.subselection.block_id)?;
-    let (first_half_inline_block, mut second_half_inline_block) = inline_block.split(split_step.subselection.offset, new_ids)?;
+    let (first_half_inline_block, mut second_half_inline_block) = inline_block.split(
+        split_step.subselection.offset,
+        split_step.new_inline_block_id
+    )?;
     if second_half_inline_block.text()?.len() == 0 {
         second_half_inline_block.marks = vec![];
     }
     let parent = first_half_inline_block.get_parent(&block_map)?;
     let new_block_content = get_new_enter_block_type(&parent.content)?;
     let new_block_content = new_block_content.push_to_content(vec![second_half_inline_block.id()])?;
-    let (updated_standard_block, new_standard_block) = parent.split(first_half_inline_block.index(&block_map)? + 1, new_block_content, new_ids)?;
+    let (updated_standard_block, new_standard_block) = parent.split(
+        first_half_inline_block.index(&block_map)? + 1,
+        new_block_content,
+        split_step.new_std_block_id,
+        split_step.new_inline_block_id
+    )?;
     new_standard_block.set_new_parent_of_children(&mut block_map, &mut blocks_to_update)?;
 
     let mut parents_parent = block_map.get_block(&updated_standard_block.parent())?;

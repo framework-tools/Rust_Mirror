@@ -5,7 +5,6 @@ use super::UpdatedState;
 pub fn actualise_add_paragraph_at_bottom(
     root_block_id: String,
     mut block_map: BlockMap,
-    new_ids: &mut NewIds,
     mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let new_paragraph_id = new_ids.get_id()?;

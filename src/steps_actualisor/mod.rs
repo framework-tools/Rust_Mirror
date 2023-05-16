@@ -89,12 +89,12 @@ pub fn actualise_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewI
     for step in steps {
         updated_state = match step {
             Step::ReplaceStep(replace_step) => actualise_replace_step(replace_step, updated_state.block_map, updated_state.selection, updated_state.blocks_to_update, new_ids)?,
-            Step::SplitStep(split_step) => actualise_split_step(split_step, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
-            Step::AddMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, true, new_ids, updated_state.blocks_to_update)?,
-            Step::RemoveMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, false, new_ids, updated_state.blocks_to_update)?,
+            Step::SplitStep(split_step) => actualise_split_step(split_step, updated_state.block_map, updated_state.blocks_to_update)?,
+            Step::AddMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, true, updated_state.blocks_to_update)?,
+            Step::RemoveMarkStep(mark_step) => actualise_mark_step(mark_step, updated_state.block_map, false, updated_state.blocks_to_update)?,
             Step::TurnToChild(turn_to_child_step) => actualise_child_steps(updated_state.block_map, turn_to_child_step, updated_state.blocks_to_update)?,
             Step::TurnToParent(turn_to_parent_step) => actualise_parent_steps(updated_state.block_map, turn_to_parent_step, updated_state.blocks_to_update)?,
-            Step::AddBlock(add_block_step) => actualise_add_block(add_block_step, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
+            Step::AddBlock(add_block_step) => actualise_add_block(add_block_step, updated_state.block_map, updated_state.blocks_to_update)?,
             Step::TurnInto(turn_into_step) => actualise_turn_into_step(turn_into_step, updated_state.block_map, updated_state.blocks_to_update)?,
             Step::ToggleCompleted(_id) => actualise_toggle_completed(_id, updated_state.block_map, updated_state.blocks_to_update)?,
             Step::Copy(from, to) => {
@@ -103,12 +103,12 @@ pub fn actualise_steps(steps: Vec<Step>, block_map: BlockMap, new_ids: &mut NewI
                 updated_state.copy = None;
                 updated_state
             },
-            Step::Paste(paste_step) => actualise_paste(copy.clone(), paste_step, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
+            Step::Paste(paste_step) => actualise_paste(copy.clone(), paste_step, updated_state.block_map, updated_state.blocks_to_update)?,
             Step::DropBlock(drop_block_event) => actualise_drop_block(drop_block_event, updated_state.block_map, updated_state.blocks_to_update, new_ids)?,
             Step::DeleteBlock(block_id) => actualise_delete_block(block_id, updated_state.block_map, updated_state.blocks_to_update)?,
-            Step::Duplicate(block_id) => actualise_duplicate(block_id, updated_state.block_map, updated_state.blocks_to_update, new_ids)?,
+            Step::Duplicate(block_id) => actualise_duplicate(block_id, updated_state.block_map, updated_state.blocks_to_update)?,
             Step::ReplaceWithChildren(replace_with_children_event) => actualise_replace_with_children(replace_with_children_event, updated_state.block_map, updated_state.blocks_to_update)?,
-            Step::AddParagraphAtBottom(root_block_id) => actualise_add_paragraph_at_bottom(root_block_id, updated_state.block_map, new_ids, updated_state.blocks_to_update)?,
+            Step::AddParagraphAtBottom(root_block_id) => actualise_add_paragraph_at_bottom(root_block_id, updated_state.block_map, updated_state.blocks_to_update)?,
         };
     }
     updated_state.copy = Some(copy);

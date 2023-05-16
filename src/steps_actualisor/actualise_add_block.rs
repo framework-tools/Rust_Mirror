@@ -18,7 +18,6 @@ use super::UpdatedState;
 pub fn actualise_add_block(
     add_block_step: AddBlockStep,
     mut block_map: BlockMap,
-    new_ids: &mut NewIds,
     mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let mut parent = block_map.get_block(&add_block_step.block_id)?;

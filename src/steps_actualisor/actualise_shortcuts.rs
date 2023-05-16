@@ -39,7 +39,6 @@ pub fn actualise_paste(
     copy: CustomCopy,
     paste_step: PasteStep,
     mut block_map: BlockMap,
-    new_ids: &mut NewIds,
     mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let mut copy_tree = copy.to_tree()?;
@@ -121,6 +120,7 @@ fn paste_inline_blocks(
     paste_only_inline_blocks: bool,
     selection: &mut Option<Selection>,
 ) -> Result<StandardBlock, StepError> {
+
     let insertion_block_id = insertion_block.get_inline_block_from_index(insertion_block.index_of(&deepest_subselection.block_id)?)?;
     let insertion_inline_block = block_map.get_inline_block(&insertion_block_id)?;
     let (_first_half, second_half) = update_state_tools::split_inline_block(insertion_inline_block, deepest_subselection.offset, blocks_to_update, block_map, new_ids)?;

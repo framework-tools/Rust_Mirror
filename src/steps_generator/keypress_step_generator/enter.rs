@@ -2,9 +2,9 @@
 
 
 
-use crate::{step::{Step, SplitStep, AddBlockStep}, blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps, turn_into::turn_into_paragraph_step}, utilities::caret_is_at_start_of_block};
+use crate::{step::{Step, SplitStep, AddBlockStep}, blocks::{BlockMap, standard_blocks::{StandardBlockType, content_block::ContentBlock}}, steps_generator::{selection::SubSelection, StepError, generate_replace_selected_steps::generate_replace_selected_steps, turn_into::turn_into_paragraph_step}, utilities::caret_is_at_start_of_block, new_ids::NewIds};
 
-pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: SubSelection) -> Result<Vec<Step>, StepError> {
+pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: SubSelection, new_ids: &mut NewIds) -> Result<Vec<Step>, StepError> {
     let mut steps = vec![];
     if from != to {
         let delete_selected_steps = generate_replace_selected_steps(block_map, from.clone(), to, "".to_string())?;
@@ -24,12 +24,18 @@ pub fn generate_steps_for_enter(block_map: &BlockMap, from: SubSelection, to: Su
                     block_id: parent.id(),
                     child_offset: std_block.index(block_map)?,
                     block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![])),
-                    focus_block_below: true
+                    focus_block_below: true,
+                    new_std_block_id: new_ids.get_id()?,
+                    new_inline_block_id: new_ids.get_id()?
                 })
             ])
         }
     }
 
-    steps.push(Step::SplitStep(SplitStep { subselection: from.get_deepest_subselection().clone() }));
+    steps.push(Step::SplitStep(SplitStep {
+        subselection: from.get_deepest_subselection().clone(),
+        new_std_block_id: new_ids.get_id()?,
+        new_inline_block_id: new_ids.get_id()?
+    }));
     return Ok(steps)
 }

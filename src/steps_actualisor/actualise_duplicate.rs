@@ -6,8 +6,7 @@ use super::UpdatedState;
 pub fn actualise_duplicate(
     block_id: String,
     mut block_map: BlockMap,
-    mut blocks_to_update: Vec<String>,
-    new_ids: &mut NewIds
+    mut blocks_to_update: Vec<String>
 ) -> Result<UpdatedState, StepError> {
     let block = block_map.get_standard_block(&block_id)?;
     let parent = block.get_parent(&block_map)?;

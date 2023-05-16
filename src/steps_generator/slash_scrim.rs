@@ -1,4 +1,4 @@
-use crate::{step::{Step, ReplaceStep, ReplaceSlice, AddBlockStep}, blocks::{BlockMap, Block, standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock, StandardBlock, page_block::PageBlock}}};
+use crate::{step::{Step, ReplaceStep, ReplaceSlice, AddBlockStep}, blocks::{BlockMap, Block, standard_blocks::{StandardBlockType, content_block::ContentBlock, list_block::ListBlock, StandardBlock, page_block::PageBlock}}, new_ids::NewIds};
 
 use super::{StepError, event::SlashScrimEvent, selection::SubSelection};
 
@@ -7,7 +7,8 @@ pub fn generate_slash_scrim_steps(
     slash_scrim_event: &SlashScrimEvent,
     from: SubSelection,
     to: SubSelection,
-    block_map: &BlockMap
+    block_map: &BlockMap,
+    new_ids: &mut NewIds
 ) -> Result<Vec<Step>, StepError> {
     let mut replace_slash_scrim_text_step: Option<ReplaceStep> = None;
     let from_block = block_map.get_block(&from.block_id)?;
@@ -53,10 +54,12 @@ pub fn generate_slash_scrim_steps(
             return Ok(vec![
                 Step::DeleteBlock(nearest_standard_block.id()),
                 Step::AddBlock(AddBlockStep {
-                    block_id:  nearest_standard_block.parent(),
+                    block_id: nearest_standard_block.parent(),
                     child_offset: nearest_standard_block.index(block_map)?,
                     block_type: new_block_type,
                     focus_block_below: false,
+                    new_std_block_id: new_ids.get_id()?,
+                    new_inline_block_id: new_ids.get_id()?
                 })
             ])
         } else if block_is_empty_other_than_slash_and_search(&nearest_standard_block, block_map, &replace_step)? {
@@ -67,12 +70,16 @@ pub fn generate_slash_scrim_steps(
                     child_offset: nearest_standard_block.index(block_map)?,
                     block_type: new_block_type,
                     focus_block_below: false,
+                    new_std_block_id: new_ids.get_id()?,
+                    new_inline_block_id: new_ids.get_id()?
                 }),
                 Step::AddBlock(AddBlockStep {
                     block_id:  nearest_standard_block.parent(),
                     child_offset: nearest_standard_block.index(block_map)? + 1,
                     block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![])),
                     focus_block_below: false,
+                    new_std_block_id: new_ids.get_id()?,
+                    new_inline_block_id: new_ids.get_id()?
                 })
             ])
         } else {
@@ -87,14 +94,18 @@ pub fn generate_slash_scrim_steps(
         block_id: nearest_standard_block.parent.clone(),
         child_offset: offset_to_add_at,
         block_type: new_block_type,
-        focus_block_below: false
+        focus_block_below: false,
+        new_std_block_id: new_ids.get_id()?,
+        new_inline_block_id: new_ids.get_id()?
     }));
     if add_paragraph_block_below_new_block {
         steps.push(Step::AddBlock(AddBlockStep {
             block_id: nearest_standard_block.parent.clone(),
             child_offset: offset_to_add_at + 1,
             block_type: StandardBlockType::Paragraph(ContentBlock::new(vec![])),
-            focus_block_below: false
+            focus_block_below: false,
+            new_std_block_id: new_ids.get_id()?,
+            new_inline_block_id: new_ids.get_id()?
         }));
     }
 

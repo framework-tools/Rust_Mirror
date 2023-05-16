@@ -125,14 +125,19 @@ impl InlineBlock {
         return block_map.get_inline_block(&previous_block_id)
     }
 
-    pub fn split(mut self, offset: usize, new_ids: &mut NewIds) -> Result<(Self, Self), StepError> {
+    pub fn split(mut self, offset: usize, new_inline_block_id: String) -> Result<(Self, Self), StepError> {
         let text = self.text()?;
         if offset > text.len() as usize {
             return Err(StepError(format!("Offset is larger than text size. Offset: {}, text: {:?}", offset, text)))
         }
         let (first_half, second_half) = text.split(offset);
         self = self.update_text(first_half)?;
-        let new_block = self.clone().to_new_block(new_ids)?.update_text(second_half)?;
+        let new_block = InlineBlock {
+            _id: new_inline_block_id,
+            content: self.content,
+            marks: self.marks,
+            parent: self.parent
+        }.update_text(second_half)?;
         return Ok((self, new_block))
     }
 

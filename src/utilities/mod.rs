@@ -223,11 +223,11 @@ fn split_edge_block_inline_blocks(
     block_map: &BlockMap,
     current_node: StandardBlock,
     new_block_map: &mut BlockMap,
-    new_ids: &mut NewIds
+    new_inline_block_id: String
 ) -> Result<StandardBlock, StepError> {
     let deepest_subselection = subselection.get_deepest_subselection();
     let from_inline_block = block_map.get_inline_block(&deepest_subselection.block_id)?;
-    let (first_half, second_half) = from_inline_block.split(deepest_subselection.offset, new_ids)?;
+    let (first_half, second_half) = from_inline_block.split(deepest_subselection.offset, new_inline_block_id)?;
 
     let inline_index = current_node.index_of(&deepest_subselection.block_id)?;
     let mut inline_blocks = current_node.content_block()?.inline_blocks.clone();

@@ -187,7 +187,13 @@ impl StandardBlock {
         return block_map.get_inline_block(&last_block_id)
     }
 
-    pub fn split(mut self, index: usize, new_block_content: StandardBlockType, new_ids: &mut NewIds) -> Result<(Self, Self), StepError> {
+    pub fn split(
+        mut self,
+        index: usize,
+        new_block_content: StandardBlockType,
+        new_std_block_id: String,
+        new_inline_block_id: String
+    ) -> Result<(Self, Self), StepError> {
         let inline_blocks = &self.content_block()?.inline_blocks;
         if index > inline_blocks.len() {
             return Err(StepError(format!("Inline blocks length: {}, is less than index: {}", inline_blocks.len(), index)))
@@ -196,7 +202,13 @@ impl StandardBlock {
         let first_half = inline_blocks[..index].to_vec();
         let second_half = inline_blocks[index..].to_vec();
         self = self.update_block_content(ContentBlock { inline_blocks: first_half })?;
-        let mut new_block = StandardBlock::from(new_block_content, self.parent.clone(), new_ids)?.push_to_content(second_half)?;
+        let mut new_block = StandardBlock {
+            _id: new_std_block_id,
+            content: new_block_content,
+            children: vec![],
+            parent: self.parent.clone(),
+            marks: vec![]
+        }.push_to_content(second_half)?;
         new_block.children = self.children;
         self.children = vec![];
         return Ok((self, new_block))

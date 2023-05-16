@@ -12,7 +12,7 @@ pub enum ForSelection {
 /// If inline block / blocks
 /// -> if all the blocks have an identical mark with same values -> remove mark
 /// -> else -> add mark
-pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, block_map: &BlockMap) -> Result<Vec<Step>, StepError> {
+pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, block_map: &BlockMap, new_ids: &mut NewIds) -> Result<Vec<Step>, StepError> {
     let from_block = block_map.get_block(&from.block_id)?;
     let parent_block_id = from_block.parent()?;
     let mut should_add_mark = false;
@@ -73,7 +73,14 @@ pub fn generate_mark_steps(mark: Mark, from: SubSelection, to: SubSelection, blo
     };
 
 
-    let mark_step = MarkStep { block_id: parent_block_id, from, to, mark };
+    let mark_step = MarkStep {
+        block_id: parent_block_id,
+        from,
+        to,
+        mark,
+        from_new_inline_id: new_ids.get_id()?,
+        to_new_inline_id: new_ids.get_id()?
+    };
     if should_add_mark {
         return Ok(vec![Step::AddMarkStep(mark_step)])
     } else {
